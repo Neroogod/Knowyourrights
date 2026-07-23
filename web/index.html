@@ -1,171 +1,433 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KnowYourRights - Nigeria (MVP)</title>
-  <style>
-    :root {
-      --green: #0b6b3a; --green-dark: #084d2a; --ink: #14201a; --muted: #5b6b63;
-      --bg: #f5f7f5; --card: #ffffff; --line: #e2e8e3; --accent: #1a8f57; --danger: #b3261e;
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Know Your Rights — Nigeria</title>
+<style>
+  :root{
+    --paper:#F3EFE6; --canvas:#EBE6D9; --card:#FFFFFF; --card-2:#FBF8F1;
+    --ink:#17211B; --muted:#5E6A61; --faint:#8A938B; --line:#E5DFD1;
+    --green:#124A34; --green-deep:#0E3B2A; --green-tint:#E7F0EA; --on-green:#F6F3EA;
+    --gold:#A9792F; --gold-tint:#F2E8CF; --gold-ink:#7C561E;
+    --sos:#C23B2E; --sos-deep:#9E2C21; --sos-tint:#FBEAE6; --sos-ink:#8E271D; --on-sos:#FDF3F0;
+    --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+    --shadow:0 1px 2px rgba(20,30,24,.05),0 8px 24px rgba(20,30,24,.06);
+    --shadow-lg:0 24px 60px rgba(16,28,22,.18);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#1B231E; --canvas:#161D19; --card:#242E28; --card-2:#2B352E;
+      --ink:#EEE9DD; --muted:#A6B2A8; --faint:#849388; --line:#37423A;
+      --green:#4FA97B; --green-deep:#3D8A63; --green-tint:#16241D; --on-green:#08110C;
+      --gold:#D8B65E; --gold-tint:#241E10; --gold-ink:#E6C979;
+      --sos:#E5695A; --sos-deep:#C6483A; --sos-tint:#2A1613; --sos-ink:#F0A99E; --on-sos:#1A0C09;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.5);
+      --shadow-lg:0 30px 70px rgba(0,0,0,.55);
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg); color: var(--ink); line-height: 1.5; }
-    header { background: linear-gradient(135deg, var(--green), var(--green-dark)); color: #fff; padding: 20px 16px; }
-    header .wrap { max-width: 860px; margin: 0 auto; }
-    header h1 { margin: 0; font-size: 1.35rem; }
-    header p { margin: 4px 0 0; opacity: .9; font-size: .9rem; }
-    main { max-width: 860px; margin: 0 auto; padding: 16px; }
-    .tabs { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
-    .tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff;
-      cursor: pointer; font-size: .9rem; }
-    .tab.active { background: var(--green); color: #fff; border-color: var(--green); }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
-      margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
-    .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
-    .muted { color: var(--muted); font-size: .85rem; }
-    .badge { display: inline-block; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
-      background: #e6f4ec; color: var(--green-dark); margin-left: 6px; }
-    .pill { display:inline-block; background:#eef2ef; color:var(--muted); border-radius:999px; padding:2px 8px; font-size:.72rem; }
-    ul { margin: 8px 0; padding-left: 20px; }
-    .cite { font-size: .8rem; color: var(--green-dark); background: #eef7f1; border: 1px solid #d7ebe0;
-      border-radius: 8px; padding: 6px 10px; margin: 6px 6px 0 0; display: inline-block; }
-    .search, .ask input { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
-      font-size: 1rem; }
-    .ask { display: flex; gap: 8px; }
-    .ask button { padding: 0 18px; border: none; border-radius: 10px; background: var(--green); color: #fff;
-      font-weight: 600; cursor: pointer; }
-    .answer { border-left: 4px solid var(--accent); padding-left: 12px; white-space: pre-wrap; }
-    .answer.refused { border-color: var(--danger); }
-    .disclaimer { font-size: .78rem; color: var(--muted); font-style: italic; margin-top: 10px;
-      border-top: 1px dashed var(--line); padding-top: 8px; }
-    .step { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
-    .step:last-child { border-bottom: none; }
-    .step .n { flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--green); color:#fff;
-      display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; }
-    .hidden { display: none; }
-    a { color: var(--green-dark); }
-  </style>
+  }
+  :root[data-theme="light"]{
+    --paper:#F3EFE6; --canvas:#EBE6D9; --card:#FFFFFF; --card-2:#FBF8F1;
+    --ink:#17211B; --muted:#5E6A61; --faint:#8A938B; --line:#E5DFD1;
+    --green:#124A34; --green-deep:#0E3B2A; --green-tint:#E7F0EA; --on-green:#F6F3EA;
+    --gold:#A9792F; --gold-tint:#F2E8CF; --gold-ink:#7C561E;
+    --sos:#C23B2E; --sos-deep:#9E2C21; --sos-tint:#FBEAE6; --sos-ink:#8E271D; --on-sos:#FDF3F0;
+    --shadow:0 1px 2px rgba(20,30,24,.05),0 8px 24px rgba(20,30,24,.06);
+    --shadow-lg:0 24px 60px rgba(16,28,22,.18);
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B231E; --canvas:#161D19; --card:#242E28; --card-2:#2B352E;
+    --ink:#EEE9DD; --muted:#A6B2A8; --faint:#849388; --line:#37423A;
+    --green:#4FA97B; --green-deep:#3D8A63; --green-tint:#16241D; --on-green:#08110C;
+    --gold:#D8B65E; --gold-tint:#241E10; --gold-ink:#E6C979;
+    --sos:#E5695A; --sos-deep:#C6483A; --sos-tint:#2A1613; --sos-ink:#F0A99E; --on-sos:#1A0C09;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.5);
+    --shadow-lg:0 30px 70px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:
+      radial-gradient(120% 70% at 50% -10%, color-mix(in srgb,var(--green) 8%,var(--canvas)) 0%, var(--canvas) 55%);
+    color:var(--ink);font-family:var(--sans);line-height:1.5;min-height:100vh;}
+
+  .topbar{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);
+    background:color-mix(in srgb,var(--paper) 82%,transparent);border-bottom:1px solid var(--line);}
+  .topbar .in{max-width:680px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .seal{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;color:var(--green-deep);
+    background:conic-gradient(from 210deg,var(--gold),color-mix(in srgb,var(--gold) 55%,#fff),var(--gold));}
+  .brand b{font-family:var(--serif);font-weight:600;font-size:1.12rem;letter-spacing:-.01em;}
+  .brand small{display:block;color:var(--muted);font-size:.68rem;font-weight:600;letter-spacing:.02em;}
+  .tt{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 13px;
+    font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;display:inline-flex;gap:7px;align-items:center;}
+  .tt:hover{border-color:var(--green);}
+
+  main{max-width:680px;margin:0 auto;padding:18px 18px 120px;}
+  .view{display:none;flex-direction:column;gap:14px;animation:fade .26s ease both;}
+  .view.on{display:flex;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){.view{animation:none;}}
+
+  h2.section{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:8px 2px 0;}
+  .lead-h{font-family:var(--serif);font-weight:600;font-size:1.6rem;letter-spacing:-.01em;margin:2px 0 0;text-wrap:balance;}
+
+  /* emergency hero */
+  .sos-panel{background:linear-gradient(150deg,var(--sos) 0%,var(--sos-deep) 100%);color:var(--on-sos);
+    border-radius:22px;padding:20px;box-shadow:0 12px 26px color-mix(in srgb,var(--sos) 34%,transparent);position:relative;overflow:hidden;}
+  .sos-panel::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 120% -20%,rgba(255,255,255,.16),transparent 60%);pointer-events:none;}
+  .sos-panel .k{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800;opacity:.9;}
+  .sos-panel h3{font-family:var(--serif);font-weight:600;font-size:1.6rem;margin:4px 0 14px;letter-spacing:-.01em;}
+  .sos-cta{display:flex;align-items:center;gap:12px;width:100%;background:var(--on-sos);color:var(--sos-deep);
+    border:none;border-radius:14px;padding:15px 16px;font:inherit;font-weight:800;font-size:1.05rem;cursor:pointer;text-align:left;box-shadow:0 4px 10px rgba(0,0,0,.14);}
+  .sos-cta .ar{margin-left:auto;font-size:1.2rem;}
+  .trigrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px;}
+  .trig{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:var(--on-sos);
+    border-radius:12px;padding:12px;font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;text-align:left;}
+  .trig:hover{background:rgba(255,255,255,.24);}
+
+  .alert-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);}
+  .alert-ring{width:46px;height:46px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:var(--sos);
+    background:var(--sos-tint);box-shadow:0 0 0 4px color-mix(in srgb,var(--sos) 18%,transparent);}
+  .alert-card h4{margin:0 0 2px;font-size:1rem;}
+  .alert-card p{margin:0;color:var(--muted);font-size:.84rem;}
+  .alert-card .go{margin-left:auto;border:1px solid var(--sos);color:var(--sos);background:transparent;border-radius:10px;padding:9px 13px;font:inherit;font-weight:700;font-size:.82rem;cursor:pointer;flex:0 0 auto;}
+
+  .askbar{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow);cursor:text;width:100%;text-align:left;font:inherit;color:var(--faint);}
+  .askbar .mag{color:var(--green);display:flex;}
+
+  input.field{width:100%;padding:14px 15px;border:1px solid var(--line);border-radius:14px;font:inherit;font-size:1rem;background:var(--card);color:var(--ink);box-shadow:var(--shadow);}
+  input.field::placeholder{color:var(--faint);}
+  .askrow{display:flex;gap:9px;}
+  .askrow .btn-primary{flex:0 0 auto;}
+  .btn-primary{background:var(--green);color:var(--on-green);border:none;border-radius:12px;padding:0 20px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 10px color-mix(in srgb,var(--green) 24%,transparent);}
+
+  .verified{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:800;color:var(--gold-ink);
+    background:var(--gold-tint);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);padding:3px 8px 3px 6px;border-radius:999px;}
+  .verified svg{width:12px;height:12px;}
+  .cat{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green);font-weight:700;background:var(--green-tint);padding:3px 8px;border-radius:6px;}
+
+  .rcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s ease,border-color .15s ease;}
+  .rcard:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--green) 40%,var(--line));}
+  .rcard .top{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;}
+  .rcard h4{font-family:var(--serif);font-weight:600;font-size:1.12rem;margin:0;letter-spacing:-.01em;}
+  .rcard p{margin:0;color:var(--muted);font-size:.86rem;}
+
+  .block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:var(--shadow);}
+  .block.rights{border-left:3px solid var(--gold);}
+  .block.do{border-left:3px solid var(--green);}
+  .block.dont{border-left:3px solid var(--sos);}
+  .block h5{margin:0 0 9px;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800;}
+  .block ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;}
+  .block li{display:flex;gap:9px;font-size:.92rem;align-items:flex-start;}
+  .block li .ic{flex:0 0 15px;margin-top:1px;font-weight:700;}
+  .g{color:var(--green);} .r{color:var(--sos);} .au{color:var(--gold-ink);}
+
+  .detail-lead{font-family:var(--serif);font-size:1.18rem;line-height:1.36;margin:4px 0 2px;letter-spacing:-.005em;}
+  .detail-body{color:var(--muted);font-size:.94rem;margin:0;}
+  .quote{font-style:italic;color:var(--muted);font-size:.9rem;border-left:2px solid var(--line);padding-left:12px;margin:2px 0 0;}
+  .reviewed{font-size:.76rem;color:var(--faint);display:flex;align-items:center;gap:7px;margin-top:2px;flex-wrap:wrap;}
+
+  .cite{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;color:var(--green-deep);
+    background:var(--green-tint);border:1px solid color-mix(in srgb,var(--green) 22%,transparent);border-radius:8px;padding:5px 9px;}
+  .cites{display:flex;flex-wrap:wrap;gap:7px;}
+
+  .step{display:flex;gap:12px;align-items:flex-start;}
+  .step .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--green);color:var(--on-green);font-weight:800;
+    display:grid;place-items:center;font-size:.9rem;box-shadow:0 3px 8px color-mix(in srgb,var(--green) 28%,transparent);}
+  .step .t{font-size:.94rem;padding-top:3px;}
+  .steps{display:flex;flex-direction:column;gap:16px;}
+  .callbtn{display:inline-flex;align-items:center;gap:8px;margin-top:9px;background:var(--green);color:var(--on-green);
+    border:none;border-radius:11px;padding:11px 15px;font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;text-decoration:none;
+    box-shadow:0 4px 10px color-mix(in srgb,var(--green) 24%,transparent);}
+  .callbtn.sos{background:var(--sos);color:var(--on-sos);box-shadow:0 4px 10px color-mix(in srgb,var(--sos) 28%,transparent);}
+
+  .answer{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:14px;padding:16px;box-shadow:var(--shadow);}
+  .answer.refused{border-left-color:var(--sos);}
+  .answer .lead{font-family:var(--serif);font-size:1.08rem;margin:0 0 8px;}
+  .answer.refused .lead{color:var(--sos-ink);}
+  .answer .txt{margin:0 0 11px;font-size:.94rem;white-space:pre-wrap;}
+  .disclaimer{font-size:.76rem;color:var(--faint);font-style:italic;border-top:1px dashed var(--line);padding-top:10px;margin-top:6px;}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;font:inherit;font-size:.84rem;color:var(--ink);cursor:pointer;}
+  .chip:hover{border-color:var(--green);}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+
+  .dir{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:var(--shadow);}
+  .dir.emergency{border-left:3px solid var(--sos);}
+  .dir h4{margin:0;font-size:1rem;}
+  .dir .meta{font-size:.76rem;color:var(--faint);text-transform:capitalize;margin:3px 0 11px;}
+  .dir .btns{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn-call{background:var(--green);color:var(--on-green);border:none;border-radius:10px;padding:10px 14px;font:inherit;font-weight:700;font-size:.84rem;cursor:pointer;display:inline-flex;gap:7px;align-items:center;text-decoration:none;}
+  .btn-call.big{background:var(--sos);color:var(--on-sos);}
+  .btn-web{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font:inherit;font-weight:600;font-size:.84rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;}
+
+  .backbtn{align-self:flex-start;background:none;border:none;color:var(--muted);font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;padding:4px 0;display:inline-flex;gap:6px;align-items:center;}
+  .backbtn:hover{color:var(--green);}
+  .muted-note{color:var(--faint);font-size:.85rem;}
+
+  /* bottom nav */
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--card) 90%,transparent);
+    backdrop-filter:blur(10px);border-top:1px solid var(--line);}
+  .nav .in{max-width:680px;margin:0 auto;display:flex;padding:8px 6px calc(9px + env(safe-area-inset-bottom));}
+  .nav button{flex:1;background:none;border:none;color:var(--faint);font:inherit;font-size:.66rem;font-weight:600;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px 2px;border-radius:10px;}
+  .nav button svg{width:23px;height:23px;}
+  .nav button.on{color:var(--green);}
+  .nav button.on.em{color:var(--sos);}
+
+  .banner{font-size:.76rem;color:var(--faint);text-align:center;border:1px dashed var(--line);border-radius:12px;padding:10px;}
+  button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+</style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <h1>KnowYourRights <span class="pill" style="background:rgba(255,255,255,.2);color:#fff">MVP</span></h1>
-      <p>Know your rights in Nigeria - grounded in the 1999 Constitution.</p>
+  <div class="topbar">
+    <div class="in">
+      <div class="brand">
+        <span class="seal" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v18M5 7h14M6 7l-3 6a3 3 0 006 0zM18 7l-3 6a3 3 0 006 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span><b>Know Your Rights</b><small>Nigeria · grounded in the 1999 Constitution</small></span>
+      </div>
+      <button class="tt" id="tt" aria-label="Toggle light or dark theme"><span id="tticon">☀</span><span id="ttlabel">Light</span></button>
     </div>
-  </header>
-  <main>
-    <div class="tabs">
-      <div class="tab active" data-view="ask">Ask</div>
-      <div class="tab" data-view="rights">Rights</div>
-      <div class="tab" data-view="scenarios">Emergencies</div>
-      <div class="tab" data-view="directory">Get help</div>
-    </div>
+  </div>
 
-    <section id="ask" class="view">
-      <div class="card">
-        <h3>Ask a question</h3>
-        <p class="muted">Answers come only from verified law, always with citations. If it isn't sure, it will say so.</p>
-        <div class="ask">
-          <input id="q" placeholder="e.g. Can the police search my phone?" />
-          <button onclick="ask()">Ask</button>
-        </div>
-        <div id="answer"></div>
+  <main>
+    <!-- HOME -->
+    <section class="view on" id="home">
+      <div class="sos-panel">
+        <div class="k">In an emergency</div>
+        <h3>Do you know your rights right now?</h3>
+        <button class="sos-cta" data-scenario="being-arrested">I'm being arrested<span class="ar">→</span></button>
+        <div class="trigrid" id="homeTriggers"></div>
       </div>
-      <div class="card">
-        <h3>Try asking</h3>
-        <p class="muted" id="suggestions"></p>
+
+      <div class="alert-card">
+        <span class="alert-ring" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a7 7 0 00-7 7c0 5-3 6-3 6h20s-3-1-3-6a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20a2 2 0 004 0" stroke-linecap="round"/></svg>
+        </span>
+        <div><h4>Custody Alert</h4><p>One tap tells your people where you are. <em>(Coming soon)</em></p></div>
       </div>
+
+      <button class="askbar" onclick="go('ask')">
+        <span class="mag" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg></span>
+        Ask a question in your own words…
+      </button>
+
+      <h2 class="section">Your rights</h2>
+      <div id="homeTopics"></div>
     </section>
 
-    <section id="rights" class="view hidden">
-      <input class="search" id="search" placeholder="Search your rights..." oninput="doSearch(this.value)" />
+    <!-- RIGHTS -->
+    <section class="view" id="rights">
+      <input class="field" id="search" placeholder="Search your rights…" oninput="onSearch(this.value)" />
       <div id="topics"></div>
     </section>
+    <section class="view" id="topicDetail"></section>
 
-    <section id="scenarios" class="view hidden">
+    <!-- EMERGENCIES -->
+    <section class="view" id="emergencies">
+      <h2 class="section">Emergency guides · work offline in the app</h2>
       <div id="scenarioList"></div>
     </section>
+    <section class="view" id="scenarioDetail"></section>
 
-    <section id="directory" class="view hidden">
+    <!-- ASK -->
+    <section class="view" id="ask">
+      <h1 class="lead-h">Ask a question</h1>
+      <p class="detail-body">Answers come only from verified law, always with citations. If it can't verify, it refuses — it never guesses.</p>
+      <div class="askrow">
+        <input class="field" id="q" placeholder="e.g. Can the police search my phone?" onkeydown="if(event.key==='Enter')ask()" />
+        <button class="btn-primary" onclick="ask()">Ask</button>
+      </div>
+      <div id="answer"></div>
+      <h2 class="section">Try asking</h2>
+      <div class="chips" id="suggestions"></div>
+    </section>
+
+    <!-- HELP -->
+    <section class="view" id="help">
+      <h1 class="lead-h">Get help</h1>
+      <p class="detail-body">Emergency lines and legal-aid organisations.</p>
       <div id="dir"></div>
     </section>
   </main>
 
-  <script>
-    const API = "/v1";
+  <nav class="nav" aria-label="App sections">
+    <div class="in">
+      <button class="on" id="nav-home" onclick="go('home')" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</button>
+      <button id="nav-rights" onclick="go('rights')" aria-label="Rights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h13a2 2 0 012 2v14H6a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h7M8 12h7" stroke-linecap="round"/></svg>Rights</button>
+      <button class="em" id="nav-emergencies" onclick="go('emergencies')" aria-label="Emergencies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 10v4M12 17v.5" stroke-linecap="round"/></svg>Emergency</button>
+      <button id="nav-ask" onclick="go('ask')" aria-label="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6.5A8 8 0 1121 12z" stroke-linecap="round" stroke-linejoin="round"/></svg>Ask</button>
+      <button id="nav-help" onclick="go('help')" aria-label="Get help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h2l2 4-2 2a12 12 0 005 5l2-2 4 2v2a2 2 0 01-2 2A16 16 0 014 5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Help</button>
+    </div>
+  </nav>
 
-    document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
-      document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-      t.classList.add("active");
-      document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-      document.getElementById(t.dataset.view).classList.remove("hidden");
-    });
+<script>
+  const API = "/v1";
+  let TOPICS = [], SCENARIOS = [];
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const HOME_TRIGGERS = [
+    {id:"police-want-to-search-phone", label:"Police want my phone"},
+    {id:"checkpoint-stop", label:"Stopped at a checkpoint"},
+    {id:"held-too-long-in-detention", label:"I'm being detained"},
+    {id:"life-in-danger", label:"My life is in danger"},
+  ];
 
-    function esc(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+  const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  function prettyCat(c){ return (c||"").split("-").map(w=>w==="and"?"&":w).join(" ").replace(/^\w/,m=>m.toUpperCase()); }
+  function shortSource(s){ return /constitution/i.test(s||"") ? "1999 Constitution" : (s||""); }
+  function citeChip(c, withSource){ const loc = esc(c.locator); const src = withSource ? esc(shortSource(c.source_name))+" · " : "";
+    return `<span class="cite">${src}${loc}</span>`; }
+  function verifiedBadge(){ return `<span class="verified">${CHECK}Verified</span>`; }
+  function callInfo(v){ if(v==="emergency_line") return {label:"Call 112 (emergency)", href:"tel:112", sos:true};
+    if(v==="lawyer") return {label:"Call your lawyer", href:"tel:", sos:false};
+    if(v==="trusted_contact") return {label:"Call someone you trust", href:"tel:", sos:false};
+    return {label:"Call", href:"tel:", sos:false}; }
 
-    async function ask() {
-      const q = document.getElementById("q").value.trim();
-      if (!q) return;
-      const box = document.getElementById("answer");
-      box.innerHTML = '<p class="muted">Thinking...</p>';
-      const r = await fetch(API + "/ask", { method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ question: q }) });
+  function go(id){
+    document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on", v.id===id));
+    document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("on"));
+    const map={home:"home",rights:"rights",topicDetail:"rights",emergencies:"emergencies",scenarioDetail:"emergencies",ask:"ask",help:"help"};
+    const nav=document.getElementById("nav-"+(map[id]||id)); if(nav) nav.classList.add("on");
+    window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
+  }
+
+  /* ---------- Rights ---------- */
+  function topicCard(t){
+    return `<div class="rcard" onclick="openTopic('${esc(t.id)}')">
+      <div class="top"><span class="cat">${esc(prettyCat(t.category))}</span>${t.status==="verified"?verifiedBadge():""}</div>
+      <h4>${esc(t.title)}</h4><p>${esc(t.summary)}</p></div>`;
+  }
+  function renderTopics(list, el){ document.getElementById(el).innerHTML = list.map(topicCard).join(""); }
+
+  async function onSearch(q){
+    if(!q.trim()){ renderTopics(TOPICS, "topics"); return; }
+    const res = await (await fetch(API+"/search?q="+encodeURIComponent(q))).json();
+    document.getElementById("topics").innerHTML = res.length ? res.map(topicCard).join("") : `<p class="muted-note">No matching rights found.</p>`;
+  }
+
+  function bulletBlock(cls, title, items, ic, icClass){
+    if(!items || !items.length) return "";
+    return `<div class="block ${cls}"><h5>${title}</h5><ul>${items.map(i=>`<li><span class="ic ${icClass}">${ic}</span>${esc(i)}</li>`).join("")}</ul></div>`;
+  }
+  function openTopic(id){
+    const t = TOPICS.find(x=>x.id===id); if(!t) return;
+    const sources = (t.citations||[]).map(c=>citeChip(c,true)).join("");
+    const quote = (t.citations||[]).find(c=>c.quote);
+    document.getElementById("topicDetail").innerHTML = `
+      <button class="backbtn" onclick="go('rights')">← All rights</button>
+      <div class="top" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span class="cat">${esc(prettyCat(t.category))}</span>${t.status==="verified"?verifiedBadge():""}</div>
+      <h1 class="lead-h">${esc(t.title)}</h1>
+      <p class="detail-lead">${esc(t.summary)}</p>
+      <p class="detail-body">${esc(t.body_plain)}</p>
+      ${bulletBlock("rights","Your rights",t.rights,"◆","au")}
+      ${bulletBlock("do","What to do",t.do_list,"✓","g")}
+      ${bulletBlock("dont","What not to do",t.dont_list,"✕","r")}
+      <h2 class="section">Sources</h2>
+      <div class="cites">${sources||'<span class="muted-note">—</span>'}</div>
+      ${quote?`<p class="quote">“${esc(quote.quote)}”</p>`:""}
+      <div class="reviewed">${t.status==="verified"?verifiedBadge():""} Reviewed by ${esc(t.reviewed_by||"—")}${t.reviewed_at?" · "+esc(t.reviewed_at):""}</div>`;
+    go("topicDetail");
+  }
+
+  /* ---------- Emergencies ---------- */
+  function scenarioCard(s){
+    return `<div class="rcard" onclick="openScenario('${esc(s.id)}')">
+      <div class="top"><span class="cat" style="color:var(--sos);background:var(--sos-tint);">Emergency</span></div>
+      <h4>${esc(s.trigger)}</h4><p>${esc(s.description)}</p></div>`;
+  }
+  function openScenario(id){
+    const s = SCENARIOS.find(x=>x.id===id); if(!s) return;
+    const steps = (s.steps||[]).map((st,i)=>{
+      let btn="";
+      if(st.action==="call"){ const c=callInfo(st.value); btn=`<div><a class="callbtn ${c.sos?'sos':''}" href="${c.href}">☎ ${esc(c.label)}</a></div>`; }
+      return `<div class="step"><div class="n">${i+1}</div><div class="t">${esc(st.text)}${btn}</div></div>`;
+    }).join("");
+    const linked = (s.linked_topic_ids||[]).map(tid=>TOPICS.find(t=>t.id===tid)).filter(Boolean);
+    const learn = linked.length ? `<h2 class="section">Learn more</h2>`+linked.map(t=>
+      `<div class="rcard" onclick="openTopic('${esc(t.id)}')"><div class="top"><span class="cat">${esc(prettyCat(t.category))}</span></div><h4>${esc(t.title)}</h4></div>`).join("") : "";
+    document.getElementById("scenarioDetail").innerHTML = `
+      <button class="backbtn" onclick="go('emergencies')">← All emergencies</button>
+      <div class="k" style="font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--sos);">Emergency · works offline in the app</div>
+      <h1 class="lead-h">${esc(s.trigger)}</h1>
+      <p class="detail-body">${esc(s.description)}</p>
+      <div class="steps">${steps}</div>
+      <h2 class="section">Grounded in</h2>
+      <div class="cites">${(s.citations||[]).map(c=>citeChip(c,false)).join("")}</div>
+      ${learn}`;
+    go("scenarioDetail");
+  }
+
+  /* ---------- Ask ---------- */
+  async function ask(preset){
+    const input = document.getElementById("q");
+    if(preset) input.value = preset;
+    const q = input.value.trim(); if(!q) return;
+    const box = document.getElementById("answer");
+    box.innerHTML = `<div class="answer"><p class="txt">Thinking…</p></div>`;
+    try{
+      const r = await fetch(API+"/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
       const d = await r.json();
-      let cites = (d.citations||[]).map(c =>
-        `<span class="cite">${esc(c.source_name)} - ${esc(c.locator)}</span>`).join("");
-      box.innerHTML = `<div class="card"><div class="answer ${d.refused?'refused':''}">${esc(d.answer)}</div>
-        <div>${cites}</div><div class="disclaimer">${esc(d.disclaimer)}</div></div>`;
+      const cites = (d.citations||[]).map(c=>citeChip(c,true)).join("");
+      box.innerHTML = `<div class="answer ${d.refused?'refused':''}">
+        <p class="lead">${d.refused?"I can't verify this yet.":"Here's what the law says."}</p>
+        <p class="txt">${esc(d.answer)}</p>
+        ${cites?`<div class="cites">${cites}</div>`:""}
+        <div class="disclaimer">${esc(d.disclaimer)}</div></div>`;
+    }catch(e){
+      box.innerHTML = `<div class="answer refused"><p class="txt">Couldn't reach the service. Please try again.</p></div>`;
     }
+  }
 
-    async function loadTopics(list) {
-      const el = document.getElementById("topics");
-      el.innerHTML = list.map(t => `
-        <div class="card">
-          <h3>${esc(t.title)} <span class="badge">${t.status === 'verified' ? 'Verified' : t.status}</span></h3>
-          <p>${esc(t.summary)}</p>
-          <ul>${(t.rights||[]).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
-          <div>${(t.citations||[]).map(c => `<span class="cite">${esc(c.source_name)} - ${esc(c.locator)}</span>`).join("")}</div>
-          <p class="muted">Reviewed by: ${esc(t.reviewed_by||'-')} - ${esc(t.reviewed_at||'')}</p>
-        </div>`).join("");
+  /* ---------- Directory ---------- */
+  function dirCard(e){
+    const emergency = e.entry_type==="emergency";
+    const call = e.phone ? `<a class="btn-call ${emergency?'big':''}" href="tel:${esc(e.phone)}">☎ Call ${esc(e.phone)}</a>` : "";
+    const web = e.url ? `<a class="btn-web" href="${esc(e.url)}" target="_blank" rel="noopener">Website ↗</a>` : "";
+    return `<div class="dir ${emergency?'emergency':''}"><h4>${esc(e.name)}</h4>
+      <div class="meta">${esc(e.entry_type.replace(/_/g," "))}${e.state?" · "+esc(e.state):""}</div>
+      <div class="btns">${call}${web}</div></div>`;
+  }
+
+  /* ---------- Boot ---------- */
+  (function theme(){
+    const root=document.documentElement, tt=document.getElementById("tt"),
+          icon=document.getElementById("tticon"), label=document.getElementById("ttlabel");
+    if(!root.getAttribute("data-theme")) root.setAttribute("data-theme","light");
+    const cur=()=>root.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+    const paint=()=>{const d=cur()==="dark";icon.textContent=d?"☾":"☀";label.textContent=d?"Dark":"Light";};
+    tt.onclick=()=>{root.setAttribute("data-theme",cur()==="dark"?"light":"dark");paint();};
+    paint();
+  })();
+
+  document.getElementById("homeTriggers").innerHTML =
+    HOME_TRIGGERS.map(t=>`<button class="trig" data-scenario="${t.id}">${esc(t.label)}</button>`).join("");
+  document.querySelectorAll("[data-scenario]").forEach(b=>b.onclick=()=>openScenario(b.dataset.scenario));
+
+  document.getElementById("suggestions").innerHTML =
+    ["Can the police search my phone?","What are my rights when arrested?","How long can I be detained?","Do I have to pay for bail?"]
+    .map(s=>`<button class="chip" onclick="ask('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join("");
+
+  async function boot(){
+    try{
+      const [tp, sc, dr] = await Promise.all([
+        fetch(API+"/topics").then(r=>r.json()),
+        fetch(API+"/scenarios").then(r=>r.json()),
+        fetch(API+"/directory").then(r=>r.json()),
+      ]);
+      TOPICS = tp; SCENARIOS = sc;
+      renderTopics(TOPICS.slice(0,4), "homeTopics");
+      renderTopics(TOPICS, "topics");
+      document.getElementById("scenarioList").innerHTML = SCENARIOS.map(scenarioCard).join("");
+      document.getElementById("dir").innerHTML = dr.map(dirCard).join("");
+    }catch(e){
+      document.getElementById("homeTopics").innerHTML = `<p class="muted-note">Couldn't load content. Check your connection and refresh.</p>`;
     }
-
-    async function doSearch(q) {
-      if (!q.trim()) { const all = await (await fetch(API+"/topics")).json(); return loadTopics(all); }
-      const res = await (await fetch(API + "/search?q=" + encodeURIComponent(q))).json();
-      loadTopics(res);
-    }
-
-    async function loadScenarios() {
-      const list = await (await fetch(API + "/scenarios")).json();
-      document.getElementById("scenarioList").innerHTML = list.map(s => `
-        <div class="card">
-          <h3>${esc(s.trigger)}</h3>
-          <p class="muted">${esc(s.description)}</p>
-          ${s.steps.map((st,i)=>`<div class="step"><div class="n">${i+1}</div><div>${esc(st.text)}</div></div>`).join("")}
-          <div style="margin-top:8px">${(s.citations||[]).map(c => `<span class="cite">${esc(c.source_name)} - ${esc(c.locator)}</span>`).join("")}</div>
-        </div>`).join("");
-    }
-
-    async function loadDirectory() {
-      const list = await (await fetch(API + "/directory")).json();
-      document.getElementById("dir").innerHTML = list.map(e => `
-        <div class="card">
-          <h3>${esc(e.name)}</h3>
-          <p class="muted">${esc(e.entry_type)} ${e.state ? '- ' + esc(e.state) : ''}</p>
-          ${e.phone ? `<p>Call: <a href="tel:${esc(e.phone)}">${esc(e.phone)}</a></p>` : ''}
-          ${e.url ? `<p><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.url)}</a></p>` : ''}
-        </div>`).join("");
-    }
-
-    document.getElementById("suggestions").innerHTML =
-      ["Can the police search my phone?","What are my rights when arrested?","How long can I be detained?","I am being beaten in custody"]
-      .map(s => `<a href="#" onclick="document.getElementById('q').value='${s}';ask();return false;">${s}</a>`).join(" &nbsp;·&nbsp; ");
-
-    doSearch("");
-    loadScenarios();
-    loadDirectory();
-  </script>
+  }
+  boot();
+</script>
 </body>
 </html>
