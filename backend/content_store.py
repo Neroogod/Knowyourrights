@@ -11,13 +11,16 @@ if _ROOT not in sys.path:
 
 from backend.rag.answerer import (  # noqa: E402
     COMPANY_REFUSAL,
+    STUDENT_REFUSAL,
     ExtractiveAnswerer,
+    build_case_documents,
     build_company_documents,
     build_documents,
 )
 from backend.rag.index import Retriever  # noqa: E402
 from backend.schemas import (  # noqa: E402
     AskResponse,
+    CaseBrief,
     CompanyChecklist,
     ContentPack,
     DirectoryEntry,
@@ -41,6 +44,7 @@ class ContentStore:
         self._company_checklists: dict[str, CompanyChecklist] = {
             item.id: item for item in pack.company_checklists
         }
+        self._cases: dict[str, CaseBrief] = {item.id: item for item in pack.cases}
 
         documents = build_documents(pack.topics)
         self._retriever = Retriever(documents)
@@ -49,6 +53,11 @@ class ContentStore:
         self._company_answerer = ExtractiveAnswerer(
             Retriever(company_documents),
             refusal=COMPANY_REFUSAL,
+        )
+        case_documents = build_case_documents(pack.cases)
+        self._student_answerer = ExtractiveAnswerer(
+            Retriever(case_documents),
+            refusal=STUDENT_REFUSAL,
         )
 
     @classmethod
@@ -87,6 +96,21 @@ class ContentStore:
     def list_company_checklists(self) -> list[CompanyChecklist]:
         return list(self._company_checklists.values())
 
+    def list_cases(
+        self,
+        area_of_law: str | None = None,
+        year: int | None = None,
+    ) -> list[CaseBrief]:
+        cases = list(self._cases.values())
+        if area_of_law:
+            cases = [c for c in cases if c.area_of_law == area_of_law]
+        if year is not None:
+            cases = [c for c in cases if c.year == year]
+        return cases
+
+    def get_case(self, case_id: str) -> CaseBrief | None:
+        return self._cases.get(case_id)
+
     def search_topics(self, query: str, top_k: int = 5) -> list[Topic]:
         results = self._retriever.retrieve(query, top_k=top_k)
         topics: list[Topic] = []
@@ -103,6 +127,9 @@ class ContentStore:
 
     def ask_company(self, question: str) -> AskResponse:
         return self._company_answerer.answer(question)
+
+    def ask_students(self, question: str) -> AskResponse:
+        return self._student_answerer.answer(question)
 
 
 if __name__ == "__main__":

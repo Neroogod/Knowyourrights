@@ -1,0 +1,42 @@
+{
+  "id": "shugaba-v-minister-internal-affairs",
+  "name": "Shugaba Abdulrahman Darman v Minister of Internal Affairs",
+  "court": "Federal Court of Appeal (as then constituted)",
+  "year": 1981,
+  "area_of_law": "citizenship-and-movement",
+  "jurisdiction": "NG-Federal",
+  "summary": "A classic case on citizenship, deportation, and freedom of movement - often used to teach how the State cannot casually treat a Nigerian citizen as a deportable alien.",
+  "facts": "Shugaba Darman, a Nigerian politician, was deported. He challenged the deportation on the basis that he was a Nigerian citizen and that the action violated his fundamental rights.",
+  "issues": [
+    "Whether a Nigerian citizen can lawfully be deported from Nigeria.",
+    "How citizenship status interacts with freedom of movement and personal liberty."
+  ],
+  "holding": "The case is taught for the principle that a Nigerian citizen is not liable to deportation in the way an alien may be, and that citizenship findings matter for Chapter IV analysis. Confirm the exact appellate holding in a licensed report.",
+  "ratio": "Citizenship status is decisive: a person properly shown to be a Nigerian citizen cannot be treated as a deportable alien, and deportation in those circumstances engages fundamental rights protections.",
+  "report_citation": "See NWLR / law-report citation via a licensed law-report service",
+  "source_url": "https://nwlronline.com/",
+  "linked_topic_ids": ["freedom-of-movement", "right-to-personal-liberty", "enforcing-your-fundamental-rights"],
+  "interpretations": [
+    {
+      "id": "shugaba-significance",
+      "kind": "significance",
+      "body": "Study tip: separate (1) the factual question of citizenship from (2) the legal consequence once citizenship is established. Then connect to ss.41 and 35 and to modern immigration practice.",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    }
+  ],
+  "citations": [
+    {
+      "source_name": "Shugaba Abdulrahman Darman v Minister of Internal Affairs",
+      "locator": "Federal Court of Appeal, 1981"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.41"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

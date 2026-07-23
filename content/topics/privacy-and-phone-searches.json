@@ -19,6 +19,21 @@
     "Do not assume you must unlock your phone just because you were asked.",
     "Do not delete anything or act in a way that looks like obstruction; stay calm and ask questions."
   ],
+  "common_situations": [
+    "An officer at a checkpoint asks you to unlock your phone or open private messages.",
+    "Your phone is taken during an arrest and someone begins browsing its contents.",
+    "You are threatened with detention because you asked what authority permits the search."
+  ],
+  "words_to_use": [
+    "I do not consent to a search of my phone. What legal authority are you relying on?",
+    "Am I being detained? If so, please tell me why.",
+    "I will not physically resist, but I want it recorded that I did not consent to this search."
+  ],
+  "if_violated": [
+    "Do not physically struggle over the device; note who took it, when, where, and whether any authority was shown.",
+    "Write down which accounts, messages, photographs, or files were opened or copied, if you can do so safely.",
+    "Preserve remote account alerts and device-access records and obtain legal advice about privacy and any seized property."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

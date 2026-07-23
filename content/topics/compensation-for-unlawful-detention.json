@@ -19,6 +19,21 @@
     "Do not throw away evidence of the detention.",
     "Do not accept that nothing can be done about an unlawful detention."
   ],
+  "common_situations": [
+    "You were arrested without lawful grounds and later released without charge.",
+    "You were held beyond the lawful period without being brought before a court.",
+    "A court or responsible authority confirms that the arrest or detention was unlawful."
+  ],
+  "words_to_use": [
+    "I need advice about compensation and a public apology for unlawful arrest or detention.",
+    "Please help me obtain the custody record and preserve evidence of the time I lost.",
+    "What documents will show the financial, medical, or personal harm caused by the detention?"
+  ],
+  "if_violated": [
+    "Prepare a full custody timeline and retain release papers, court orders, bail records, and witness details.",
+    "Document lost income, expenses, injuries, treatment, and other consequences with records where possible.",
+    "Ask a qualified lawyer about a fundamental-rights claim and the evidence needed for the remedies sought."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

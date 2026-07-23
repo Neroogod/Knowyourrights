@@ -19,6 +19,21 @@
     "Do not assume nothing can be done - the Constitution gives you a direct route to court.",
     "Do not rely on informal promises to 'settle it' when a right has been seriously breached without getting advice first."
   ],
+  "common_situations": [
+    "A violation has already happened and you want compensation, an apology, release, or another court order.",
+    "A threatened action has not happened yet, but there is credible evidence that a fundamental right is likely to be breached.",
+    "An agency ignores a complaint or continues the conduct after being notified."
+  ],
+  "words_to_use": [
+    "I need advice about a Fundamental Rights Enforcement application under section 46.",
+    "Please help me preserve evidence and identify the urgent orders that may be available.",
+    "I cannot afford private representation; what legal-aid or human-rights referral is available?"
+  ],
+  "if_violated": [
+    "Prepare a dated timeline, identify each responsible person or agency, and separate what you witnessed from what others told you.",
+    "Keep originals and backed-up copies of documents, medical records, photographs, recordings, and witness contacts.",
+    "Ask a qualified lawyer about urgency, the appropriate High Court, responsible parties, and the orders supported by the evidence."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

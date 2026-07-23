@@ -19,6 +19,21 @@
     "Do not pay an officer for bail; it is free.",
     "Do not sign conditions you do not understand without asking your lawyer."
   ],
+  "common_situations": [
+    "An officer asks for cash before processing police bail.",
+    "You are told to find a surety but the requirements are not explained.",
+    "You are kept at the station even though officers are not taking you to court promptly."
+  ],
+  "words_to_use": [
+    "I am requesting bail. Please explain the conditions and give me the documents.",
+    "Police bail is free. I will not make an unofficial payment.",
+    "Please allow me to contact a lawyer or trusted person who can assist with the bail conditions."
+  ],
+  "if_violated": [
+    "Do not make a secret or unreceipted payment; record the request, person, amount, time, and witnesses if it is safe.",
+    "Keep every bail form, surety document, receipt, and written condition.",
+    "Ask a lawyer or trusted person to escalate an unexplained refusal or payment demand through the appropriate complaint channel."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

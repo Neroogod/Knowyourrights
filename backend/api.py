@@ -42,6 +42,7 @@ from backend.delivery import gateway_from_environment
 from backend.schemas import (
     AskRequest,
     AskResponse,
+    CaseBrief,
     CompanyChecklist,
     ContentPack,
     DirectoryEntry,
@@ -285,6 +286,24 @@ def create_app(
     @app.post("/v1/company/ask", response_model=AskResponse)
     def ask_company(request: AskRequest) -> AskResponse:
         return resolved_store.ask_company(request.question)
+
+    @app.get("/v1/students/cases", response_model=list[CaseBrief])
+    def list_cases(
+        area_of_law: str | None = Query(default=None),
+        year: int | None = Query(default=None),
+    ) -> list[CaseBrief]:
+        return resolved_store.list_cases(area_of_law=area_of_law, year=year)
+
+    @app.get("/v1/students/cases/{case_id}", response_model=CaseBrief)
+    def get_case(case_id: str) -> CaseBrief:
+        case = resolved_store.get_case(case_id)
+        if case is None:
+            raise HTTPException(status_code=404, detail="case not found")
+        return case
+
+    @app.post("/v1/students/ask", response_model=AskResponse)
+    def ask_students(request: AskRequest) -> AskResponse:
+        return resolved_store.ask_students(request.question)
 
     @app.get("/v1/search", response_model=list[Topic])
     def search(q: str = Query(min_length=1)) -> list[Topic]:

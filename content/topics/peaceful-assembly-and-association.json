@@ -17,6 +17,21 @@
     "Do not assume a peaceful protest is illegal.",
     "Do not engage in violence or destruction, which are not protected."
   ],
+  "common_situations": [
+    "You are attending, organising, observing, or reporting on a peaceful protest.",
+    "Officers order a crowd to disperse or begin arresting participants.",
+    "You are pressured to reveal the membership or communications of a lawful association."
+  ],
+  "words_to_use": [
+    "This gathering is peaceful. What lawful direction are you giving us?",
+    "Am I being detained, or am I free to leave?",
+    "I will comply with a clear safety direction, but I do not consent to violence or an unlawful search."
+  ],
+  "if_violated": [
+    "Move toward safety and avoid escalation; help others identify safe exits and emergency support.",
+    "Preserve original photographs or video with time and location information and record witnesses.",
+    "Document injuries, arrests, property damage, and instructions given by officials, then seek legal or human-rights assistance."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

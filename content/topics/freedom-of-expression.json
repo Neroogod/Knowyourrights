@@ -17,6 +17,21 @@
     "Do not assume criticism of government is itself a crime.",
     "Do not confuse defamation or incitement (which have legal limits) with protected expression."
   ],
+  "common_situations": [
+    "You are questioned or threatened because of a publication, interview, post, artwork, or political opinion.",
+    "Equipment or notes are seized from a journalist, observer, or citizen documenting a public event.",
+    "An authority orders you to remove material but does not explain the legal basis."
+  ],
+  "words_to_use": [
+    "What specific law and lawful order restricts this expression?",
+    "Please give the decision and reasons in writing.",
+    "I will not obstruct you, but I do not consent to seizure or deletion of my work."
+  ],
+  "if_violated": [
+    "Preserve original publications, drafts, notices, takedown requests, account alerts, and details of any seized equipment.",
+    "Record the exact words used, decision-maker, legal authority claimed, witnesses, and effect on publication.",
+    "Obtain legal advice because expression rights can have lawful limits and the facts of the restriction matter."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

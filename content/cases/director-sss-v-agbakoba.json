@@ -1,0 +1,42 @@
+{
+  "id": "director-sss-v-agbakoba",
+  "name": "Director, State Security Service v Olisa Agbakoba",
+  "court": "Supreme Court of Nigeria",
+  "year": 1999,
+  "area_of_law": "freedom-of-movement",
+  "jurisdiction": "NG-Federal",
+  "summary": "A leading case on the right to freedom of movement and the seizure of a citizen's passport by security agencies.",
+  "facts": "Olisa Agbakoba's passport was seized by the State Security Service, preventing him from travelling. He challenged the seizure as a violation of his constitutional right to freedom of movement.",
+  "issues": [
+    "Whether seizure of a citizen's passport without lawful authority violates freedom of movement.",
+    "What limits apply to security agencies when restricting travel."
+  ],
+  "holding": "The Court treated passport seizure that stops a citizen travelling as engaging the constitutional freedom of movement, subject to the lawful limits set out in the Constitution. Students should confirm the exact holding in a licensed law report.",
+  "ratio": "A Nigerian citizen's freedom of movement includes the practical ability to leave and return to Nigeria; arbitrary passport seizure by security agencies may therefore violate section 41 unless justified under a lawful constitutional limitation.",
+  "report_citation": "See NWLR / law-report citation via a licensed law-report service",
+  "source_url": "https://nwlronline.com/",
+  "linked_topic_ids": ["freedom-of-movement", "enforcing-your-fundamental-rights"],
+  "interpretations": [
+    {
+      "id": "agbakoba-significance",
+      "kind": "significance",
+      "body": "Use this case to connect the abstract right in s.41 to a concrete state action (passport seizure). Ask: was there a law authorising the seizure, and did it fall within s.41(2) or other permitted limits?",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    }
+  ],
+  "citations": [
+    {
+      "source_name": "Director, State Security Service v Olisa Agbakoba",
+      "locator": "Supreme Court, 1999"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.41"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

@@ -117,6 +117,7 @@ class _HomeShellState extends State<HomeShell> {
       AskScreen(repo: _repo),
       DirectoryScreen(repo: _repo),
       CompaniesScreen(repo: _repo),
+      StudentsScreen(repo: _repo),
     ];
 
     return Scaffold(
@@ -215,6 +216,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.business_outlined),
             label: 'Company',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.school_outlined),
+            label: 'Students',
           ),
         ],
       ),
@@ -646,7 +651,7 @@ class _CustodyAlertScreenState extends State<CustodyAlertScreen> {
     setState(() => _opening = true);
     var ok = false;
     try {
-      ok = await prepareCustodyAlert();
+      ok = await prepareCustodyAlert(phone: _contact?.phone);
     } catch (_) {
       ok = false;
     }
@@ -696,7 +701,7 @@ class _CustodyAlertScreenState extends State<CustodyAlertScreen> {
       }
     } catch (_) {
       try {
-        await prepareCustodyAlert();
+        await prepareCustodyAlert(phone: contact.phone);
       } catch (_) {
         // The existing SMS fallback button remains available for another try.
       }
@@ -808,7 +813,7 @@ class _CustodyAlertScreenState extends State<CustodyAlertScreen> {
             ),
             onPressed: _opening ? null : _prepareAlert,
             icon: const Icon(Icons.sms_outlined),
-            label: Text(_opening ? 'Opening messages…' : 'Use SMS fallback'),
+            label: Text(_opening ? 'Opening messages…' : 'Send by SMS'),
           ),
           const SizedBox(height: 10),
           Text(
@@ -1187,6 +1192,30 @@ class TopicDetailScreen extends StatelessWidget {
             items: topic.dontList,
             kind: BlockKind.donts,
           ),
+          if (topic.commonSituations.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            InfoBlock(
+              title: 'When this right matters',
+              items: topic.commonSituations,
+              kind: BlockKind.rights,
+            ),
+          ],
+          if (topic.wordsToUse.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            InfoBlock(
+              title: 'Words you can use',
+              items: topic.wordsToUse,
+              kind: BlockKind.dos,
+            ),
+          ],
+          if (topic.ifViolated.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            InfoBlock(
+              title: 'If this right is violated',
+              items: topic.ifViolated,
+              kind: BlockKind.donts,
+            ),
+          ],
           const SizedBox(height: 18),
           const SectionLabel('Sources'),
           const SizedBox(height: 8),
@@ -1545,6 +1574,380 @@ class ObligationDetailScreen extends StatelessWidget {
             const SizedBox(height: 18),
             Text(
               'Pending lawyer review. Use this as general legal information, not advice.',
+              style: TextStyle(fontSize: 12.5, color: p.faint, height: 1.4),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------- Students
+
+class StudentsScreen extends StatefulWidget {
+  final ContentRepository repo;
+  const StudentsScreen({required this.repo, super.key});
+
+  @override
+  State<StudentsScreen> createState() => _StudentsScreenState();
+}
+
+class _StudentsScreenState extends State<StudentsScreen> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.kyr;
+    final cases = _query.trim().isEmpty
+        ? widget.repo.cases
+        : widget.repo.searchCases(_query);
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+      children: [
+        Text(
+          'Case-law library',
+          style: serifStyle(size: 26, color: p.ink, height: 1.15),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Educational digests for law students: facts, issues, holding, ratio, '
+          'and study notes. Proprietary law-report text is not copied — use a '
+          'licensed report for the full judgment.',
+          style: TextStyle(fontSize: 14, color: p.muted, height: 1.45),
+        ),
+        const SizedBox(height: 12),
+        KyrCard(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => StudentAskScreen(repo: widget.repo),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.chat_bubble_outline_rounded, color: p.green, size: 20),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Text(
+                  'Ask about a case',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    color: p.ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_rounded, color: p.green, size: 19),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          onChanged: (value) => setState(() => _query = value),
+          decoration: const InputDecoration(
+            hintText: 'Search cases, courts, holdings…',
+            prefixIcon: Icon(Icons.search),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const SectionLabel('Cases'),
+        const SizedBox(height: 8),
+        if (cases.isEmpty)
+          Text(
+            'No matching cases in this content pack.',
+            style: TextStyle(color: p.muted),
+          )
+        else
+          ...cases.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: KyrCard(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => CaseDetailScreen(
+                      caseBrief: item,
+                      repo: widget.repo,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CategoryTag(item.areaOfLaw),
+                        const SizedBox(width: 8),
+                        if (item.status == 'verified') const VerifiedBadge(),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      item.name,
+                      style: serifStyle(size: 17.5, color: p.ink, height: 1.2),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${item.court} · ${item.year}',
+                      style: TextStyle(fontSize: 12.5, color: p.faint),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.summary,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: p.muted,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class StudentAskScreen extends StatefulWidget {
+  final ContentRepository repo;
+  const StudentAskScreen({required this.repo, super.key});
+
+  @override
+  State<StudentAskScreen> createState() => _StudentAskScreenState();
+}
+
+class _StudentAskScreenState extends State<StudentAskScreen> {
+  final _controller = TextEditingController();
+  AskResponse? _response;
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _ask() async {
+    final question = _controller.text.trim();
+    if (question.isEmpty || _loading) return;
+    setState(() => _loading = true);
+    final response = await widget.repo.askStudents(question);
+    if (mounted) {
+      setState(() {
+        _response = response;
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.kyr;
+    final response = _response;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Case questions')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        children: [
+          Text(
+            'Ask about case law',
+            style: serifStyle(size: 24, color: p.ink),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Answers use only verified educational case digests. '
+            'Always check a licensed law report for the full judgment.',
+            style: TextStyle(fontSize: 13.5, color: p.muted, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _controller,
+            onSubmitted: (_) => _ask(),
+            decoration: const InputDecoration(
+              hintText: 'What did Agbakoba say about passport seizure?',
+            ),
+          ),
+          const SizedBox(height: 10),
+          FilledButton(
+            onPressed: _loading ? null : _ask,
+            child: Text(_loading ? 'Checking…' : 'Ask'),
+          ),
+          if (response != null) ...[
+            const SizedBox(height: 16),
+            AccentSurface(
+              accent: response.refused ? p.sos : p.green,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    response.refused
+                        ? "I can't verify this yet."
+                        : 'Grounded study answer',
+                    style: serifStyle(size: 17, color: p.ink),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    response.answer,
+                    style: TextStyle(fontSize: 14, color: p.ink, height: 1.45),
+                  ),
+                  if (response.citations.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 7,
+                      runSpacing: 7,
+                      children: response.citations
+                          .map((c) => CitationChip(c))
+                          .toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Text(
+                    response.disclaimer,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: p.faint,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class CaseDetailScreen extends StatelessWidget {
+  final CaseBrief caseBrief;
+  final ContentRepository repo;
+  const CaseDetailScreen({
+    required this.caseBrief,
+    required this.repo,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.kyr;
+    final linkedTopics = caseBrief.linkedTopicIds
+        .map(repo.topicById)
+        .whereType<Topic>()
+        .toList();
+    return Scaffold(
+      appBar: AppBar(),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+        children: [
+          Row(
+            children: [
+              CategoryTag(caseBrief.areaOfLaw),
+              const SizedBox(width: 8),
+              if (caseBrief.status == 'verified') const VerifiedBadge(),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            caseBrief.name,
+            style: serifStyle(size: 24, color: p.ink, height: 1.15),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${caseBrief.court} · ${caseBrief.year}',
+            style: TextStyle(fontSize: 13, color: p.faint),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            caseBrief.summary,
+            style: TextStyle(fontSize: 15, color: p.muted, height: 1.5),
+          ),
+          const SizedBox(height: 18),
+          const SectionLabel('Facts'),
+          const SizedBox(height: 8),
+          Text(
+            caseBrief.facts,
+            style: TextStyle(fontSize: 14.5, color: p.ink, height: 1.45),
+          ),
+          const SizedBox(height: 16),
+          InfoBlock(
+            title: 'Issues',
+            items: caseBrief.issues,
+            kind: BlockKind.dos,
+          ),
+          const SizedBox(height: 16),
+          const SectionLabel('Holding'),
+          const SizedBox(height: 8),
+          Text(
+            caseBrief.holding,
+            style: TextStyle(fontSize: 14.5, color: p.ink, height: 1.45),
+          ),
+          const SizedBox(height: 16),
+          const SectionLabel('Ratio'),
+          const SizedBox(height: 8),
+          Text(
+            caseBrief.ratio,
+            style: TextStyle(fontSize: 14.5, color: p.ink, height: 1.45),
+          ),
+          if (caseBrief.interpretations.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            const SectionLabel('Study notes'),
+            const SizedBox(height: 8),
+            ...caseBrief.interpretations.map(
+              (note) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: KyrCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CategoryTag(note.kind),
+                      const SizedBox(height: 8),
+                      Text(
+                        note.body,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: p.ink,
+                          height: 1.45,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (linkedTopics.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            const SectionLabel('Linked rights topics'),
+            const SizedBox(height: 8),
+            ...linkedTopics.map(
+              (topic) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(topic.title),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => TopicDetailScreen(topic: topic),
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          const SectionLabel('Sources'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 7,
+            runSpacing: 7,
+            children: caseBrief.citations.map((c) => CitationChip(c)).toList(),
+          ),
+          if (caseBrief.sourceUrl != null) ...[
+            const SizedBox(height: 14),
+            Text(
+              'Full judgment: use a licensed law-report service '
+              '(link stored: ${caseBrief.sourceUrl}). '
+              'This app does not copy proprietary report text.',
               style: TextStyle(fontSize: 12.5, color: p.faint, height: 1.4),
             ),
           ],

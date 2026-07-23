@@ -127,15 +127,25 @@ Future<bool> openLink(String url) {
   return launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 }
 
-/// Build an SMS composer URI without choosing a recipient or sending anything.
-Uri buildCustodyAlertUri({String message = custodyAlertMessage}) {
-  return Uri(scheme: 'sms', queryParameters: {'body': message});
+/// Build an unsent SMS draft addressed to the verified emergency contact.
+Uri buildCustodyAlertUri({
+  String? phone,
+  String message = custodyAlertMessage,
+}) {
+  return Uri(
+    scheme: 'sms',
+    path: phone?.trim() ?? '',
+    queryParameters: {'body': message},
+  );
 }
 
 /// Open the device SMS composer with the custody-alert text pre-filled.
-Future<bool> prepareCustodyAlert() {
+Future<bool> prepareCustodyAlert({
+  String? phone,
+  String message = custodyAlertMessage,
+}) {
   return launchUrl(
-    buildCustodyAlertUri(),
+    buildCustodyAlertUri(phone: phone, message: message),
     mode: LaunchMode.externalApplication,
   );
 }

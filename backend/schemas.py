@@ -32,6 +32,9 @@ class Topic(BaseModel):
     rights: list[str] = Field(default_factory=list)
     do_list: list[str] = Field(default_factory=list)
     dont_list: list[str] = Field(default_factory=list)
+    common_situations: list[str] = Field(default_factory=list)
+    words_to_use: list[str] = Field(default_factory=list)
+    if_violated: list[str] = Field(default_factory=list)
     citations: list[Citation] = Field(default_factory=list)
     status: Status = Status.draft
     reviewed_by: str | None = None
@@ -113,7 +116,7 @@ class CompanyChecklist(BaseModel):
     description: str = Field(min_length=1)
     jurisdiction: str = Field(min_length=1)
     items: list[ChecklistItem] = Field(min_length=1)
-    citations: list[Citation] = Field(min_length=1)
+    citations: list[Citation] = Field(default_factory=list)
     status: Status = Status.draft
     reviewed_by: str | None = None
     reviewed_at: str | None = None
@@ -122,6 +125,61 @@ class CompanyChecklist(BaseModel):
     def verified_requires_reviewer(self) -> "CompanyChecklist":
         if self.status == Status.verified and not self.reviewed_by:
             raise ValueError(f"verified checklist '{self.id}' must record reviewed_by")
+        if self.status == Status.verified and not self.citations:
+            raise ValueError(f"verified checklist '{self.id}' must have at least one citation")
+        return self
+
+
+class CaseInterpretation(BaseModel):
+    """Educational commentary on a case. Never copies proprietary law-report text."""
+
+    id: str = Field(min_length=1)
+    kind: str = Field(description="ratio | commentary | significance")
+    body: str = Field(min_length=1)
+    status: Status = Status.draft
+    reviewed_by: str | None = None
+    reviewed_at: str | None = None
+
+    @model_validator(mode="after")
+    def verified_requires_reviewer(self) -> "CaseInterpretation":
+        if self.status == Status.verified and not self.reviewed_by:
+            raise ValueError(f"verified interpretation '{self.id}' must record reviewed_by")
+        return self
+
+
+class CaseBrief(BaseModel):
+    """Law-student case brief: facts / issues / holding / ratio + interpretations.
+
+    Trust rule: store our own educational digest and a citation/link. Do not paste
+    proprietary NWLR headnotes or full judgments into the body fields.
+    """
+
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1, description="Party v Party")
+    court: str = Field(min_length=1)
+    year: int
+    area_of_law: str = Field(min_length=1)
+    jurisdiction: str = Field(min_length=1)
+    summary: str = Field(min_length=1)
+    facts: str = Field(min_length=1)
+    issues: list[str] = Field(min_length=1)
+    holding: str = Field(min_length=1)
+    ratio: str = Field(min_length=1)
+    report_citation: str | None = None
+    source_url: str | None = None
+    linked_topic_ids: list[str] = Field(default_factory=list)
+    interpretations: list[CaseInterpretation] = Field(default_factory=list)
+    citations: list[Citation] = Field(default_factory=list)
+    status: Status = Status.draft
+    reviewed_by: str | None = None
+    reviewed_at: str | None = None
+
+    @model_validator(mode="after")
+    def verified_requires_citation_and_reviewer(self) -> "CaseBrief":
+        if self.status == Status.verified and not self.citations:
+            raise ValueError(f"verified case '{self.id}' must have at least one citation")
+        if self.status == Status.verified and not self.reviewed_by:
+            raise ValueError(f"verified case '{self.id}' must record reviewed_by")
         return self
 
 
@@ -133,6 +191,7 @@ class ContentPack(BaseModel):
     directory: list[DirectoryEntry] = Field(default_factory=list)
     obligations: list[Obligation] = Field(default_factory=list)
     company_checklists: list[CompanyChecklist] = Field(default_factory=list)
+    cases: list[CaseBrief] = Field(default_factory=list)
 
 
 class AskRequest(BaseModel):

@@ -19,6 +19,21 @@
     "Do not answer questions or sign statements while being denied a lawyer.",
     "Do not accept that you are 'not allowed' a lawyer; it is your right."
   ],
+  "common_situations": [
+    "Police want a written or recorded statement before your lawyer arrives.",
+    "You are told that speaking with a lawyer will delay your release.",
+    "An interview continues after you clearly ask to consult a lawyer."
+  ],
+  "words_to_use": [
+    "I want to consult my lawyer before I answer questions or make a statement.",
+    "Please record that I have asked for legal advice.",
+    "I am exercising my right to remain silent until I have consulted a lawyer or another person of my choice."
+  ],
+  "if_violated": [
+    "Remember when you first requested a lawyer, who heard the request, and what happened afterward.",
+    "Tell your lawyer whether questioning continued, whether you signed anything, and whether threats or promises were made.",
+    "Keep copies or photographs of any statement or document you were asked to sign."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

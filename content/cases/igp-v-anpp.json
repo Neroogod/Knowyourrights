@@ -1,0 +1,50 @@
+{
+  "id": "igp-v-anpp",
+  "name": "Inspector-General of Police v All Nigeria Peoples Party",
+  "court": "Court of Appeal of Nigeria",
+  "year": 2007,
+  "area_of_law": "assembly-and-association",
+  "jurisdiction": "NG-Federal",
+  "summary": "A key modern case on public rallies, police permits, and the constitutional freedom of peaceful assembly and association.",
+  "facts": "Political parties sought to hold rallies. Police reliance on permit/control regimes was challenged as inconsistent with the constitutional right to peaceful assembly.",
+  "issues": [
+    "Whether police permit requirements can extinguish the right to peaceful public assembly.",
+    "How section 40 interacts with public-order policing."
+  ],
+  "holding": "The decision is taught for rejecting a regime in which peaceful assembly depends on police permission in a way that undermines section 40. Confirm the exact orders and reasoning in a licensed report.",
+  "ratio": "The constitutional right to peaceful assembly and association cannot be reduced to a mere privilege dependent on police permission; public-order regulation must remain consistent with section 40.",
+  "report_citation": "See NWLR / law-report citation via a licensed law-report service",
+  "source_url": "https://nwlronline.com/",
+  "linked_topic_ids": ["peaceful-assembly-and-association", "freedom-of-expression"],
+  "interpretations": [
+    {
+      "id": "anpp-significance",
+      "kind": "significance",
+      "body": "Use this case when studying protests and political rallies. Distinguish notice/coordination for traffic and safety from a veto power that effectively bans assembly. Cross-link to the Emergencies scenario on joining a protest.",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    },
+    {
+      "id": "anpp-commentary",
+      "kind": "commentary",
+      "body": "Always check later Public Order Act amendments and subsequent cases. The educational point is constitutional primacy: statutes and police practice must be read subject to Chapter IV.",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    }
+  ],
+  "citations": [
+    {
+      "source_name": "Inspector-General of Police v All Nigeria Peoples Party",
+      "locator": "Court of Appeal, 2007"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.40"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

@@ -16,7 +16,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from backend.rag.index import Document, Retriever  # noqa: E402
-from backend.schemas import AnswerCitation, AskResponse, Obligation, Topic  # noqa: E402
+from backend.schemas import AnswerCitation, AskResponse, CaseBrief, Obligation, Topic  # noqa: E402
 
 DISCLAIMER = (
     "This is legal information, not legal advice. For advice on your specific "
@@ -31,6 +31,11 @@ COMPANY_REFUSAL = (
     "I could not find this in the lawyer-verified Nigerian company information I have. "
     "The available CAMA material may still be awaiting legal review. "
     "Please consult a qualified Nigerian company-law practitioner or company secretary."
+)
+STUDENT_REFUSAL = (
+    "I could not find this in the verified case-law study materials I have. "
+    "I would rather say I don't know than invent a case holding. "
+    "Check a licensed law report (e.g. NWLR) or ask your lecturer."
 )
 MIN_SCORE = 0.12
 
@@ -83,6 +88,49 @@ def build_company_documents(obligations: list[Obligation]) -> list[Document]:
                 + "\n\nRequirements:\n"
                 + "\n".join(f"- {item}" for item in obligation.requirements),
                 citations=[citation.model_dump() for citation in obligation.citations],
+            )
+        )
+    return documents
+
+
+def build_case_documents(cases: list[CaseBrief]) -> list[Document]:
+    """Turn verified case briefs into a student study retrieval index."""
+    documents: list[Document] = []
+    for case in cases:
+        if case.status.value != "verified":
+            continue
+        verified_notes = [
+            item.body for item in case.interpretations if item.status.value == "verified"
+        ]
+        answer_parts = [
+            case.summary,
+            f"\nHolding:\n{case.holding}",
+            f"\nRatio:\n{case.ratio}",
+        ]
+        if verified_notes:
+            answer_parts.append("\nStudy notes:\n" + "\n".join(f"- {note}" for note in verified_notes))
+        documents.append(
+            Document(
+                doc_id=f"case:{case.id}",
+                kind="case",
+                title=case.name,
+                topic_id=case.id,
+                text=" ".join(
+                    [
+                        case.name,
+                        case.court,
+                        str(case.year),
+                        case.area_of_law,
+                        case.summary,
+                        case.facts,
+                        case.holding,
+                        case.ratio,
+                        *case.issues,
+                        *verified_notes,
+                    ]
+                ),
+                answer_text="".join(answer_parts),
+                citations=[citation.model_dump() for citation in case.citations],
             )
         )
     return documents

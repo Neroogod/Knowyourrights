@@ -19,6 +19,21 @@
     "Do not assume the police can hold you for as long as they wish - they cannot.",
     "Do not pay for bail at a police station; bail from the police should not be sold."
   ],
+  "common_situations": [
+    "You have spent a night or more at a station without being taken before a court.",
+    "Officers say an investigation is continuing but give no clear information about court or release.",
+    "Family members cannot confirm the station, allegation, or time of arrest."
+  ],
+  "words_to_use": [
+    "What exact time was I arrested, and when will I be brought before a court?",
+    "Please allow me to contact my lawyer or a person of my choice.",
+    "If I am not being taken to court within the lawful period, I am asking to be released."
+  ],
+  "if_violated": [
+    "Create a timeline from the first restriction of movement, not only from arrival at the station.",
+    "Ask family or witnesses to preserve call logs, messages, transport details, and any proof of where you were held.",
+    "Seek urgent legal assistance because release and enforcement remedies can be time-sensitive."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

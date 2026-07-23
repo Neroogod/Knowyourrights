@@ -19,6 +19,21 @@
     "Do not feel forced to explain or defend yourself on the spot.",
     "Do not let anyone tell you that staying silent proves guilt."
   ],
+  "common_situations": [
+    "Police ask detailed questions about an allegation before you have legal advice.",
+    "You are told that silence proves guilt or will automatically prevent bail.",
+    "An officer asks you to write, record, correct, or sign a statement."
+  ],
+  "words_to_use": [
+    "I wish to remain silent until I have consulted my lawyer or another person of my choice.",
+    "Please record that I am exercising my constitutional right to remain silent.",
+    "I will provide my basic identifying information, but I will not answer questions about the allegation without advice."
+  ],
+  "if_violated": [
+    "Remember who questioned you, when you requested silence or legal advice, and whether questioning continued.",
+    "Tell your lawyer about threats, promises, force, recording, or any statement you made or signed.",
+    "Preserve copies of statements, interview records, messages, or witness details."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

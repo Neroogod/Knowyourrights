@@ -71,6 +71,7 @@ class ContentRepository {
   List<DirectoryEntry> directory = [];
   List<Obligation> obligations = [];
   List<CompanyChecklist> companyChecklists = [];
+  List<CaseBrief> cases = [];
   int version = 0;
   bool loadedFromCache = false;
 
@@ -123,6 +124,9 @@ class ContentRepository {
     companyChecklists = (json['company_checklists'] as List? ?? [])
         .map((item) => CompanyChecklist.fromJson(item as Map<String, dynamic>))
         .toList();
+    cases = (json['cases'] as List? ?? [])
+        .map((item) => CaseBrief.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   /// Look up a scenario by id; null when the pack does not contain it.
@@ -146,6 +150,25 @@ class ContentRepository {
       if (obligation.id == id) return obligation;
     }
     return null;
+  }
+
+  CaseBrief? caseById(String id) {
+    for (final caseBrief in cases) {
+      if (caseBrief.id == id) return caseBrief;
+    }
+    return null;
+  }
+
+  List<CaseBrief> searchCases(String query) {
+    final q = _tokens(query);
+    if (q.isEmpty) return cases;
+    final scored =
+        cases
+            .map((c) => MapEntry(c, _overlap(q, _tokens(_caseText(c)))))
+            .where((e) => e.value > 0)
+            .toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+    return scored.map((e) => e.key).toList();
   }
 
   List<Topic> searchTopics(String query) {
@@ -209,6 +232,26 @@ class ContentRepository {
     );
   }
 
+  Future<AskResponse> askStudents(String question) async {
+    try {
+      final resp = await _client
+          .post(
+            Uri.parse('$kBaseUrl/v1/students/ask'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'question': question}),
+          )
+          .timeout(const Duration(seconds: 8));
+      if (resp.statusCode == 200) {
+        return AskResponse.fromJson(
+          jsonDecode(resp.body) as Map<String, dynamic>,
+        );
+      }
+    } catch (_) {
+      // fall through to offline case search
+    }
+    return _offlineAskStudents(question);
+  }
+
   AskResponse _offlineAsk(String question) {
     final results = searchTopics(question);
     if (results.isEmpty || results.first.citations.isEmpty) {
@@ -236,8 +279,37 @@ class ContentRepository {
     );
   }
 
+  AskResponse _offlineAskStudents(String question) {
+    final results = searchCases(question);
+    if (results.isEmpty || results.first.citations.isEmpty) {
+      return const AskResponse(
+        refused: true,
+        answer:
+            "I could not find this in the verified case-law materials available "
+            "offline. Check a licensed law report or ask your lecturer.",
+        citations: [],
+        relatedTopicIds: [],
+        disclaimer: _disclaimer,
+      );
+    }
+    final best = results.first;
+    final buffer = StringBuffer('${best.name}\n\n${best.summary}\n\nRatio:\n${best.ratio}');
+    return AskResponse(
+      refused: false,
+      answer: buffer.toString(),
+      citations: best.citations,
+      relatedTopicIds: results.skip(1).take(2).map((c) => c.id).toList(),
+      disclaimer: _disclaimer,
+    );
+  }
+
   String _topicText(Topic t) =>
       '${t.title} ${t.summary} ${t.bodyPlain} ${t.rights.join(' ')} ${t.doList.join(' ')}';
+
+  String _caseText(CaseBrief c) =>
+      '${c.name} ${c.court} ${c.year} ${c.areaOfLaw} ${c.summary} ${c.facts} '
+      '${c.holding} ${c.ratio} ${c.issues.join(' ')} '
+      '${c.interpretations.map((i) => i.body).join(' ')}';
 
   Set<String> _tokens(String text) => text
       .toLowerCase()

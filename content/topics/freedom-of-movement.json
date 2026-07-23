@@ -16,6 +16,21 @@
   "dont_list": [
     "Do not assume checkpoints can bar a citizen from lawful travel without legal basis."
   ],
+  "common_situations": [
+    "An official prevents you from travelling within Nigeria or leaving the country without explaining why.",
+    "Your passport or travel document is retained without a clear written process.",
+    "You are confined to an area even though you are not told that you are under arrest."
+  ],
+  "words_to_use": [
+    "Am I legally required to remain here, or am I free to go?",
+    "What law or court order restricts my movement?",
+    "Please provide a receipt and written reason for retaining my travel document."
+  ],
+  "if_violated": [
+    "Record the checkpoint, border point, time, officials, documents examined, and authority claimed.",
+    "Preserve tickets, passport records, notices, receipts, and proof of financial loss caused by the restriction.",
+    "Seek prompt legal advice, especially where travel is time-sensitive or a document has been retained."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

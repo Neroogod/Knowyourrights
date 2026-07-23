@@ -19,6 +19,21 @@
     "Do not accept that anyone can force you to work against your will.",
     "Do not sign away this right under pressure."
   ],
+  "common_situations": [
+    "Someone uses threats, withheld documents, debt, confinement, or violence to force you to work.",
+    "You cannot leave a workplace or household safely and your pay or identity documents are controlled.",
+    "A child or vulnerable person is compelled to work in dangerous or exploitative conditions."
+  ],
+  "words_to_use": [
+    "I am not working voluntarily and I need help to leave safely.",
+    "My identity documents or wages are being withheld.",
+    "Please contact an appropriate protection agency or trusted person without alerting the person controlling me."
+  ],
+  "if_violated": [
+    "Prioritise a safe exit plan; do not confront a controller alone if doing so could increase danger.",
+    "When safe, preserve identity details, locations, payment records, messages, travel documents, and witness contacts.",
+    "Contact emergency services, NAPTIP, a lawyer, or a trusted protection organisation for specialised help."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

@@ -22,6 +22,21 @@
     "Do not sign any statement before your lawyer arrives.",
     "Do not answer questions about the allegation until you have legal advice."
   ],
+  "common_situations": [
+    "An officer says you must follow them to a station but will not say whether you are under arrest.",
+    "You are questioned about an allegation before you have spoken with a lawyer.",
+    "You are taken away without being given a written explanation in a language you understand."
+  ],
+  "words_to_use": [
+    "Am I under arrest, or am I free to go?",
+    "Please tell me the reason for my arrest and provide it in writing.",
+    "I wish to remain silent until I have spoken with my lawyer or another person of my choice."
+  ],
+  "if_violated": [
+    "As soon as it is safe, record the time, place, station, officers' identifying details, and the names of witnesses.",
+    "Preserve charge sheets, bail papers, messages, photographs, video, and medical records rather than editing the originals.",
+    "Contact a lawyer, the Legal Aid Council, or the National Human Rights Commission promptly to discuss release or redress."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

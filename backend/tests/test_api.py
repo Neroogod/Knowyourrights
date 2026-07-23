@@ -57,6 +57,38 @@ def test_company_slice(client: TestClient) -> None:
     assert answer.json()["citations"] == []
 
 
+def test_students_slice(client: TestClient) -> None:
+    cases = client.get("/v1/students/cases")
+    assert cases.status_code == 200
+    assert cases.json()[0]["id"] == "agbakoba-passport"
+
+    filtered = client.get("/v1/students/cases", params={"area_of_law": "freedom-of-movement"})
+    assert filtered.status_code == 200 and len(filtered.json()) == 1
+
+    detail = client.get("/v1/students/cases/agbakoba-passport")
+    assert detail.status_code == 200
+    assert detail.json()["year"] == 1999
+    assert client.get("/v1/students/cases/missing").status_code == 404
+
+    answer = client.post(
+        "/v1/students/ask",
+        json={"question": "passport seizure freedom of movement Agbakoba"},
+    )
+    assert answer.status_code == 200
+    body = answer.json()
+    assert body["refused"] is False
+    assert body["citations"]
+    assert "Agbakoba" in body["answer"] or "passport" in body["answer"].lower()
+
+    refused = client.post(
+        "/v1/students/ask",
+        json={"question": "what is the price of bitcoin today"},
+    )
+    assert refused.status_code == 200
+    assert refused.json()["refused"] is True
+    assert refused.json()["citations"] == []
+
+
 def test_search(client: TestClient) -> None:
     resp = client.get("/v1/search", params={"q": "search my phone"})
     assert resp.status_code == 200

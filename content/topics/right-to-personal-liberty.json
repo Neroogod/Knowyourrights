@@ -19,6 +19,21 @@
     "Do not resist physically, even if the detention feels unlawful.",
     "Do not assume you must go along with any request just because it comes from an officer."
   ],
+  "common_situations": [
+    "You are blocked from leaving a place by officials or private actors.",
+    "You are taken to a station 'to answer questions' but are not told whether you can leave.",
+    "Someone is held because the police want a relative or associate to report."
+  ],
+  "words_to_use": [
+    "Am I being detained, or am I free to leave?",
+    "What lawful reason are you relying on to restrict my liberty?",
+    "Please let me contact my lawyer or another person of my choice."
+  ],
+  "if_violated": [
+    "Record when freedom of movement was first restricted, every place you were held, and when release occurred.",
+    "Preserve messages, call records, witness details, transport information, and any custody or release document.",
+    "Seek prompt legal advice about release, compensation, apology, or other enforcement remedies."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

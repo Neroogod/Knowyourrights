@@ -19,6 +19,21 @@
     "Do not assume long detention without charge is normal or lawful.",
     "Do not sign anything agreeing to be held indefinitely."
   ],
+  "common_situations": [
+    "You remain at a police station while officers repeatedly postpone taking you to court.",
+    "A weekend or public holiday is used as a vague explanation for continued detention.",
+    "Your family is told you will be charged but no court, date, or case information is provided."
+  ],
+  "words_to_use": [
+    "When and before which court will I be brought?",
+    "Please record the exact time of my arrest and my request to be taken before a court.",
+    "Allow me to contact my lawyer or a person of my choice about my detention."
+  ],
+  "if_violated": [
+    "Keep a detailed timeline of arrest, transfers, interviews, bail requests, and every promised court date.",
+    "Ask relatives and witnesses to preserve messages, calls, visitor records, and proof of the place of detention.",
+    "Seek urgent legal help to challenge continued detention and obtain the custody records."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

@@ -17,6 +17,21 @@
   "dont_list": [
     "Do not accept forced religious instruction contrary to your beliefs in education settings."
   ],
+  "common_situations": [
+    "A public authority pressures you to adopt, abandon, or conceal a religious belief.",
+    "A peaceful act of worship, teaching, observance, or religious community activity is restricted.",
+    "You are penalised by an official body because of your belief or lack of belief."
+  ],
+  "words_to_use": [
+    "What lawful and generally applicable rule is being enforced?",
+    "Please provide the restriction and its reason in writing.",
+    "I am asking to practise my belief peacefully without interfering with the rights of others."
+  ],
+  "if_violated": [
+    "Document the decision, words used, officials, witnesses, policy, and how comparable people were treated.",
+    "Preserve notices, correspondence, photographs, recordings, and evidence that the activity was peaceful.",
+    "Seek legal or human-rights advice about whether the restriction is lawfully justified."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

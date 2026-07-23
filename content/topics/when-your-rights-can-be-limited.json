@@ -19,6 +19,21 @@
     "Do not assume every restriction is lawful just because it is claimed.",
     "Do not assume your rights are absolute in every situation."
   ],
+  "common_situations": [
+    "An official says national security, public order, public safety, health, or morality justifies a restriction.",
+    "A rule protects another person's rights but also limits your expression, movement, privacy, religion, or assembly.",
+    "A broad emergency or administrative instruction is treated as if it automatically overrides every right."
+  ],
+  "words_to_use": [
+    "What law authorises this restriction, and which right does it limit?",
+    "Why is this restriction reasonably justified in these circumstances?",
+    "Please provide the decision, duration, scope, and review process in writing."
+  ],
+  "if_violated": [
+    "Preserve the exact rule, order, notice, official reason, duration, people affected, and how it was applied.",
+    "Document less restrictive alternatives that were available and any selective or inconsistent enforcement.",
+    "Seek legal advice because whether a limit is valid depends on the specific right, law, purpose, and circumstances."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

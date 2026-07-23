@@ -17,6 +17,21 @@
   "dont_list": [
     "Do not accept that lethal or excessive force is lawful outside the narrow constitutional exceptions."
   ],
+  "common_situations": [
+    "A public official uses or threatens potentially lethal force.",
+    "A person in custody has a serious medical emergency or faces a credible threat to life.",
+    "You witness conduct that creates an immediate and severe danger to another person."
+  ],
+  "words_to_use": [
+    "There is an immediate threat to life. Call emergency medical help now.",
+    "This person needs urgent medical attention; please record the request.",
+    "I am not resisting. Please do not use force."
+  ],
+  "if_violated": [
+    "Move to safety and contact emergency medical services or 112 when doing so will not increase danger.",
+    "Preserve original video, photographs, medical records, scene details, witness contacts, and the sequence of events.",
+    "Seek urgent legal and human-rights assistance; do not expose yourself to further danger while gathering evidence."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

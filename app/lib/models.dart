@@ -31,6 +31,9 @@ class Topic {
   final List<String> rights;
   final List<String> doList;
   final List<String> dontList;
+  final List<String> commonSituations;
+  final List<String> wordsToUse;
+  final List<String> ifViolated;
   final List<Citation> citations;
   final String status;
   final String? reviewedBy;
@@ -46,6 +49,9 @@ class Topic {
     required this.rights,
     required this.doList,
     required this.dontList,
+    this.commonSituations = const [],
+    this.wordsToUse = const [],
+    this.ifViolated = const [],
     required this.citations,
     required this.status,
     this.reviewedBy,
@@ -62,6 +68,9 @@ class Topic {
     rights: (json['rights'] as List? ?? []).cast<String>(),
     doList: (json['do_list'] as List? ?? []).cast<String>(),
     dontList: (json['dont_list'] as List? ?? []).cast<String>(),
+    commonSituations: (json['common_situations'] as List? ?? []).cast<String>(),
+    wordsToUse: (json['words_to_use'] as List? ?? []).cast<String>(),
+    ifViolated: (json['if_violated'] as List? ?? []).cast<String>(),
     citations: (json['citations'] as List? ?? [])
         .map((c) => Citation.fromJson(c as Map<String, dynamic>))
         .toList(),
@@ -223,6 +232,95 @@ class CompanyChecklist {
             .toList(),
         status: json['status'] as String? ?? 'draft',
       );
+}
+
+class CaseInterpretation {
+  final String id;
+  final String kind;
+  final String body;
+  final String status;
+  final String? reviewedBy;
+
+  const CaseInterpretation({
+    required this.id,
+    required this.kind,
+    required this.body,
+    required this.status,
+    this.reviewedBy,
+  });
+
+  factory CaseInterpretation.fromJson(Map<String, dynamic> json) =>
+      CaseInterpretation(
+        id: json['id'] as String,
+        kind: json['kind'] as String,
+        body: json['body'] as String,
+        status: json['status'] as String? ?? 'draft',
+        reviewedBy: json['reviewed_by'] as String?,
+      );
+}
+
+class CaseBrief {
+  final String id;
+  final String name;
+  final String court;
+  final int year;
+  final String areaOfLaw;
+  final String summary;
+  final String facts;
+  final List<String> issues;
+  final String holding;
+  final String ratio;
+  final String? reportCitation;
+  final String? sourceUrl;
+  final List<String> linkedTopicIds;
+  final List<CaseInterpretation> interpretations;
+  final List<Citation> citations;
+  final String status;
+  final String? reviewedBy;
+
+  const CaseBrief({
+    required this.id,
+    required this.name,
+    required this.court,
+    required this.year,
+    required this.areaOfLaw,
+    required this.summary,
+    required this.facts,
+    required this.issues,
+    required this.holding,
+    required this.ratio,
+    required this.linkedTopicIds,
+    required this.interpretations,
+    required this.citations,
+    required this.status,
+    this.reportCitation,
+    this.sourceUrl,
+    this.reviewedBy,
+  });
+
+  factory CaseBrief.fromJson(Map<String, dynamic> json) => CaseBrief(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    court: json['court'] as String,
+    year: json['year'] as int,
+    areaOfLaw: json['area_of_law'] as String,
+    summary: json['summary'] as String,
+    facts: json['facts'] as String,
+    issues: (json['issues'] as List? ?? []).cast<String>(),
+    holding: json['holding'] as String,
+    ratio: json['ratio'] as String,
+    reportCitation: json['report_citation'] as String?,
+    sourceUrl: json['source_url'] as String?,
+    linkedTopicIds: (json['linked_topic_ids'] as List? ?? []).cast<String>(),
+    interpretations: (json['interpretations'] as List? ?? [])
+        .map((item) => CaseInterpretation.fromJson(item as Map<String, dynamic>))
+        .toList(),
+    citations: (json['citations'] as List? ?? [])
+        .map((c) => Citation.fromJson(c as Map<String, dynamic>))
+        .toList(),
+    status: json['status'] as String? ?? 'draft',
+    reviewedBy: json['reviewed_by'] as String?,
+  );
 }
 
 class AskResponse {

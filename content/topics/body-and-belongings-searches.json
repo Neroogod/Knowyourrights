@@ -19,6 +19,21 @@
     "Do not physically resist, but do not consent to a degrading search.",
     "Do not let a search be used to extort money from you."
   ],
+  "common_situations": [
+    "An officer wants to search your pockets, bag, vehicle, or body at a checkpoint.",
+    "A search becomes unnecessarily exposing, humiliating, or more intrusive than expected.",
+    "Property is removed during a search without a clear record of what was taken."
+  ],
+  "words_to_use": [
+    "What is the reason and legal authority for this search?",
+    "I do not consent, but I will not physically resist.",
+    "Please list any property you take and tell me how I can recover it."
+  ],
+  "if_violated": [
+    "Record the location, time, officers, witnesses, stated reason, and manner of the search as soon as it is safe.",
+    "Make an inventory of missing or damaged property and preserve proof of ownership.",
+    "Seek medical help after an injurious or degrading search and obtain legal advice about complaint or redress."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

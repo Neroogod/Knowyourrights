@@ -19,6 +19,21 @@
     "Do not invite a search without asking about legal authority.",
     "Do not sign a record of a search you have not read."
   ],
+  "common_situations": [
+    "Officers arrive at your home and ask to enter or search without explaining their authority.",
+    "A landlord, employer, or public official accesses private correspondence or communications.",
+    "People enter the home while you are absent and remove property or copy information."
+  ],
+  "words_to_use": [
+    "I do not consent to entry or search. Please show me the authority you are relying on.",
+    "May I read the document and contact my lawyer before the search begins?",
+    "Please identify everyone entering and provide a record of anything removed."
+  ],
+  "if_violated": [
+    "Prioritise safety; document names, vehicles, documents shown, rooms entered, and property removed afterward.",
+    "Preserve door-camera footage, photographs, witness details, messages, and proof of ownership.",
+    "Change compromised account credentials from a safe device and seek legal advice about privacy or property remedies."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

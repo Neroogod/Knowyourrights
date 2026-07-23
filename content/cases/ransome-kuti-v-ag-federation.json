@@ -1,0 +1,55 @@
+{
+  "id": "ransome-kuti-v-ag-federation",
+  "name": "Ransome-Kuti v Attorney-General of the Federation",
+  "court": "Supreme Court of Nigeria",
+  "year": 1985,
+  "area_of_law": "fundamental-rights",
+  "jurisdiction": "NG-Federal",
+  "summary": "A landmark Nigerian case on state liability for rights violations by security agents. It is studied for how the courts approached claims arising from police brutality and the enforcement of Chapter IV rights.",
+  "facts": "The applicants alleged that soldiers and police officers invaded a family compound, assaulted occupants, and destroyed property. They sued the Attorney-General and other state parties for redress for the violation of their fundamental rights.",
+  "issues": [
+    "Whether the State could be held liable for the wrongful acts of security agents that violated fundamental rights.",
+    "What remedies were available for such rights violations."
+  ],
+  "holding": "The decision is widely taught for its treatment of State responsibility and the remedies available when security agents violate fundamental rights. Students should read the full judgment for the precise ratio and any later developments in the case law.",
+  "ratio": "Wrongs committed by security agents in the course of State activity can engage State liability, and victims of fundamental-rights violations may seek constitutional remedies against the appropriate State parties.",
+  "report_citation": "See NWLR / law-report citation via a licensed law-report service",
+  "source_url": "https://nwlronline.com/",
+  "linked_topic_ids": [
+    "dignity-and-freedom-from-torture",
+    "enforcing-your-fundamental-rights",
+    "right-to-life"
+  ],
+  "interpretations": [
+    {
+      "id": "ransome-kuti-significance",
+      "kind": "significance",
+      "body": "For law students, this case is a gateway into Chapter IV enforcement: who you can sue, what kind of wrongs attract constitutional remedies, and how State liability for security-agent misconduct is framed. Pair it with Constitution ss.33-34 and s.46.",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    },
+    {
+      "id": "ransome-kuti-commentary",
+      "kind": "commentary",
+      "body": "Do not treat a short digest as a substitute for the law report. Note later statutes and cases that may refine State liability, limitation periods, and enforcement procedure under the Fundamental Rights (Enforcement Procedure) Rules.",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    }
+  ],
+  "citations": [
+    {
+      "source_name": "Ransome-Kuti v Attorney-General of the Federation",
+      "locator": "Supreme Court, 1985"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.46(1)",
+      "quote": "Any person who alleges that any of the provisions of this Chapter has been, is being or likely to be contravened in any State in relation to him may apply to a High Court in that State for redress."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

@@ -21,7 +21,8 @@ MVP slice described in `../MVP.md`.
   it for offline use, and falls back to an offline cite-or-refuse answer when there is no
   network. First launch is account-gated: verified email, personal profile, and a verified
   emergency contact are required before the main app opens. Screens: emergency-first Home,
-  Rights (+ topic detail), Emergencies (+ scenario detail), Ask, Company, and Get help.
+  Rights (+ topic detail), Emergencies (+ scenario detail), Ask, Company, Students
+  (case-law library), and Get help.
 - **Web demo** (`web/`) - the same surfaces in a browser, served by the API at `/`.
 - **Design system** (`app/lib/theme.dart`, `app/lib/widgets.dart`) - shared by app and web.
   Colour is semantic and non-decorative: **pine green** carries authority, **brass** is used
@@ -72,7 +73,11 @@ locator, and that failure still looks like a valid citation.
 
 Current state: **CAMA 2020 parses completely** and grounds the starter Companies slice:
 three draft obligations and a first-year checklist are included in the offline pack and
-served at `/v1/company/obligations` and `/v1/company/checklists`. The **NDPA 2023** copy
+served at `/v1/company/obligations` and `/v1/company/checklists`. The **Students** slice
+ships six educational case digests (facts / issues / holding / ratio + study notes) at
+`/v1/students/cases` and `/v1/students/ask`. Digests are original study notes that cite
+case name + court/year and link out to licensed reports — proprietary NWLR text is not
+copied. The **NDPA 2023** copy
 has a damaged text layer (25%), and this **Constitution** PDF loses
 inline numbering in Chapter IV so bodies misattach to locators — both need cleaner
 documents before anything is cited from parsed text. Shipped rights citations are
@@ -133,6 +138,8 @@ curl -s -X POST http://127.0.0.1:8000/v1/ask \
 - `GET /v1/search?q=...`
 - `POST /v1/ask` (body: `{"question": "..."}`)
 - `GET /v1/content-pack` (full pack for offline caching)
+- `GET /v1/company/obligations` / `GET /v1/company/checklists` / `POST /v1/company/ask`
+- `GET /v1/students/cases` / `GET /v1/students/cases/{id}` / `POST /v1/students/ask`
 - `POST /v1/auth/register`, `/v1/auth/login`, `/v1/auth/forgot-password`,
   `/v1/auth/reset-password`
 - `GET/PUT /v1/profile`

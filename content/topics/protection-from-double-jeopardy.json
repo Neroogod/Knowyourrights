@@ -19,6 +19,21 @@
     "Do not assume you can be endlessly recharged for the same offence.",
     "Do not lose your court documents from an earlier case."
   ],
+  "common_situations": [
+    "You are charged again after a competent court already convicted or acquitted you of the same offence.",
+    "A new case appears to repeat the same facts under a differently worded charge.",
+    "Authorities reopen a concluded matter without explaining the legal basis."
+  ],
+  "words_to_use": [
+    "This matter was already decided by a competent court. Please record that objection.",
+    "I need my lawyer to compare this charge with the earlier judgment.",
+    "Please provide the new charge and the authority relied on for bringing it."
+  ],
+  "if_violated": [
+    "Obtain certified copies of the earlier charge, proceedings, judgment, acquittal, conviction, or pardon.",
+    "Compare the parties, facts, conduct, and offences with the new case through a qualified lawyer.",
+    "Raise the protection promptly in court; do not simply fail to attend the new proceeding."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

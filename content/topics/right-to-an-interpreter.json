@@ -19,6 +19,21 @@
     "Do not sign or answer a charge you do not understand.",
     "Do not let anyone rush you past your right to an interpreter."
   ],
+  "common_situations": [
+    "You are questioned, charged, or tried in a language you do not understand well.",
+    "A statement is written for you in a language or wording you cannot read.",
+    "An interpreter appears inaccurate, partial, or unable to communicate clearly with you."
+  ],
+  "words_to_use": [
+    "I do not understand this language well enough. I need an interpreter.",
+    "Please read and explain this document in a language I understand before I sign.",
+    "The interpretation is not accurate; please record my objection."
+  ],
+  "if_violated": [
+    "Do not pretend to understand or sign unexplained material; repeat the request calmly.",
+    "Record the language used, interpreter's identity, disputed words, witnesses, and documents involved.",
+    "Tell your lawyer immediately so the misunderstanding and its effect can be raised through the proper process."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

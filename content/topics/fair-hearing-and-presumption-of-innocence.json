@@ -26,6 +26,21 @@
     "Do not proceed in a serious matter without legal representation if you can avoid it.",
     "Do not agree to be tried twice for the same offence you were already cleared of."
   ],
+  "common_situations": [
+    "A public statement presents you as guilty before a court has decided the charge.",
+    "You do not understand the charge, evidence, hearing date, or procedure being used.",
+    "You are prevented from presenting your case, challenging evidence, or obtaining legal assistance."
+  ],
+  "words_to_use": [
+    "Please explain the charge and procedure in a language and form I understand.",
+    "I need reasonable time and access to legal advice to prepare my defence.",
+    "I object to being treated as guilty before the court has determined the case."
+  ],
+  "if_violated": [
+    "Keep the charge, hearing notices, rulings, recordings, publications, and correspondence about the proceeding.",
+    "Write down what you were prevented from doing and how it affected your ability to present your case.",
+    "Raise the concern promptly with your lawyer so it can be preserved through the correct court procedure."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

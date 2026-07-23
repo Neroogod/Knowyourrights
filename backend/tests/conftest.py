@@ -14,6 +14,8 @@ from backend.accounts import AccountService, DevelopmentGateway  # noqa: E402
 from backend.api import create_app  # noqa: E402
 from backend.content_store import ContentStore  # noqa: E402
 from backend.schemas import (  # noqa: E402
+    CaseBrief,
+    CaseInterpretation,
     ChecklistItem,
     Citation,
     CompanyChecklist,
@@ -89,6 +91,33 @@ def _sample_pack() -> ContentPack:
                 jurisdiction="NG-Federal",
                 items=[ChecklistItem(text="Prepare the annual return.")],
                 citations=[Citation(source_name="CAMA 2020", locator="ss.417-423")],
+            )
+        ],
+        cases=[
+            CaseBrief(
+                id="agbakoba-passport",
+                name="Director SSS v Agbakoba",
+                court="Supreme Court of Nigeria",
+                year=1999,
+                area_of_law="freedom-of-movement",
+                jurisdiction="NG-Federal",
+                summary="Passport seizure can violate freedom of movement.",
+                facts="Security agents seized a citizen's passport.",
+                issues=["Does passport seizure violate section 41?"],
+                holding="Arbitrary passport seizure engages freedom of movement.",
+                ratio="Freedom of movement includes the ability to travel with a passport.",
+                interpretations=[
+                    CaseInterpretation(
+                        id="note-1",
+                        kind="significance",
+                        body="Connect the case to Constitution s.41.",
+                        status=Status.verified,
+                        reviewed_by="Seed",
+                    )
+                ],
+                citations=[Citation(source_name="Director SSS v Agbakoba", locator="SC 1999")],
+                status=Status.verified,
+                reviewed_by="Seed",
             )
         ],
     )

@@ -15,6 +15,7 @@ if BACKEND_ON_PATH not in sys.path:
     sys.path.insert(0, BACKEND_ON_PATH)
 
 from backend.schemas import (  # noqa: E402
+    CaseBrief,
     CompanyChecklist,
     ContentPack,
     DirectoryEntry,
@@ -68,6 +69,12 @@ def load_company_checklists(content_dir: Path) -> list[CompanyChecklist]:
     return [CompanyChecklist.model_validate(_load_json(path)) for path in paths]
 
 
+def load_cases(content_dir: Path) -> list[CaseBrief]:
+    """Load and validate law-student case briefs."""
+    paths = sorted((content_dir / "cases").glob("*.json"))
+    return [CaseBrief.model_validate(_load_json(path)) for path in paths]
+
+
 def build_pack(content_dir: Path = CONTENT_DIR, version: int = 1) -> ContentPack:
     """Assemble and validate the full content pack."""
     return ContentPack(
@@ -78,6 +85,7 @@ def build_pack(content_dir: Path = CONTENT_DIR, version: int = 1) -> ContentPack
         directory=load_directory(content_dir),
         obligations=load_obligations(content_dir),
         company_checklists=load_company_checklists(content_dir),
+        cases=load_cases(content_dir),
     )
 
 
@@ -113,6 +121,7 @@ def main() -> None:
     print(f"  directory: {len(pack.directory)}")
     print(f"  company obligations: {len(pack.obligations)}")
     print(f"  company checklists: {len(pack.company_checklists)}")
+    print(f"  student cases: {len(pack.cases)}")
 
     reports = ingest_sources(DATA_DIR / "sources")
     if not reports:

@@ -1,0 +1,42 @@
+{
+  "id": "garba-v-university-of-maiduguri",
+  "name": "Garba v University of Maiduguri",
+  "court": "Supreme Court of Nigeria",
+  "year": 1986,
+  "area_of_law": "fair-hearing",
+  "jurisdiction": "NG-Federal",
+  "summary": "A foundational fair-hearing case on disciplinary proceedings in a university setting and the requirements of natural justice.",
+  "facts": "Students were subjected to university disciplinary measures arising from campus disturbances. They challenged the process as denying them a fair hearing.",
+  "issues": [
+    "Whether the disciplinary process met the constitutional and common-law requirements of fair hearing.",
+    "What procedural protections apply before serious disciplinary sanctions."
+  ],
+  "holding": "The decision emphasises that bodies exercising disciplinary powers must observe fair hearing / natural justice. Read the full report for the precise findings on the university process in issue.",
+  "ratio": "Where a decision affects rights or serious interests, the decision-maker must afford a fair opportunity to be heard; failure of natural justice can invalidate the resulting decision.",
+  "report_citation": "See NWLR / law-report citation via a licensed law-report service",
+  "source_url": "https://nwlronline.com/",
+  "linked_topic_ids": ["fair-hearing-and-presumption-of-innocence"],
+  "interpretations": [
+    {
+      "id": "garba-ratio-note",
+      "kind": "ratio",
+      "body": "Map the case onto Constitution s.36(1): fair hearing within a reasonable time by an independent and impartial body. Distinguish between academic/administrative discipline and criminal prosecution, but note that fairness still binds both.",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    }
+  ],
+  "citations": [
+    {
+      "source_name": "Garba v University of Maiduguri",
+      "locator": "Supreme Court, 1986"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(1)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

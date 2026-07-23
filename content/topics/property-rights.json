@@ -17,6 +17,21 @@
   "dont_list": [
     "Do not accept seizure of property without lawful process and compensation."
   ],
+  "common_situations": [
+    "Government officials take, occupy, demolish, or restrict the use of land or other property.",
+    "Property is seized during an investigation and no receipt or recovery process is given.",
+    "You receive notice that property will be compulsorily acquired for a public purpose."
+  ],
+  "words_to_use": [
+    "Please show me the legal authority and written notice affecting this property.",
+    "I do not consent to removal. Please provide a complete inventory and receipt.",
+    "How can I challenge this action or claim the compensation provided by law?"
+  ],
+  "if_violated": [
+    "Prioritise safety and preserve title documents, purchase records, valuations, notices, inventories, photographs, and witness contacts.",
+    "Document the condition of the property before and after the action and identify the agency and contractors involved.",
+    "Obtain legal advice quickly because property challenges and compensation processes may have formal deadlines."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

@@ -19,6 +19,21 @@
     "Do not accept a charge that is not based on a clear written law.",
     "Do not accept a penalty heavier than the law allowed at the time."
   ],
+  "common_situations": [
+    "You are threatened with punishment for conduct that was not an offence when it occurred.",
+    "A charge does not identify a written law or clearly defined offence.",
+    "A later, harsher penalty is being applied to earlier conduct."
+  ],
+  "words_to_use": [
+    "What written law created this offence at the time of the alleged conduct?",
+    "Please identify the exact charge and penalty in writing.",
+    "I need legal advice before responding to an allegation that is not clearly defined."
+  ],
+  "if_violated": [
+    "Keep the charge, alleged date, cited law, penalty notice, and every version of the relevant rule.",
+    "Do not rely only on verbal descriptions; ask your lawyer to compare the conduct date with the law then in force.",
+    "Raise the issue through the proper court process rather than ignoring a summons or charge."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

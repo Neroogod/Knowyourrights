@@ -19,6 +19,21 @@
     "Do not accept that mistreatment in custody is normal or lawful - it is not.",
     "Do not sign a statement obtained through threats or violence."
   ],
+  "common_situations": [
+    "You are beaten, threatened, stripped, deprived of basic needs, or forced into a painful position in custody.",
+    "Force or humiliation is used to make you confess, sign a statement, or provide information.",
+    "You witness another detained person being tortured or treated in a degrading way."
+  ],
+  "words_to_use": [
+    "I do not consent to this treatment. I want medical attention and access to my lawyer.",
+    "Please record my injuries and my request for medical care.",
+    "I will not sign a statement I do not understand or that was obtained through threats or force."
+  ],
+  "if_violated": [
+    "Get to safety and seek independent medical care as soon as possible; ask the provider to document the history and injuries.",
+    "Photograph injuries over time, preserve damaged clothing, and write a detailed account while memories are fresh.",
+    "Give copies of evidence to a trusted person or lawyer and seek advice before confronting the alleged perpetrators."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

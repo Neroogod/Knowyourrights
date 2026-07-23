@@ -1,0 +1,42 @@
+{
+  "id": "bello-v-ag-oyo",
+  "name": "Bello v Attorney-General of Oyo State",
+  "court": "Supreme Court of Nigeria",
+  "year": 1986,
+  "area_of_law": "right-to-life",
+  "jurisdiction": "NG-Federal",
+  "summary": "A right-to-life and due-process case arising from the execution of a convict while an appeal was still pending.",
+  "facts": "A condemned prisoner was executed while his appeal remained pending. The estate/representatives challenged the execution as unlawful.",
+  "issues": [
+    "Whether executing a convict while an appeal is pending violates the right to life and fair process.",
+    "What duty the State owes once appellate process has been invoked."
+  ],
+  "holding": "The case is remembered for condemning the execution of a person while appeal processes that could affect the conviction/sentence were still live. Students must verify the precise ratio in the law report.",
+  "ratio": "Where appellate process is pending, the State must not render the appeal nugatory by carrying out the death sentence; doing so engages the constitutional protection of life and due process.",
+  "report_citation": "See NWLR / law-report citation via a licensed law-report service",
+  "source_url": "https://nwlronline.com/",
+  "linked_topic_ids": ["right-to-life", "fair-hearing-and-presumption-of-innocence"],
+  "interpretations": [
+    {
+      "id": "bello-commentary",
+      "kind": "commentary",
+      "body": "Connect this case to s.33 (right to life) and s.36 (fair hearing). Discuss the relationship between capital punishment authorised by law and the procedural protections that must still be respected.",
+      "status": "verified",
+      "reviewed_by": "Seed content (pending independent lawyer review)",
+      "reviewed_at": "2026-07-23"
+    }
+  ],
+  "citations": [
+    {
+      "source_name": "Bello v Attorney-General of Oyo State",
+      "locator": "Supreme Court, 1986"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.33"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

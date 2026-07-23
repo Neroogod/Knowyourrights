@@ -20,6 +20,21 @@
     "Do not assume unequal treatment by an official is normal or lawful - it may be unconstitutional.",
     "Do not throw away evidence such as letters, forms or messages."
   ],
+  "common_situations": [
+    "A public authority treats you differently because of your community, ethnic group, sex, religion, or political opinion.",
+    "You are denied an official service or subjected to a special restriction for a prohibited reason.",
+    "A rule appears neutral but officials apply it selectively against your group."
+  ],
+  "words_to_use": [
+    "What objective rule explains the different treatment?",
+    "Please provide the decision and reason in writing.",
+    "I believe I am being treated differently because of a protected characteristic and want this reviewed."
+  ],
+  "if_violated": [
+    "Record comparable cases, the words used, decision-makers, dates, witnesses, and documents showing different treatment.",
+    "Request the written policy or reason and preserve applications, refusals, messages, and recordings.",
+    "Seek advice from a lawyer or human-rights organisation about the appropriate complaint or court remedy."
+  ],
   "citations": [
     {
       "source_name": "1999 Constitution of the Federal Republic of Nigeria",

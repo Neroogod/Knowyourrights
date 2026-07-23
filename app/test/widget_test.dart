@@ -16,11 +16,11 @@ void main() {
     expect(callTargetFor(null).number, isNull);
   });
 
-  test('custody alert builds an unsent SMS draft with the safety message', () {
-    final uri = buildCustodyAlertUri();
+  test('custody alert builds an addressed unsent SMS draft', () {
+    final uri = buildCustodyAlertUri(phone: '+2348012345678');
     expect(uri.scheme, 'sms');
     expect(uri.queryParameters['body'], custodyAlertMessage);
-    expect(uri.path, isEmpty);
+    expect(uri.path, '+2348012345678');
   });
 
   group('resolveStepAction', () {
@@ -152,6 +152,75 @@ void main() {
       ],
     });
     expect(checklist.items.single.obligationId, 'annual-returns');
+  });
+
+  test('CaseBrief parses student case digests', () {
+    final caseBrief = CaseBrief.fromJson({
+      'id': 'agbakoba-passport',
+      'name': 'Director SSS v Agbakoba',
+      'court': 'Supreme Court of Nigeria',
+      'year': 1999,
+      'area_of_law': 'freedom-of-movement',
+      'summary': 'Passport seizure can violate freedom of movement.',
+      'facts': 'Security agents seized a citizen passport.',
+      'issues': ['Does passport seizure violate section 41?'],
+      'holding': 'Arbitrary passport seizure engages freedom of movement.',
+      'ratio': 'Freedom of movement includes travel with a passport.',
+      'linked_topic_ids': ['freedom-of-movement'],
+      'interpretations': [
+        {
+          'id': 'note-1',
+          'kind': 'significance',
+          'body': 'Connect to Constitution s.41.',
+          'status': 'verified',
+        },
+      ],
+      'citations': [
+        {'source_name': 'Director SSS v Agbakoba', 'locator': 'SC 1999'},
+      ],
+      'status': 'verified',
+    });
+    expect(caseBrief.year, 1999);
+    expect(caseBrief.interpretations.single.kind, 'significance');
+  });
+
+  test('searchCases ranks the matching case first', () {
+    final repo = ContentRepository();
+    repo.cases = [
+      const CaseBrief(
+        id: 'fair-hearing',
+        name: 'Garba v University of Maiduguri',
+        court: 'Supreme Court',
+        year: 1986,
+        areaOfLaw: 'fair-hearing',
+        summary: 'University discipline and natural justice.',
+        facts: 'Students challenged disciplinary process.',
+        issues: ['Was fair hearing observed?'],
+        holding: 'Natural justice binds disciplinary bodies.',
+        ratio: 'Fair opportunity to be heard is required.',
+        linkedTopicIds: [],
+        interpretations: [],
+        citations: [],
+        status: 'verified',
+      ),
+      const CaseBrief(
+        id: 'movement',
+        name: 'Director SSS v Agbakoba',
+        court: 'Supreme Court',
+        year: 1999,
+        areaOfLaw: 'freedom-of-movement',
+        summary: 'Passport seizure and freedom of movement.',
+        facts: 'Passport seized by security agents.',
+        issues: ['Does passport seizure violate movement?'],
+        holding: 'Passport seizure can violate section 41.',
+        ratio: 'Movement includes ability to travel abroad.',
+        linkedTopicIds: [],
+        interpretations: [],
+        citations: [],
+        status: 'verified',
+      ),
+    ];
+    expect(repo.searchCases('passport freedom movement').first.id, 'movement');
   });
 
   test('AskResponse.fromJson parses refusal and citations', () {
