@@ -1,0 +1,35 @@
+{
+  "id": "first-year-compliance",
+  "title": "First-year company compliance",
+  "description": "A starter checklist for a newly incorporated Nigerian private company. Confirm the details with a qualified lawyer or company secretary.",
+  "jurisdiction": "NG-Federal",
+  "items": [
+    {
+      "text": "Confirm that the company was registered for a lawful purpose and retain its incorporation records.",
+      "obligation_id": "company-formation"
+    },
+    {
+      "text": "Set up accounting records for receipts, payments, assets, and liabilities.",
+      "obligation_id": "keep-accounting-records"
+    },
+    {
+      "text": "Identify the annual-return form, attachments, signatories, and deadline that apply to the company.",
+      "obligation_id": "file-annual-returns"
+    }
+  ],
+  "citations": [
+    {
+      "source_name": "Companies and Allied Matters Act 2020",
+      "locator": "s.18"
+    },
+    {
+      "source_name": "Companies and Allied Matters Act 2020",
+      "locator": "ss.374-375"
+    },
+    {
+      "source_name": "Companies and Allied Matters Act 2020",
+      "locator": "ss.417-423"
+    }
+  ],
+  "status": "draft"
+}

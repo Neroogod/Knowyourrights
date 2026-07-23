@@ -63,6 +63,39 @@
   .tt{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 13px;
     font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;display:inline-flex;gap:7px;align-items:center;}
   .tt:hover{border-color:var(--green);}
+  .top-actions{display:flex;align-items:center;gap:8px;}
+  .profile-button[hidden]{display:none;}
+
+  /* account gate */
+  .account-gate{position:fixed;inset:0;z-index:100;background:var(--canvas);overflow:auto;padding:28px 18px 50px;}
+  .account-gate[hidden],.profile-panel[hidden]{display:none;}
+  .account-shell{width:min(100%,520px);margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:24px;
+    padding:24px;box-shadow:var(--shadow-lg);}
+  .account-brand{margin-bottom:18px;}
+  .account-shell h1{font-family:var(--serif);font-size:1.75rem;line-height:1.16;margin:0 0 7px;}
+  .account-shell>p{color:var(--muted);margin:0 0 18px;}
+  .account-form{display:flex;flex-direction:column;gap:12px;}
+  .form-section{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800;margin:7px 2px -4px;}
+  .field-label{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:.78rem;font-weight:700;}
+  .field-label input{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:12px;background:var(--card-2);
+    color:var(--ink);font:inherit;font-size:.95rem;}
+  .account-submit{min-height:48px;margin-top:5px;background:var(--green);color:var(--on-green);border:0;border-radius:13px;
+    font:inherit;font-weight:800;cursor:pointer;}
+  .account-submit:disabled,.alert-card .go:disabled{opacity:.6;cursor:wait;}
+  .account-switch{border:0;background:none;color:var(--green);font:inherit;font-weight:700;cursor:pointer;padding:5px;}
+  .account-status{min-height:22px;margin:2px 0 0;color:var(--muted);font-size:.84rem;}
+  .account-status.error{color:var(--sos-ink);}
+  .privacy-note{font-size:.75rem;color:var(--faint);margin-top:8px;}
+  .profile-panel{position:fixed;inset:0;z-index:90;background:rgba(7,15,10,.58);padding:70px 18px 20px;overflow:auto;}
+  .profile-card{width:min(100%,520px);margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow-lg);}
+  .profile-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .profile-head h2{font-family:var(--serif);margin:0;font-size:1.5rem;}
+  .icon-button{border:1px solid var(--line);background:var(--card-2);color:var(--ink);border-radius:50%;width:36px;height:36px;cursor:pointer;}
+  .profile-row{border-top:1px solid var(--line);padding:12px 0;}
+  .profile-row small{display:block;color:var(--faint);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;}
+  .profile-row strong{font-size:.95rem;}
+  .signout{width:100%;padding:11px;border:1px solid var(--sos);border-radius:11px;background:transparent;color:var(--sos);
+    font:inherit;font-weight:750;cursor:pointer;}
 
   main{max-width:680px;margin:0 auto;padding:18px 18px 120px;}
   .view{display:none;flex-direction:column;gap:14px;animation:fade .26s ease both;}
@@ -181,6 +214,37 @@
 </style>
 </head>
 <body>
+  <section class="account-gate" id="accountGate" aria-labelledby="accountTitle">
+    <div class="account-shell">
+      <div class="brand account-brand">
+        <span class="seal" aria-hidden="true">⚖</span>
+        <span><b>Know Your Rights</b><small>Nigeria</small></span>
+      </div>
+      <h1 id="accountTitle">Create your safety profile</h1>
+      <p id="accountIntro">Verify your email, add your details, and choose the person your custody alert should contact.</p>
+      <form class="account-form" id="accountForm">
+        <div class="form-section">Account</div>
+        <label class="field-label">Email<input id="accountEmail" type="email" autocomplete="email" required></label>
+        <label class="field-label">Password<input id="accountPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+        <div id="registrationFields">
+          <div class="account-form">
+            <div class="form-section">Your details</div>
+            <label class="field-label">Full name<input id="profileName" autocomplete="name" minlength="2" required></label>
+            <label class="field-label">Phone number<input id="profilePhone" type="tel" autocomplete="tel" placeholder="+234…" pattern="\+?[0-9]{8,15}" required></label>
+            <div class="form-section">Emergency contact</div>
+            <label class="field-label">Contact's name<input id="contactName" autocomplete="name" minlength="2" required></label>
+            <label class="field-label">Contact's phone number<input id="contactPhone" type="tel" autocomplete="tel" placeholder="+234…" pattern="\+?[0-9]{8,15}" required></label>
+          </div>
+        </div>
+        <button class="account-submit" id="accountSubmit" type="submit">Create profile</button>
+        <button class="account-switch" id="accountSwitch" type="button">I already have an account</button>
+        <button class="account-switch" id="forgotPassword" type="button" hidden>Forgot password?</button>
+        <p class="account-status" id="accountStatus" role="status" aria-live="polite"></p>
+      </form>
+      <div class="privacy-note">Your contact details are protected and used for account and safety features. Location is requested only when you trigger an alert.</div>
+    </div>
+  </section>
+
   <div class="topbar">
     <div class="in">
       <div class="brand">
@@ -189,7 +253,10 @@
         </span>
         <span><b>Know Your Rights</b><small>Nigeria · grounded in the 1999 Constitution</small></span>
       </div>
-      <button class="tt" id="tt" aria-label="Toggle light or dark theme"><span id="tticon">☀</span><span id="ttlabel">Light</span></button>
+      <div class="top-actions">
+        <button class="tt profile-button" id="profileButton" hidden>Profile</button>
+        <button class="tt" id="tt" aria-label="Toggle light or dark theme"><span id="tticon">☀</span><span id="ttlabel">Light</span></button>
+      </div>
     </div>
   </div>
 
@@ -207,7 +274,8 @@
         <span class="alert-ring" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a7 7 0 00-7 7c0 5-3 6-3 6h20s-3-1-3-6a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20a2 2 0 004 0" stroke-linecap="round"/></svg>
         </span>
-        <div><h4>Custody Alert</h4><p>One tap tells your people where you are. <em>(Coming soon)</em></p></div>
+        <div><h4>Custody Alert</h4><p id="custodyStatus">Alert your verified emergency contact and share your location when available.</p></div>
+        <button class="go" id="custodyAlert" type="button">Send alert</button>
       </div>
 
       <button class="askbar" onclick="go('ask')">
@@ -232,6 +300,22 @@
       <div id="scenarioList"></div>
     </section>
     <section class="view" id="scenarioDetail"></section>
+
+    <!-- COMPANIES -->
+    <section class="view" id="companies">
+      <h1 class="lead-h">Company compliance</h1>
+      <p class="detail-body">CAMA-grounded obligations and checklists. Draft entries are clearly marked and excluded from answers until lawyer review.</p>
+      <div class="askrow">
+        <input class="field" id="companyQ" placeholder="e.g. When must my company file an annual return?" onkeydown="if(event.key==='Enter')askCompany()" />
+        <button class="btn-primary" onclick="askCompany()">Ask</button>
+      </div>
+      <div id="companyAnswer"></div>
+      <h2 class="section">Obligations</h2>
+      <div id="obligations"></div>
+      <h2 class="section">Checklists</h2>
+      <div id="companyChecklists"></div>
+    </section>
+    <section class="view" id="obligationDetail"></section>
 
     <!-- ASK -->
     <section class="view" id="ask">
@@ -261,12 +345,23 @@
       <button class="em" id="nav-emergencies" onclick="go('emergencies')" aria-label="Emergencies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 10v4M12 17v.5" stroke-linecap="round"/></svg>Emergency</button>
       <button id="nav-ask" onclick="go('ask')" aria-label="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6.5A8 8 0 1121 12z" stroke-linecap="round" stroke-linejoin="round"/></svg>Ask</button>
       <button id="nav-help" onclick="go('help')" aria-label="Get help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h2l2 4-2 2a12 12 0 005 5l2-2 4 2v2a2 2 0 01-2 2A16 16 0 014 5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Help</button>
+      <button id="nav-companies" onclick="go('companies')" aria-label="Companies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V7h10v14M14 11h6v10M8 11h2M8 15h2M8 19h2M17 15h1M17 19h1" stroke-linecap="round" stroke-linejoin="round"/></svg>Company</button>
     </div>
   </nav>
 
+  <section class="profile-panel" id="profilePanel" hidden aria-modal="true" role="dialog" aria-labelledby="profileTitle">
+    <div class="profile-card">
+      <div class="profile-head"><h2 id="profileTitle">Your profile</h2><button class="icon-button" id="profileClose" aria-label="Close">×</button></div>
+      <div id="profileDetails"></div>
+      <button class="signout" id="signOut" type="button">Sign out</button>
+    </div>
+  </section>
+
 <script>
   const API = "/v1";
-  let TOPICS = [], SCENARIOS = [];
+  let TOPICS = [], SCENARIOS = [], OBLIGATIONS = [], COMPANY_CHECKLISTS = [];
+  let ACCOUNT_PROFILE = null, EMERGENCY_CONTACTS = [], AUTH_MODE = "register", RESET_TOKEN = "";
+  let AUTH_TOKEN = sessionStorage.getItem("kyr_access_token") || "";
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const HOME_TRIGGERS = [
     {id:"police-want-to-search-phone", label:"Police want my phone"},
@@ -274,8 +369,186 @@
     {id:"held-too-long-in-detention", label:"I'm being detained"},
     {id:"life-in-danger", label:"My life is in danger"},
   ];
+  const CUSTODY_ALERT = "I am being arrested or held in police custody. Please contact me, find out where I am being held, and help me reach a lawyer. This alert was prepared with the Know Your Rights Nigeria app.";
 
   const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const authHeaders = () => ({"Content-Type":"application/json","Authorization":"Bearer "+AUTH_TOKEN});
+  async function apiJson(path, options={}){
+    const response=await fetch(API+path,options);
+    let data=null;
+    try{ data=await response.json(); }catch(_error){ data={}; }
+    if(!response.ok) throw new Error(data.detail||"Something went wrong. Please try again.");
+    return data;
+  }
+
+  function setAccountStatus(message,isError=false){
+    const status=document.getElementById("accountStatus");
+    status.textContent=message;
+    status.classList.toggle("error",isError);
+  }
+  function setAuthMode(mode){
+    AUTH_MODE=mode;
+    const registering=mode==="register";
+    const resetting=mode==="reset";
+    document.getElementById("registrationFields").hidden=!registering;
+    document.querySelectorAll("#registrationFields input").forEach(input=>input.required=registering);
+    document.getElementById("accountEmail").readOnly=resetting;
+    document.getElementById("accountPassword").value="";
+    document.getElementById("accountPassword").autocomplete=registering||resetting?"new-password":"current-password";
+    document.getElementById("accountTitle").textContent=registering?"Create your safety profile":resetting?"Choose a new password":"Welcome back";
+    document.getElementById("accountIntro").textContent=registering
+      ?"Verify your email, add your details, and choose the person your custody alert should contact."
+      :resetting?"Enter a new password of at least 12 characters."
+      :"Sign in to access your profile and safety tools.";
+    document.getElementById("accountSubmit").textContent=registering?"Create profile":resetting?"Reset password":"Sign in";
+    document.getElementById("accountSwitch").textContent=registering?"I already have an account":resetting?"Back to sign in":"Create a new account";
+    document.getElementById("forgotPassword").hidden=mode!=="login";
+    setAccountStatus("");
+  }
+  async function login(email,password){
+    const token=await apiJson("/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+    AUTH_TOKEN=token.access_token;
+    sessionStorage.setItem("kyr_access_token",AUTH_TOKEN);
+  }
+  async function loadAccount(){
+    ACCOUNT_PROFILE=await apiJson("/profile",{headers:authHeaders()});
+    EMERGENCY_CONTACTS=await apiJson("/emergency-contacts",{headers:authHeaders()});
+    return ACCOUNT_PROFILE.onboarding_complete&&EMERGENCY_CONTACTS.some(contact=>contact.status==="verified");
+  }
+  function showApp(){
+    document.getElementById("accountGate").hidden=true;
+    document.getElementById("profileButton").hidden=false;
+  }
+  function signOut(){
+    AUTH_TOKEN="";
+    ACCOUNT_PROFILE=null;
+    EMERGENCY_CONTACTS=[];
+    sessionStorage.removeItem("kyr_access_token");
+    document.getElementById("profilePanel").hidden=true;
+    document.getElementById("profileButton").hidden=true;
+    document.getElementById("accountGate").hidden=false;
+    document.getElementById("accountForm").reset();
+    setAuthMode("login");
+  }
+  function openProfile(){
+    const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
+    document.getElementById("profileDetails").innerHTML=`
+      <div class="profile-row"><small>Name</small><strong>${esc(ACCOUNT_PROFILE.full_name)}</strong></div>
+      <div class="profile-row"><small>Email</small><strong>${esc(ACCOUNT_PROFILE.email)}</strong></div>
+      <div class="profile-row"><small>Phone</small><strong>${esc(ACCOUNT_PROFILE.phone)}</strong></div>
+      <div class="profile-row"><small>Verified emergency contact</small><strong>${contact?esc(contact.name)+" · "+esc(contact.phone):"Not configured"}</strong></div>`;
+    document.getElementById("profilePanel").hidden=false;
+  }
+  async function registerAccount(email,password){
+    const registered=await apiJson("/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+    if(registered.account_exists){
+      const resent=await apiJson("/auth/resend-verification",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
+      if(resent.development_verification_token){
+        await apiJson("/auth/verify-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:resent.development_verification_token})});
+      }
+      setAuthMode("login");
+      throw new Error("An account already exists with this email. Please sign in.");
+    }
+    let verificationToken=registered.development_verification_token;
+    if(!verificationToken){
+      const resent=await apiJson("/auth/resend-verification",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
+      verificationToken=resent.development_verification_token;
+    }
+    if(!verificationToken){
+      throw new Error("Check your email for the verification link, then return here and sign in.");
+    }
+    await apiJson("/auth/verify-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:verificationToken})});
+    await login(email,password);
+    await apiJson("/profile",{method:"PUT",headers:authHeaders(),body:JSON.stringify({
+      full_name:document.getElementById("profileName").value.trim(),
+      phone:document.getElementById("profilePhone").value.trim()
+    })});
+    const contact=await apiJson("/emergency-contacts",{method:"POST",headers:authHeaders(),body:JSON.stringify({
+      name:document.getElementById("contactName").value.trim(),
+      phone:document.getElementById("contactPhone").value.trim()
+    })});
+    if(!contact.development_verification_token){
+      throw new Error("Your profile was created. Ask your emergency contact to use the verification link, then sign in.");
+    }
+    await apiJson("/emergency-contacts/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:contact.development_verification_token})});
+  }
+  async function submitAccount(event){
+    event.preventDefault();
+    const submit=document.getElementById("accountSubmit");
+    const email=document.getElementById("accountEmail").value.trim();
+    const password=document.getElementById("accountPassword").value;
+    submit.disabled=true;
+    setAccountStatus(AUTH_MODE==="register"?"Creating and verifying your profile…":AUTH_MODE==="reset"?"Resetting password…":"Signing in…");
+    try{
+      if(AUTH_MODE==="reset"){
+        await apiJson("/auth/reset-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:RESET_TOKEN,password})});
+        RESET_TOKEN="";
+        setAuthMode("login");
+        setAccountStatus("Password reset. Sign in with your new password.");
+        return;
+      }
+      if(AUTH_MODE==="register") await registerAccount(email,password); else await login(email,password);
+      const ready=await loadAccount();
+      if(!ready) throw new Error("Finish your profile and verify an emergency contact before continuing.");
+      showApp();
+    }catch(error){
+      if(AUTH_MODE==="login") sessionStorage.removeItem("kyr_access_token");
+      setAccountStatus(error.message,true);
+    }finally{ submit.disabled=false; }
+  }
+  async function forgotPassword(){
+    const email=document.getElementById("accountEmail").value.trim();
+    if(!email){ setAccountStatus("Enter your email address first.",true); return; }
+    setAccountStatus("Preparing your password reset…");
+    try{
+      const result=await apiJson("/auth/forgot-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
+      if(result.development_reset_token){
+        RESET_TOKEN=result.development_reset_token;
+        setAuthMode("reset");
+        setAccountStatus("Local reset verified. Enter your new password.");
+      }else{
+        setAccountStatus(result.message);
+      }
+    }catch(error){ setAccountStatus(error.message,true); }
+  }
+  async function restoreAccount(){
+    if(!AUTH_TOKEN) return;
+    try{
+      if(await loadAccount()) showApp();
+      else signOut();
+    }catch(_error){ signOut(); }
+  }
+
+  function currentLocation(){
+    return new Promise(resolve=>{
+      if(!navigator.geolocation){ resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        position=>resolve({latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy}),
+        ()=>resolve(null),
+        {enableHighAccuracy:true,timeout:8000,maximumAge:30000}
+      );
+    });
+  }
+  async function sendCustodyAlert(){
+    const button=document.getElementById("custodyAlert");
+    const status=document.getElementById("custodyStatus");
+    const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
+    if(!contact){ status.textContent="Add and verify an emergency contact in your profile first."; return; }
+    button.disabled=true;
+    status.textContent="Getting your location and alerting "+contact.name+"…";
+    try{
+      const location=await currentLocation();
+      const idempotency=(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()).toString();
+      const result=await apiJson("/custody-alerts",{method:"POST",headers:authHeaders(),body:JSON.stringify({
+        contact_id:contact.id,idempotency_key:idempotency,...(location||{})
+      })});
+      if(result.status!=="sent") throw new Error("Alert delivery failed");
+      status.textContent=`Alert ${result.status} for ${contact.name}${result.location_shared?" with your location":" without location"}.`;
+    }catch(error){
+      status.textContent="The alert service could not be reached. Opening an SMS fallback…";
+      window.location.href="sms:"+encodeURIComponent(contact.phone)+"?body="+encodeURIComponent(CUSTODY_ALERT);
+    }finally{ button.disabled=false; }
+  }
   function prettyCat(c){ return (c||"").split("-").map(w=>w==="and"?"&":w).join(" ").replace(/^\w/,m=>m.toUpperCase()); }
   function shortSource(s){ return /constitution/i.test(s||"") ? "1999 Constitution" : (s||""); }
   function citeChip(c, withSource){ const loc = esc(c.locator); const src = withSource ? esc(shortSource(c.source_name))+" · " : "";
@@ -289,9 +562,51 @@
   function go(id){
     document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on", v.id===id));
     document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("on"));
-    const map={home:"home",rights:"rights",topicDetail:"rights",emergencies:"emergencies",scenarioDetail:"emergencies",ask:"ask",help:"help"};
+    const map={home:"home",rights:"rights",topicDetail:"rights",emergencies:"emergencies",scenarioDetail:"emergencies",ask:"ask",help:"help",companies:"companies",obligationDetail:"companies"};
     const nav=document.getElementById("nav-"+(map[id]||id)); if(nav) nav.classList.add("on");
     window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
+  }
+
+  /* ---------- Companies ---------- */
+  function obligationCard(item){
+    return `<div class="rcard" onclick="openObligation('${esc(item.id)}')">
+      <div class="top"><span class="cat">${esc(prettyCat(item.category))}</span>${item.status==="verified"?verifiedBadge():"<span class='muted-note'>Pending review</span>"}</div>
+      <h4>${esc(item.title)}</h4><p>${esc(item.summary)}</p></div>`;
+  }
+  function openObligation(id){
+    const item=OBLIGATIONS.find(x=>x.id===id); if(!item) return;
+    document.getElementById("obligationDetail").innerHTML=`
+      <button class="backbtn" onclick="go('companies')">← Company compliance</button>
+      <div class="top" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span class="cat">${esc(prettyCat(item.category))}</span>${item.status==="verified"?verifiedBadge():"<span class='muted-note'>Pending lawyer review</span>"}</div>
+      <h1 class="lead-h">${esc(item.title)}</h1>
+      <p class="detail-lead">${esc(item.summary)}</p>
+      <p class="muted-note">Applies to: ${esc((item.applies_to||[]).join(", "))}</p>
+      ${bulletBlock("do","What the company must do",item.requirements,"✓","g")}
+      <h2 class="section">Sources</h2>
+      <div class="cites">${(item.citations||[]).map(c=>citeChip(c,true)).join("")}</div>
+      ${item.status!=="verified"?'<p class="muted-note">General legal information only. This entry is excluded from company answers until lawyer review.</p>':""}`;
+    go("obligationDetail");
+  }
+  function checklistCard(item){
+    const rows=(item.items||[]).map(row=>`<li><span class="ic g">□</span>${esc(row.text)}</li>`).join("");
+    return `<div class="block do"><h4 style="margin:0 0 5px">${esc(item.title)}</h4>
+      <p class="muted-note">${esc(item.description)}</p><ul>${rows}</ul></div>`;
+  }
+  async function askCompany(){
+    const q=document.getElementById("companyQ").value.trim(); if(!q) return;
+    const box=document.getElementById("companyAnswer");
+    box.innerHTML=`<div class="answer"><p class="txt">Checking verified company material…</p></div>`;
+    try{
+      const r=await fetch(API+"/company/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
+      const d=await r.json(), cites=(d.citations||[]).map(c=>citeChip(c,true)).join("");
+      box.innerHTML=`<div class="answer ${d.refused?'refused':''}">
+        <p class="lead">${d.refused?"I can't verify this yet.":"Grounded company-law answer"}</p>
+        <p class="txt">${esc(d.answer)}</p>${cites?`<div class="cites">${cites}</div>`:""}
+        <div class="disclaimer">${esc(d.disclaimer)}</div></div>`;
+    }catch(e){
+      box.innerHTML=`<div class="answer refused"><p class="txt">Couldn't reach the service. Please try again.</p></div>`;
+    }
   }
 
   /* ---------- Rights ---------- */
@@ -406,6 +721,29 @@
   document.getElementById("homeTriggers").innerHTML =
     HOME_TRIGGERS.map(t=>`<button class="trig" data-scenario="${t.id}">${esc(t.label)}</button>`).join("");
   document.querySelectorAll("[data-scenario]").forEach(b=>b.onclick=()=>openScenario(b.dataset.scenario));
+  document.getElementById("accountForm").addEventListener("submit",submitAccount);
+  document.getElementById("accountSwitch").onclick=()=>setAuthMode(AUTH_MODE==="register"||AUTH_MODE==="reset"?"login":"register");
+  document.getElementById("forgotPassword").onclick=forgotPassword;
+  document.getElementById("profileButton").onclick=openProfile;
+  document.getElementById("profileClose").onclick=()=>document.getElementById("profilePanel").hidden=true;
+  document.getElementById("signOut").onclick=signOut;
+  document.getElementById("custodyAlert").onclick=sendCustodyAlert;
+  (function handleAuthLink(){
+    const params=new URLSearchParams(window.location.search);
+    const resetToken=params.get("reset_token");
+    const email=params.get("email");
+    if(resetToken&&email){
+      AUTH_TOKEN="";
+      sessionStorage.removeItem("kyr_access_token");
+      RESET_TOKEN=resetToken;
+      document.getElementById("accountEmail").value=email;
+      setAuthMode("reset");
+      setAccountStatus("Reset link verified. Enter your new password.");
+    }else if(params.get("verified")==="1"){
+      setAuthMode("login");
+      setAccountStatus("Email verified. Sign in to continue.");
+    }
+  })();
 
   document.getElementById("suggestions").innerHTML =
     ["Can the police search my phone?","What are my rights when arrested?","How long can I be detained?","Do I have to pay for bail?"]
@@ -413,20 +751,25 @@
 
   async function boot(){
     try{
-      const [tp, sc, dr] = await Promise.all([
+      const [tp, sc, dr, ob, cc] = await Promise.all([
         fetch(API+"/topics").then(r=>r.json()),
         fetch(API+"/scenarios").then(r=>r.json()),
         fetch(API+"/directory").then(r=>r.json()),
+        fetch(API+"/company/obligations").then(r=>r.json()),
+        fetch(API+"/company/checklists").then(r=>r.json()),
       ]);
-      TOPICS = tp; SCENARIOS = sc;
+      TOPICS = tp; SCENARIOS = sc; OBLIGATIONS = ob; COMPANY_CHECKLISTS = cc;
       renderTopics(TOPICS.slice(0,4), "homeTopics");
       renderTopics(TOPICS, "topics");
       document.getElementById("scenarioList").innerHTML = SCENARIOS.map(scenarioCard).join("");
       document.getElementById("dir").innerHTML = dr.map(dirCard).join("");
+      document.getElementById("obligations").innerHTML = OBLIGATIONS.map(obligationCard).join("");
+      document.getElementById("companyChecklists").innerHTML = COMPANY_CHECKLISTS.map(checklistCard).join("");
     }catch(e){
       document.getElementById("homeTopics").innerHTML = `<p class="muted-note">Couldn't load content. Check your connection and refresh.</p>`;
     }
   }
+  restoreAccount();
   boot();
 </script>
 </body>

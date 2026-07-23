@@ -17,7 +17,17 @@ MVP slice described in `../MVP.md`.
   default answerer is extractive (no free-text generation), so hallucinated legal advice is
   structurally impossible. The `Answerer`/`Embedder` interfaces let a hosted LLM be swapped in
   later without changing callers.
-- **Web demo** (`web/`) - a simple UI to try the MVP in a browser.
+- **Mobile app** (`app/`) - the Flutter client (iOS + Android). Loads the content pack, caches
+  it for offline use, and falls back to an offline cite-or-refuse answer when there is no
+  network. First launch is account-gated: verified email, personal profile, and a verified
+  emergency contact are required before the main app opens. Screens: emergency-first Home,
+  Rights (+ topic detail), Emergencies (+ scenario detail), Ask, Company, and Get help.
+- **Web demo** (`web/`) - the same surfaces in a browser, served by the API at `/`.
+- **Design system** (`app/lib/theme.dart`, `app/lib/widgets.dart`) - shared by app and web.
+  Colour is semantic and non-decorative: **pine green** carries authority, **brass** is used
+  only for the Verified seal on lawyer-reviewed law, and **red** is used only for danger and
+  emergencies. Titles are set in a serif (the voice of the law) and constitutional locators
+  such as `s.35(2)` in monospace, so citations read as precise references.
 
 ## Trust guarantees (by design)
 
@@ -60,8 +70,10 @@ probes land the expected text on the expected locator. The second check matters 
 the first: a document can parse most of its sections while attaching the wrong body to a
 locator, and that failure still looks like a valid citation.
 
-Current state: **CAMA 2020 parses completely** and is ready to ground company content. The
-**NDPA 2023** copy has a damaged text layer (25%), and this **Constitution** PDF loses
+Current state: **CAMA 2020 parses completely** and grounds the starter Companies slice:
+three draft obligations and a first-year checklist are included in the offline pack and
+served at `/v1/company/obligations` and `/v1/company/checklists`. The **NDPA 2023** copy
+has a damaged text layer (25%), and this **Constitution** PDF loses
 inline numbering in Chapter IV so bodies misattach to locators — both need cleaner
 documents before anything is cited from parsed text. Shipped rights citations are
 unaffected: they are hand-authored and lawyer-checked, not parsed.
@@ -71,6 +83,38 @@ unaffected: they are hand-authored and lawyer-checked, not parsed.
 ```bash
 uvicorn backend.api:create_app --factory --host 127.0.0.1 --port 8000
 ```
+
+For local account/onboarding testing, enable the non-sending delivery adapter. Verification
+tokens are returned only in this mode, allowing the Flutter setup flow to complete without
+contacting real email addresses or phone numbers:
+
+```bash
+KYR_DEVELOPMENT_MODE=1 \
+KYR_APP_SECRET=replace-this-with-at-least-32-random-characters \
+uvicorn backend.api:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+Account data uses SQLite at `data/accounts.db` locally. Set `DATABASE_URL` to PostgreSQL in
+production. `KYR_APP_SECRET` protects access tokens and encrypted profile/contact/location
+fields and must come from the deployment secret store. The development adapter records
+email/SMS attempts in memory and never sends them. Production delivery uses **Resend** for
+transactional email and **Twilio** for SMS, and fails closed if a required setting is absent:
+
+```bash
+KYR_APP_SECRET=replace-with-a-long-random-secret \
+KYR_PUBLIC_BASE_URL=https://your-public-app.example \
+RESEND_API_KEY=re_... \
+KYR_EMAIL_FROM='Know Your Rights <safety@your-verified-domain.example>' \
+TWILIO_ACCOUNT_SID=AC... \
+TWILIO_AUTH_TOKEN=... \
+TWILIO_FROM=+1... \
+DATABASE_URL=postgresql+psycopg://... \
+uvicorn backend.api:create_app --factory --host 0.0.0.0 --port 8000
+```
+
+Use restricted production credentials and deployment secrets; never commit them. `TWILIO_FROM`
+must be a sender capable of reaching the contact's country. Provider acceptance marks an alert
+`sent`; rejection marks it `failed`, allowing the client to open its device-SMS fallback.
 
 Then open http://127.0.0.1:8000/ for the demo, or call the API:
 
@@ -89,6 +133,11 @@ curl -s -X POST http://127.0.0.1:8000/v1/ask \
 - `GET /v1/search?q=...`
 - `POST /v1/ask` (body: `{"question": "..."}`)
 - `GET /v1/content-pack` (full pack for offline caching)
+- `POST /v1/auth/register`, `/v1/auth/login`, `/v1/auth/forgot-password`,
+  `/v1/auth/reset-password`
+- `GET/PUT /v1/profile`
+- `GET/POST /v1/emergency-contacts`
+- `POST /v1/custody-alerts`
 
 ## Testing
 
@@ -112,6 +161,36 @@ Add a topic JSON to `content/topics/` or a scenario to `content/scenarios/`. A r
 `"status": "verified"` must include at least one citation and a `reviewed_by` value, or the
 build will reject it. Re-run the build to publish.
 
+### Scenario step actions (content ↔ app contract)
+
+A scenario step may carry `"action": "call"` with a `value` the clients turn into a one-tap
+call button. The following semantic values are built in:
+
+| `value` | What the button does |
+|---------|----------------------|
+| `emergency_line` | Dials **112**, the national emergency line. Rendered in red. |
+| `lawyer` | Opens the dialer for the user to call their lawyer. |
+| `trusted_contact` | Opens the dialer for the user to call someone they trust. |
+
+The value may also be a directory entry id (for example, `nhrc`) or entry type (for example,
+`legal_aid`). The app uses the matching entry's phone number when available, otherwise its
+website, and finally a named empty-dialer fallback. Unknown values use a generic "Call"
+button. A step with `"action": "link"` opens its `value` as a URL.
+
+`linked_topic_ids` must reference topic ids that exist, or the link is silently dropped.
+
+## Running the mobile app
+
+```bash
+cd app
+flutter pub get
+flutter run                                     # uses the deployed API by default
+flutter run --dart-define=KYR_BASE_URL=http://127.0.0.1:8000   # against a local backend
+```
+
+Checks: `flutter analyze` and `flutter test`. Note that neither catches render-time
+failures, so run the app on a device or simulator before trusting a UI change.
+
 ## Notes and honest limitations
 
 - Seed content is transcribed and cited from the 1999 Constitution but is marked
@@ -120,5 +199,21 @@ build will reject it. Re-run the build to publish.
 - The offline retrieval uses a dependency-free TF-IDF embedder so the MVP runs without API
   keys. Swap in a hosted embedding/LLM provider via the `Embedder`/`Answerer` interfaces for
   higher answer quality, keeping the cite-or-refuse guardrails.
-- The mobile (Flutter) client and Postgres/pgvector backing store described in `../MVP.md`
-  are the next steps; this MVP ships the content engine, API, grounded Q&A, and a web demo.
+- The Postgres/pgvector backing store described in `../MVP.md` is not built: the MVP serves
+  the content pack from the built JSON and retrieves with a dependency-free TF-IDF index.
+- **Custody Alert** includes verified email onboarding, password reset, an encrypted personal
+  profile, affirmative emergency-contact verification, foreground location capture, idempotent
+  server relay, Resend/Twilio production delivery, provider-failure status, and the device SMS
+  fallback. Valid provider accounts, approved senders, credentials, and real-device acceptance
+  testing are still required before emergency use.
+- **Directory phone numbers are mostly empty.** Only the national emergency lines (112, and
+  FRSC 122) are present; the legal-aid entries carry official URLs but no numbers, because
+  inventing contact details would break the same trust guarantee the citations protect. Real
+  numbers must be added before launch.
+- **Companies (Layer 2) is a starter slice.** The content schema, offline pack, API, and
+  Flutter Companies screen are integrated with three CAMA-grounded obligations and one
+  checklist. The entries remain drafts until a Nigerian company-law practitioner reviews
+  them. A separate CAMA-only cite-or-refuse Q&A path is wired into the API, Flutter app,
+  and web demo; it excludes every draft until lawyer review. Deadlines/reminders and NDPA
+  obligations are not built because the available NDPA 2023 source copy is too degraded
+  to cite safely.

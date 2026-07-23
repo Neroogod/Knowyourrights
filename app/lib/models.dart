@@ -14,11 +14,11 @@ class Citation {
   });
 
   factory Citation.fromJson(Map<String, dynamic> json) => Citation(
-        sourceName: json['source_name'] as String,
-        locator: json['locator'] as String,
-        quote: json['quote'] as String?,
-        url: json['url'] as String?,
-      );
+    sourceName: json['source_name'] as String,
+    locator: json['locator'] as String,
+    quote: json['quote'] as String?,
+    url: json['url'] as String?,
+  );
 }
 
 class Topic {
@@ -53,22 +53,22 @@ class Topic {
   });
 
   factory Topic.fromJson(Map<String, dynamic> json) => Topic(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        category: json['category'] as String,
-        jurisdiction: json['jurisdiction'] as String,
-        summary: json['summary'] as String,
-        bodyPlain: json['body_plain'] as String,
-        rights: (json['rights'] as List? ?? []).cast<String>(),
-        doList: (json['do_list'] as List? ?? []).cast<String>(),
-        dontList: (json['dont_list'] as List? ?? []).cast<String>(),
-        citations: (json['citations'] as List? ?? [])
-            .map((c) => Citation.fromJson(c as Map<String, dynamic>))
-            .toList(),
-        status: json['status'] as String? ?? 'draft',
-        reviewedBy: json['reviewed_by'] as String?,
-        reviewedAt: json['reviewed_at'] as String?,
-      );
+    id: json['id'] as String,
+    title: json['title'] as String,
+    category: json['category'] as String,
+    jurisdiction: json['jurisdiction'] as String,
+    summary: json['summary'] as String,
+    bodyPlain: json['body_plain'] as String,
+    rights: (json['rights'] as List? ?? []).cast<String>(),
+    doList: (json['do_list'] as List? ?? []).cast<String>(),
+    dontList: (json['dont_list'] as List? ?? []).cast<String>(),
+    citations: (json['citations'] as List? ?? [])
+        .map((c) => Citation.fromJson(c as Map<String, dynamic>))
+        .toList(),
+    status: json['status'] as String? ?? 'draft',
+    reviewedBy: json['reviewed_by'] as String?,
+    reviewedAt: json['reviewed_at'] as String?,
+  );
 }
 
 class ScenarioStep {
@@ -79,10 +79,10 @@ class ScenarioStep {
   const ScenarioStep({required this.text, this.action, this.value});
 
   factory ScenarioStep.fromJson(Map<String, dynamic> json) => ScenarioStep(
-        text: json['text'] as String,
-        action: json['action'] as String?,
-        value: json['value'] as String?,
-      );
+    text: json['text'] as String,
+    action: json['action'] as String?,
+    value: json['value'] as String?,
+  );
 }
 
 class Scenario {
@@ -105,18 +105,18 @@ class Scenario {
   });
 
   factory Scenario.fromJson(Map<String, dynamic> json) => Scenario(
-        id: json['id'] as String,
-        trigger: json['trigger'] as String,
-        description: json['description'] as String,
-        jurisdiction: json['jurisdiction'] as String,
-        steps: (json['steps'] as List? ?? [])
-            .map((s) => ScenarioStep.fromJson(s as Map<String, dynamic>))
-            .toList(),
-        linkedTopicIds: (json['linked_topic_ids'] as List? ?? []).cast<String>(),
-        citations: (json['citations'] as List? ?? [])
-            .map((c) => Citation.fromJson(c as Map<String, dynamic>))
-            .toList(),
-      );
+    id: json['id'] as String,
+    trigger: json['trigger'] as String,
+    description: json['description'] as String,
+    jurisdiction: json['jurisdiction'] as String,
+    steps: (json['steps'] as List? ?? [])
+        .map((s) => ScenarioStep.fromJson(s as Map<String, dynamic>))
+        .toList(),
+    linkedTopicIds: (json['linked_topic_ids'] as List? ?? []).cast<String>(),
+    citations: (json['citations'] as List? ?? [])
+        .map((c) => Citation.fromJson(c as Map<String, dynamic>))
+        .toList(),
+  );
 }
 
 class DirectoryEntry {
@@ -137,12 +137,91 @@ class DirectoryEntry {
   });
 
   factory DirectoryEntry.fromJson(Map<String, dynamic> json) => DirectoryEntry(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    entryType: json['entry_type'] as String,
+    state: json['state'] as String?,
+    phone: json['phone'] as String?,
+    url: json['url'] as String?,
+  );
+}
+
+class Obligation {
+  final String id;
+  final String title;
+  final String category;
+  final String summary;
+  final List<String> appliesTo;
+  final List<String> requirements;
+  final List<Citation> citations;
+  final String status;
+
+  const Obligation({
+    required this.id,
+    required this.title,
+    required this.category,
+    required this.summary,
+    required this.appliesTo,
+    required this.requirements,
+    required this.citations,
+    required this.status,
+  });
+
+  factory Obligation.fromJson(Map<String, dynamic> json) => Obligation(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    category: json['category'] as String,
+    summary: json['summary'] as String,
+    appliesTo: (json['applies_to'] as List? ?? []).cast<String>(),
+    requirements: (json['requirements'] as List? ?? []).cast<String>(),
+    citations: (json['citations'] as List? ?? [])
+        .map((c) => Citation.fromJson(c as Map<String, dynamic>))
+        .toList(),
+    status: json['status'] as String? ?? 'draft',
+  );
+}
+
+class ChecklistItem {
+  final String text;
+  final String? obligationId;
+
+  const ChecklistItem({required this.text, this.obligationId});
+
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) => ChecklistItem(
+    text: json['text'] as String,
+    obligationId: json['obligation_id'] as String?,
+  );
+}
+
+class CompanyChecklist {
+  final String id;
+  final String title;
+  final String description;
+  final List<ChecklistItem> items;
+  final List<Citation> citations;
+  final String status;
+
+  const CompanyChecklist({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.items,
+    required this.citations,
+    required this.status,
+  });
+
+  factory CompanyChecklist.fromJson(Map<String, dynamic> json) =>
+      CompanyChecklist(
         id: json['id'] as String,
-        name: json['name'] as String,
-        entryType: json['entry_type'] as String,
-        state: json['state'] as String?,
-        phone: json['phone'] as String?,
-        url: json['url'] as String?,
+        title: json['title'] as String,
+        description: json['description'] as String,
+        items: (json['items'] as List? ?? [])
+            .map((item) => ChecklistItem.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        citations: (json['citations'] as List? ?? [])
+            .map((c) => Citation.fromJson(c as Map<String, dynamic>))
+            .toList(),
+        status: json['status'] as String? ?? 'draft',
       );
 }
 
@@ -162,12 +241,12 @@ class AskResponse {
   });
 
   factory AskResponse.fromJson(Map<String, dynamic> json) => AskResponse(
-        refused: json['refused'] as bool,
-        answer: json['answer'] as String,
-        citations: (json['citations'] as List? ?? [])
-            .map((c) => Citation.fromJson(c as Map<String, dynamic>))
-            .toList(),
-        relatedTopicIds: (json['related_topic_ids'] as List? ?? []).cast<String>(),
-        disclaimer: json['disclaimer'] as String,
-      );
+    refused: json['refused'] as bool,
+    answer: json['answer'] as String,
+    citations: (json['citations'] as List? ?? [])
+        .map((c) => Citation.fromJson(c as Map<String, dynamic>))
+        .toList(),
+    relatedTopicIds: (json['related_topic_ids'] as List? ?? []).cast<String>(),
+    disclaimer: json['disclaimer'] as String,
+  );
 }

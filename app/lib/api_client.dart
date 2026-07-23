@@ -24,9 +24,41 @@ const String _refusal =
     "Please consult a lawyer or the Legal Aid Council - see Get help.";
 
 const Set<String> _stopwords = {
-  'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'have',
-  'how', 'i', 'in', 'is', 'it', 'of', 'on', 'or', 'the', 'to', 'was', 'what',
-  'when', 'my', 'me', 'can', 'do', 'you', 'your', 'they', 'them', 'this', 'that',
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'by',
+  'for',
+  'from',
+  'has',
+  'have',
+  'how',
+  'i',
+  'in',
+  'is',
+  'it',
+  'of',
+  'on',
+  'or',
+  'the',
+  'to',
+  'was',
+  'what',
+  'when',
+  'my',
+  'me',
+  'can',
+  'do',
+  'you',
+  'your',
+  'they',
+  'them',
+  'this',
+  'that',
 };
 
 class ContentRepository {
@@ -37,6 +69,8 @@ class ContentRepository {
   List<Topic> topics = [];
   List<Scenario> scenarios = [];
   List<DirectoryEntry> directory = [];
+  List<Obligation> obligations = [];
+  List<CompanyChecklist> companyChecklists = [];
   int version = 0;
   bool loadedFromCache = false;
 
@@ -83,6 +117,12 @@ class ContentRepository {
     directory = (json['directory'] as List? ?? [])
         .map((d) => DirectoryEntry.fromJson(d as Map<String, dynamic>))
         .toList();
+    obligations = (json['obligations'] as List? ?? [])
+        .map((item) => Obligation.fromJson(item as Map<String, dynamic>))
+        .toList();
+    companyChecklists = (json['company_checklists'] as List? ?? [])
+        .map((item) => CompanyChecklist.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   /// Look up a scenario by id; null when the pack does not contain it.
@@ -101,14 +141,22 @@ class ContentRepository {
     return null;
   }
 
+  Obligation? obligationById(String id) {
+    for (final obligation in obligations) {
+      if (obligation.id == id) return obligation;
+    }
+    return null;
+  }
+
   List<Topic> searchTopics(String query) {
     final q = _tokens(query);
     if (q.isEmpty) return topics;
-    final scored = topics
-        .map((t) => MapEntry(t, _overlap(q, _tokens(_topicText(t)))))
-        .where((e) => e.value > 0)
-        .toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final scored =
+        topics
+            .map((t) => MapEntry(t, _overlap(q, _tokens(_topicText(t)))))
+            .where((e) => e.value > 0)
+            .toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
     return scored.map((e) => e.key).toList();
   }
 
@@ -123,12 +171,42 @@ class ContentRepository {
           )
           .timeout(const Duration(seconds: 8));
       if (resp.statusCode == 200) {
-        return AskResponse.fromJson(jsonDecode(resp.body) as Map<String, dynamic>);
+        return AskResponse.fromJson(
+          jsonDecode(resp.body) as Map<String, dynamic>,
+        );
       }
     } catch (_) {
       // fall through to offline answer
     }
     return _offlineAsk(question);
+  }
+
+  Future<AskResponse> askCompany(String question) async {
+    try {
+      final resp = await _client
+          .post(
+            Uri.parse('$kBaseUrl/v1/company/ask'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'question': question}),
+          )
+          .timeout(const Duration(seconds: 8));
+      if (resp.statusCode == 200) {
+        return AskResponse.fromJson(
+          jsonDecode(resp.body) as Map<String, dynamic>,
+        );
+      }
+    } catch (_) {
+      // Company answers require the separately reviewed server-side index.
+    }
+    return const AskResponse(
+      refused: true,
+      answer:
+          'I cannot verify this company-law question while offline. Please '
+          'consult a qualified Nigerian company-law practitioner or company secretary.',
+      citations: [],
+      relatedTopicIds: [],
+      disclaimer: _disclaimer,
+    );
   }
 
   AskResponse _offlineAsk(String question) {
@@ -145,7 +223,9 @@ class ContentRepository {
     final best = results.first;
     final buffer = StringBuffer('${best.title}\n\n${best.summary}');
     if (best.rights.isNotEmpty) {
-      buffer.write('\n\nKey points:\n${best.rights.map((r) => '- $r').join('\n')}');
+      buffer.write(
+        '\n\nKey points:\n${best.rights.map((r) => '- $r').join('\n')}',
+      );
     }
     return AskResponse(
       refused: false,

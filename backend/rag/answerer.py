@@ -16,7 +16,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from backend.rag.index import Document, Retriever  # noqa: E402
-from backend.schemas import AnswerCitation, AskResponse, Topic  # noqa: E402
+from backend.schemas import AnswerCitation, AskResponse, Obligation, Topic  # noqa: E402
 
 DISCLAIMER = (
     "This is legal information, not legal advice. For advice on your specific "
@@ -27,6 +27,11 @@ REFUSAL = (
     "I would rather say I don't know than risk giving you wrong legal information. "
     "Please consult a lawyer or the Legal Aid Council - see the Directory."
 )
+COMPANY_REFUSAL = (
+    "I could not find this in the lawyer-verified Nigerian company information I have. "
+    "The available CAMA material may still be awaiting legal review. "
+    "Please consult a qualified Nigerian company-law practitioner or company secretary."
+)
 MIN_SCORE = 0.12
 
 
@@ -36,9 +41,7 @@ def build_documents(topics: list[Topic]) -> list[Document]:
     for topic in topics:
         if topic.status.value != "verified":
             continue
-        search_text = " ".join(
-            [topic.title, topic.summary, topic.body_plain, *topic.rights, *topic.do_list]
-        )
+        search_text = " ".join([topic.title, topic.summary, topic.body_plain, *topic.rights, *topic.do_list])
         answer_text = topic.summary
         if topic.rights:
             answer_text += "\n\nKey points:\n" + "\n".join(f"- {r}" for r in topic.rights)
@@ -56,6 +59,35 @@ def build_documents(topics: list[Topic]) -> list[Document]:
     return documents
 
 
+def build_company_documents(obligations: list[Obligation]) -> list[Document]:
+    """Turn verified company obligations into a separate CAMA retrieval index."""
+    documents: list[Document] = []
+    for obligation in obligations:
+        if obligation.status.value != "verified":
+            continue
+        documents.append(
+            Document(
+                doc_id=f"obligation:{obligation.id}",
+                kind="obligation",
+                title=obligation.title,
+                topic_id=obligation.id,
+                text=" ".join(
+                    [
+                        obligation.title,
+                        obligation.summary,
+                        *obligation.applies_to,
+                        *obligation.requirements,
+                    ]
+                ),
+                answer_text=obligation.summary
+                + "\n\nRequirements:\n"
+                + "\n".join(f"- {item}" for item in obligation.requirements),
+                citations=[citation.model_dump() for citation in obligation.citations],
+            )
+        )
+    return documents
+
+
 class Answerer(Protocol):
     def answer(self, question: str) -> AskResponse: ...
 
@@ -63,16 +95,22 @@ class Answerer(Protocol):
 class ExtractiveAnswerer:
     """Answer strictly from the top verified document, or refuse."""
 
-    def __init__(self, retriever: Retriever, min_score: float = MIN_SCORE) -> None:
+    def __init__(
+        self,
+        retriever: Retriever,
+        min_score: float = MIN_SCORE,
+        refusal: str = REFUSAL,
+    ) -> None:
         self._retriever = retriever
         self._min_score = min_score
+        self._refusal = refusal
 
     def answer(self, question: str) -> AskResponse:
         results = self._retriever.retrieve(question, top_k=3)
         if not results or results[0].score < self._min_score:
             return AskResponse(
                 refused=True,
-                answer=REFUSAL,
+                answer=self._refusal,
                 citations=[],
                 related_topic_ids=[],
                 disclaimer=DISCLAIMER,
@@ -84,7 +122,7 @@ class ExtractiveAnswerer:
         if not citations:
             return AskResponse(
                 refused=True,
-                answer=REFUSAL,
+                answer=self._refusal,
                 citations=[],
                 related_topic_ids=[],
                 disclaimer=DISCLAIMER,
@@ -154,6 +192,22 @@ if __name__ == "__main__":
         assert len(docs) == 2
         print("test_build_documents_excludes_unverified passed")
 
+    def test_company_documents_exclude_drafts() -> None:
+        from backend.schemas import Citation, Obligation
+
+        draft = Obligation(
+            id="annual-return",
+            title="File an annual return",
+            category="compliance",
+            jurisdiction="NG-Federal",
+            summary="Prepare and deliver the annual return.",
+            applies_to=["companies"],
+            requirements=["File the return."],
+            citations=[Citation(source_name="CAMA 2020", locator="s.417")],
+        )
+        assert build_company_documents([draft]) == []
+        print("test_company_documents_exclude_drafts passed")
+
     def test_relevant_question_answered_with_citation() -> None:
         resp = _answerer().answer("can the police search my phone")
         assert resp.refused is False
@@ -179,6 +233,7 @@ if __name__ == "__main__":
         print("test_no_answer_without_citation passed")
 
     test_build_documents_excludes_unverified()
+    test_company_documents_exclude_drafts()
     test_relevant_question_answered_with_citation()
     test_offtopic_question_refuses()
     test_answer_always_has_disclaimer()

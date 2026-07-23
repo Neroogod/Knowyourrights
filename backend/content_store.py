@@ -9,9 +9,22 @@ _ROOT = str(Path(__file__).resolve().parents[1])
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from backend.rag.answerer import ExtractiveAnswerer, build_documents  # noqa: E402
+from backend.rag.answerer import (  # noqa: E402
+    COMPANY_REFUSAL,
+    ExtractiveAnswerer,
+    build_company_documents,
+    build_documents,
+)
 from backend.rag.index import Retriever  # noqa: E402
-from backend.schemas import AskResponse, ContentPack, DirectoryEntry, Scenario, Topic  # noqa: E402
+from backend.schemas import (  # noqa: E402
+    AskResponse,
+    CompanyChecklist,
+    ContentPack,
+    DirectoryEntry,
+    Obligation,
+    Scenario,
+    Topic,
+)
 
 DEFAULT_PACK_PATH = Path(__file__).resolve().parents[1] / "data" / "content_pack.json"
 
@@ -24,10 +37,19 @@ class ContentStore:
         self._topics: dict[str, Topic] = {t.id: t for t in pack.topics}
         self._scenarios: dict[str, Scenario] = {s.id: s for s in pack.scenarios}
         self._directory: list[DirectoryEntry] = list(pack.directory)
+        self._obligations: dict[str, Obligation] = {item.id: item for item in pack.obligations}
+        self._company_checklists: dict[str, CompanyChecklist] = {
+            item.id: item for item in pack.company_checklists
+        }
 
         documents = build_documents(pack.topics)
         self._retriever = Retriever(documents)
         self._answerer = ExtractiveAnswerer(self._retriever)
+        company_documents = build_company_documents(pack.obligations)
+        self._company_answerer = ExtractiveAnswerer(
+            Retriever(company_documents),
+            refusal=COMPANY_REFUSAL,
+        )
 
     @classmethod
     def from_file(cls, path: Path = DEFAULT_PACK_PATH) -> "ContentStore":
@@ -56,6 +78,15 @@ class ContentStore:
     def list_directory(self) -> list[DirectoryEntry]:
         return list(self._directory)
 
+    def list_obligations(self) -> list[Obligation]:
+        return list(self._obligations.values())
+
+    def get_obligation(self, obligation_id: str) -> Obligation | None:
+        return self._obligations.get(obligation_id)
+
+    def list_company_checklists(self) -> list[CompanyChecklist]:
+        return list(self._company_checklists.values())
+
     def search_topics(self, query: str, top_k: int = 5) -> list[Topic]:
         results = self._retriever.retrieve(query, top_k=top_k)
         topics: list[Topic] = []
@@ -69,6 +100,9 @@ class ContentStore:
 
     def ask(self, question: str) -> AskResponse:
         return self._answerer.answer(question)
+
+    def ask_company(self, question: str) -> AskResponse:
+        return self._company_answerer.answer(question)
 
 
 if __name__ == "__main__":

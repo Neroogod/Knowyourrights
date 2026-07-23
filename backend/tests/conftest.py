@@ -10,12 +10,16 @@ _ROOT = str(Path(__file__).resolve().parents[2])
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+from backend.accounts import AccountService, DevelopmentGateway  # noqa: E402
 from backend.api import create_app  # noqa: E402
 from backend.content_store import ContentStore  # noqa: E402
 from backend.schemas import (  # noqa: E402
+    ChecklistItem,
     Citation,
+    CompanyChecklist,
     ContentPack,
     DirectoryEntry,
+    Obligation,
     Scenario,
     ScenarioStep,
     Status,
@@ -65,6 +69,28 @@ def _sample_pack() -> ContentPack:
             )
         ],
         directory=[DirectoryEntry(id="legal-aid", name="Legal Aid Council", entry_type="legal_aid")],
+        obligations=[
+            Obligation(
+                id="annual-returns",
+                title="File annual returns",
+                category="annual-compliance",
+                jurisdiction="NG-Federal",
+                summary="File the required annual return.",
+                applies_to=["registered companies"],
+                requirements=["Prepare and deliver the return."],
+                citations=[Citation(source_name="CAMA 2020", locator="ss.417-423")],
+            )
+        ],
+        company_checklists=[
+            CompanyChecklist(
+                id="first-year",
+                title="First year",
+                description="Starter checklist",
+                jurisdiction="NG-Federal",
+                items=[ChecklistItem(text="Prepare the annual return.")],
+                citations=[Citation(source_name="CAMA 2020", locator="ss.417-423")],
+            )
+        ],
     )
 
 
@@ -74,5 +100,19 @@ def store() -> ContentStore:
 
 
 @pytest.fixture
-def client(store: ContentStore) -> TestClient:
-    return TestClient(create_app(store=store))
+def account_service() -> AccountService:
+    return AccountService(
+        "sqlite+pysqlite:///:memory:",
+        secret="test-secret",
+        gateway=DevelopmentGateway(),
+    )
+
+
+@pytest.fixture
+def client(
+    store: ContentStore,
+    account_service: AccountService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> TestClient:
+    monkeypatch.setenv("KYR_DEVELOPMENT_MODE", "1")
+    return TestClient(create_app(store=store, account_service=account_service))

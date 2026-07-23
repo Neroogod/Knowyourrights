@@ -82,12 +82,57 @@ class DirectoryEntry(BaseModel):
     cached_offline: bool = True
 
 
+class Obligation(BaseModel):
+    id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    category: str = Field(min_length=1)
+    jurisdiction: str = Field(min_length=1)
+    summary: str = Field(min_length=1)
+    applies_to: list[str] = Field(min_length=1)
+    requirements: list[str] = Field(min_length=1)
+    citations: list[Citation] = Field(min_length=1)
+    status: Status = Status.draft
+    reviewed_by: str | None = None
+    reviewed_at: str | None = None
+
+    @model_validator(mode="after")
+    def verified_requires_reviewer(self) -> "Obligation":
+        if self.status == Status.verified and not self.reviewed_by:
+            raise ValueError(f"verified obligation '{self.id}' must record reviewed_by")
+        return self
+
+
+class ChecklistItem(BaseModel):
+    text: str = Field(min_length=1)
+    obligation_id: str | None = None
+
+
+class CompanyChecklist(BaseModel):
+    id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    jurisdiction: str = Field(min_length=1)
+    items: list[ChecklistItem] = Field(min_length=1)
+    citations: list[Citation] = Field(min_length=1)
+    status: Status = Status.draft
+    reviewed_by: str | None = None
+    reviewed_at: str | None = None
+
+    @model_validator(mode="after")
+    def verified_requires_reviewer(self) -> "CompanyChecklist":
+        if self.status == Status.verified and not self.reviewed_by:
+            raise ValueError(f"verified checklist '{self.id}' must record reviewed_by")
+        return self
+
+
 class ContentPack(BaseModel):
     version: int
     built_at: str
     topics: list[Topic] = Field(default_factory=list)
     scenarios: list[Scenario] = Field(default_factory=list)
     directory: list[DirectoryEntry] = Field(default_factory=list)
+    obligations: list[Obligation] = Field(default_factory=list)
+    company_checklists: list[CompanyChecklist] = Field(default_factory=list)
 
 
 class AskRequest(BaseModel):

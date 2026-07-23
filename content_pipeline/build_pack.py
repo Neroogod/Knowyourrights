@@ -14,7 +14,14 @@ BACKEND_ON_PATH = str(Path(__file__).resolve().parents[1])
 if BACKEND_ON_PATH not in sys.path:
     sys.path.insert(0, BACKEND_ON_PATH)
 
-from backend.schemas import ContentPack, DirectoryEntry, Scenario, Topic  # noqa: E402
+from backend.schemas import (  # noqa: E402
+    CompanyChecklist,
+    ContentPack,
+    DirectoryEntry,
+    Obligation,
+    Scenario,
+    Topic,
+)
 from content_pipeline.pdf_extract import extract_text  # noqa: E402
 from content_pipeline.sectioniser import SourceReport, split_sections, verify_sections  # noqa: E402
 from content_pipeline.sources import LegalSource, available_sources  # noqa: E402
@@ -49,6 +56,18 @@ def load_directory(content_dir: Path) -> list[DirectoryEntry]:
     return entries
 
 
+def load_obligations(content_dir: Path) -> list[Obligation]:
+    """Load and validate company obligations."""
+    paths = sorted((content_dir / "obligations").glob("*.json"))
+    return [Obligation.model_validate(_load_json(path)) for path in paths]
+
+
+def load_company_checklists(content_dir: Path) -> list[CompanyChecklist]:
+    """Load and validate company compliance checklists."""
+    paths = sorted((content_dir / "company_checklists").glob("*.json"))
+    return [CompanyChecklist.model_validate(_load_json(path)) for path in paths]
+
+
 def build_pack(content_dir: Path = CONTENT_DIR, version: int = 1) -> ContentPack:
     """Assemble and validate the full content pack."""
     return ContentPack(
@@ -57,6 +76,8 @@ def build_pack(content_dir: Path = CONTENT_DIR, version: int = 1) -> ContentPack
         topics=load_topics(content_dir),
         scenarios=load_scenarios(content_dir),
         directory=load_directory(content_dir),
+        obligations=load_obligations(content_dir),
+        company_checklists=load_company_checklists(content_dir),
     )
 
 
@@ -90,6 +111,8 @@ def main() -> None:
     print(f"  topics: {len(pack.topics)} ({verified_topics} verified)")
     print(f"  scenarios: {len(pack.scenarios)}")
     print(f"  directory: {len(pack.directory)}")
+    print(f"  company obligations: {len(pack.obligations)}")
+    print(f"  company checklists: {len(pack.company_checklists)}")
 
     reports = ingest_sources(DATA_DIR / "sources")
     if not reports:

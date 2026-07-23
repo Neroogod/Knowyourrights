@@ -1,0 +1,21 @@
+{
+  "id": "keep-accounting-records",
+  "title": "Keep adequate accounting records",
+  "category": "records",
+  "jurisdiction": "NG-Federal",
+  "summary": "Every company must keep records that explain its transactions and allow its financial position to be determined with reasonable accuracy.",
+  "applies_to": ["all companies"],
+  "requirements": [
+    "Record money received and spent, including the reason for each receipt or payment.",
+    "Record the company's assets and liabilities.",
+    "Keep the records at the registered office or another permitted place in Nigeria.",
+    "Preserve the records for the period required by CAMA."
+  ],
+  "citations": [
+    {
+      "source_name": "Companies and Allied Matters Act 2020",
+      "locator": "ss.374-375"
+    }
+  ],
+  "status": "draft"
+}

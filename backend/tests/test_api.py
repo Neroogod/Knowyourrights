@@ -37,6 +37,26 @@ def test_directory(client: TestClient) -> None:
     assert resp.status_code == 200 and resp.json()[0]["entry_type"] == "legal_aid"
 
 
+def test_company_slice(client: TestClient) -> None:
+    obligations = client.get("/v1/company/obligations")
+    assert obligations.status_code == 200
+    assert obligations.json()[0]["id"] == "annual-returns"
+    assert client.get("/v1/company/obligations/annual-returns").status_code == 200
+    assert client.get("/v1/company/obligations/missing").status_code == 404
+
+    checklists = client.get("/v1/company/checklists")
+    assert checklists.status_code == 200
+    assert checklists.json()[0]["id"] == "first-year"
+
+    answer = client.post(
+        "/v1/company/ask",
+        json={"question": "when do I file an annual return?"},
+    )
+    assert answer.status_code == 200
+    assert answer.json()["refused"] is True
+    assert answer.json()["citations"] == []
+
+
 def test_search(client: TestClient) -> None:
     resp = client.get("/v1/search", params={"q": "search my phone"})
     assert resp.status_code == 200

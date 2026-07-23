@@ -1,0 +1,21 @@
+{
+  "id": "file-annual-returns",
+  "title": "Prepare and file annual returns",
+  "category": "annual-compliance",
+  "jurisdiction": "NG-Federal",
+  "summary": "A company generally makes and delivers an annual return to the Corporate Affairs Commission, subject to CAMA's stated exceptions.",
+  "applies_to": ["registered companies"],
+  "requirements": [
+    "Use the return form and information required for the company's type.",
+    "Have the return completed and signed as CAMA requires.",
+    "Deliver the return within the applicable deadline.",
+    "Attach the required financial statements, reports, and certificates when applicable."
+  ],
+  "citations": [
+    {
+      "source_name": "Companies and Allied Matters Act 2020",
+      "locator": "ss.417-423"
+    }
+  ],
+  "status": "draft"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "company-formation",
+  "title": "Form and register the company",
+  "category": "formation",
+  "jurisdiction": "NG-Federal",
+  "summary": "A private company may be formed by one person, but it must satisfy CAMA's registration requirements and cannot be formed for an unlawful purpose.",
+  "applies_to": ["founders", "private companies"],
+  "requirements": [
+    "Choose a lawful purpose for the company.",
+    "Prepare the registration information and documents required under CAMA.",
+    "Register the company with the Corporate Affairs Commission before operating as an incorporated company."
+  ],
+  "citations": [
+    {
+      "source_name": "Companies and Allied Matters Act 2020",
+      "locator": "s.18",
+      "quote": "One person may form and incorporate a private company by complying with the requirements of this Act."
+    }
+  ],
+  "status": "draft"
+}

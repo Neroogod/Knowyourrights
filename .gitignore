@@ -6,6 +6,7 @@ __pycache__/
 .mypy_cache/
 data/content_pack.json
 data/sources/
+data/accounts.db
 .DS_Store
 
 # Build artifacts (keep large binaries out of git)

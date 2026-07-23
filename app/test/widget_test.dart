@@ -16,6 +16,91 @@ void main() {
     expect(callTargetFor(null).number, isNull);
   });
 
+  test('custody alert builds an unsent SMS draft with the safety message', () {
+    final uri = buildCustodyAlertUri();
+    expect(uri.scheme, 'sms');
+    expect(uri.queryParameters['body'], custodyAlertMessage);
+    expect(uri.path, isEmpty);
+  });
+
+  group('resolveStepAction', () {
+    const directory = [
+      DirectoryEntry(
+        id: 'nhrc',
+        name: 'NHRC',
+        entryType: 'ngo',
+        url: 'https://nigeriarights.gov.ng/',
+      ),
+      DirectoryEntry(
+        id: 'legal-aid-council',
+        name: 'Legal Aid Council',
+        entryType: 'legal_aid',
+      ),
+      DirectoryEntry(
+        id: 'police-emergency',
+        name: 'Police',
+        entryType: 'emergency',
+        phone: '112',
+      ),
+    ];
+
+    test('semantic values keep their meaning', () {
+      expect(
+        resolveStepAction('call', 'emergency_line', directory)!.phone,
+        '112',
+      );
+      expect(
+        resolveStepAction('call', 'emergency_line', directory)!.urgent,
+        isTrue,
+      );
+      expect(
+        resolveStepAction('call', 'lawyer', directory)!.opensEmptyDialer,
+        isTrue,
+      );
+    });
+
+    test(
+      'a directory id with no phone offers its website instead of a dead dialer',
+      () {
+        final t = resolveStepAction('call', 'nhrc', directory)!;
+        expect(t.url, 'https://nigeriarights.gov.ng/');
+        expect(t.phone, isNull);
+      },
+    );
+
+    test('a directory entry_type resolves too', () {
+      final t = resolveStepAction('call', 'legal_aid', directory)!;
+      expect(t.label, contains('Legal Aid Council'));
+    });
+
+    test('an entry with a phone dials it', () {
+      expect(
+        resolveStepAction('call', 'police-emergency', directory)!.phone,
+        '112',
+      );
+    });
+
+    test('link actions open the URL', () {
+      final t = resolveStepAction('link', 'https://example.org', directory)!;
+      expect(t.url, 'https://example.org');
+    });
+
+    test('steps with no action get no button', () {
+      expect(resolveStepAction(null, null, directory), isNull);
+      expect(resolveStepAction('link', null, directory), isNull);
+    });
+
+    test(
+      'an unknown call value still offers the dialer rather than nothing',
+      () {
+        expect(
+          resolveStepAction('call', 'mystery', directory)!.opensEmptyDialer,
+          isTrue,
+        );
+      },
+    );
+  });
+
   test('Topic.fromJson parses fields and citations', () {
     final t = Topic.fromJson({
       'id': 'rights-when-arrested',
@@ -28,7 +113,7 @@ void main() {
       'do_list': ['Ask why.'],
       'dont_list': ['Do not resist.'],
       'citations': [
-        {'source_name': '1999 Constitution', 'locator': 's.35(2)'}
+        {'source_name': '1999 Constitution', 'locator': 's.35(2)'},
       ],
       'status': 'verified',
       'reviewed_by': 'Seed',
@@ -39,12 +124,42 @@ void main() {
     expect(t.citations.single.locator, 's.35(2)');
   });
 
+  test('Obligation and company checklist parse from the content pack', () {
+    final obligation = Obligation.fromJson({
+      'id': 'annual-returns',
+      'title': 'File annual returns',
+      'category': 'annual-compliance',
+      'summary': 'File the required annual return.',
+      'applies_to': ['registered companies'],
+      'requirements': ['Prepare the return.'],
+      'citations': [
+        {'source_name': 'CAMA 2020', 'locator': 'ss.417-423'},
+      ],
+      'status': 'draft',
+    });
+    expect(obligation.requirements, hasLength(1));
+    expect(obligation.citations.single.locator, 'ss.417-423');
+
+    final checklist = CompanyChecklist.fromJson({
+      'id': 'first-year',
+      'title': 'First year',
+      'description': 'Starter checklist',
+      'items': [
+        {'text': 'Prepare the return.', 'obligation_id': 'annual-returns'},
+      ],
+      'citations': [
+        {'source_name': 'CAMA 2020', 'locator': 'ss.417-423'},
+      ],
+    });
+    expect(checklist.items.single.obligationId, 'annual-returns');
+  });
+
   test('AskResponse.fromJson parses refusal and citations', () {
     final r = AskResponse.fromJson({
       'refused': false,
       'answer': 'answer',
       'citations': [
-        {'source_name': '1999 Constitution', 'locator': 's.37'}
+        {'source_name': '1999 Constitution', 'locator': 's.37'},
       ],
       'related_topic_ids': ['a'],
       'disclaimer': 'info not advice',
