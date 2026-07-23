@@ -13,7 +13,7 @@ const String kBaseUrl = String.fromEnvironment(
   // Production API on Render. Override for local backend with:
   // flutter run --dart-define=KYR_BASE_URL=http://127.0.0.1:8000
   defaultValue: 'https://knowyourrights-api.onrender.com',
-)
+);
 const String _cacheKey = 'kyr_content_pack_v1';
 const String _disclaimer =
     'This is legal information, not legal advice. For advice on your specific '
