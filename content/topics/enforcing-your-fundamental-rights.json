@@ -1,0 +1,37 @@
+{
+  "id": "enforcing-your-fundamental-rights",
+  "title": "How to enforce your rights in court",
+  "category": "enforcement-and-remedies",
+  "jurisdiction": "NG-Federal",
+  "summary": "If any of your fundamental rights has been, is being, or is likely to be breached, you can apply to a High Court in that State for redress. The court can make orders and give directions to enforce your rights.",
+  "body_plain": "Your rights are not just words - the Constitution gives you a way to enforce them. Any person who says that any of the fundamental rights in Chapter IV has been, is being, or is likely to be contravened in a State in relation to them may apply to a High Court in that State for redress. The High Court has original jurisdiction to hear such an application and can make orders, issue writs and give directions it considers appropriate to enforce or secure your rights. In practice this is usually done by a lawyer filing a Fundamental Rights Enforcement application on your behalf. If you cannot afford a lawyer, the Legal Aid Council and the National Human Rights Commission can help.",
+  "rights": [
+    "You can apply to a High Court for redress if a fundamental right has been, is being, or is likely to be breached (s.46(1)).",
+    "The High Court has original jurisdiction and can make orders, issue writs and give directions to enforce your rights (s.46(2))."
+  ],
+  "do_list": [
+    "Write down what happened, when, and who was responsible.",
+    "Gather evidence: documents, photographs, medical reports and witness details.",
+    "Contact a lawyer, the Legal Aid Council, or the National Human Rights Commission to file the application.",
+    "Act promptly - some remedies are stronger when you move quickly."
+  ],
+  "dont_list": [
+    "Do not assume nothing can be done - the Constitution gives you a direct route to court.",
+    "Do not rely on informal promises to 'settle it' when a right has been seriously breached without getting advice first."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.46(1)",
+      "quote": "Any person who alleges that any of the provisions of this Chapter has been, is being or likely to be contravened in any State in relation to him may apply to a High Court in that State for redress."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.46(2)",
+      "quote": "Subject to the provisions of this Constitution, a High Court shall have original jurisdiction to hear and determine any application made to it in pursuance of this section and may make such orders, issue such writs and give such directions as it may consider appropriate for the purpose of enforcement or securing the enforcement ... of any right to which the person who makes the application may be entitled."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

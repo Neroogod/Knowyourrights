@@ -1,0 +1,22 @@
+{
+  "id": "police-want-to-search-phone",
+  "trigger": "Police want to search my phone",
+  "description": "What to do if an officer asks you to unlock or hand over your phone.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm and polite. Your phone and its contents are private and protected (s.37)." },
+    { "text": "Ask: 'On what legal authority are you searching my phone?'" },
+    { "text": "Ask whether you are being detained, and if so, why." },
+    { "text": "You are not obliged to unlock your phone simply because you were asked." },
+    { "text": "Note the officer's name and number, and record what is happening if safe." },
+    { "text": "If they proceed without lawful authority, call your lawyer.", "action": "call", "value": "lawyer" }
+  ],
+  "linked_topic_ids": ["privacy-and-phone-searches", "rights-when-arrested"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.37" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

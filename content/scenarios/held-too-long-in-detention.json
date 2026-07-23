@@ -1,0 +1,23 @@
+{
+  "id": "held-too-long-in-detention",
+  "trigger": "I am being detained",
+  "description": "What to do if you or a loved one is being held by the police.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Note the exact date and time the detention started." },
+    { "text": "Remember: you must be brought before a court within a reasonable time - one day if a court is within 40km, otherwise two days (s.35(5))." },
+    { "text": "Ask to be charged before a court, and ask your lawyer to apply for bail." },
+    { "text": "Do not pay for bail at the police station; bail from the police should not be sold." },
+    { "text": "Contact a lawyer or the Legal Aid Council if you cannot afford one.", "action": "call", "value": "legal_aid" },
+    { "text": "If held unlawfully, you may be entitled to compensation and a public apology (s.35(6))." }
+  ],
+  "linked_topic_ids": ["detention-and-time-limits", "rights-when-arrested"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(4)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(5)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

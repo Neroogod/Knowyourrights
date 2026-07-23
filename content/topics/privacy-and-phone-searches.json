@@ -1,0 +1,32 @@
+{
+  "id": "privacy-and-phone-searches",
+  "title": "Can the police search your phone?",
+  "category": "privacy-and-searches",
+  "jurisdiction": "NG-Federal",
+  "summary": "Your privacy - including your phone conversations and correspondence - is guaranteed and protected by the Constitution. Officers cannot simply force you to unlock your phone without lawful authority.",
+  "body_plain": "The Constitution guarantees and protects the privacy of citizens, their homes, correspondence, telephone conversations and telegraphic communications. This means your phone and its contents are private. While there are lawful procedures that can permit a search in specific circumstances, an officer cannot lawfully compel you to hand over or unlock your phone on the street simply because they ask. If you are asked to unlock your phone, you can ask on what legal authority the request is made.",
+  "rights": [
+    "Your phone conversations, messages and correspondence are private and protected (s.37).",
+    "You can ask an officer to state the legal authority for searching your phone.",
+    "Privacy can only be interfered with in accordance with a procedure permitted by law."
+  ],
+  "do_list": [
+    "Politely ask: 'On what legal authority are you searching my phone?'",
+    "Ask whether you are being detained and why.",
+    "Note the officer's name and number and note what happened."
+  ],
+  "dont_list": [
+    "Do not assume you must unlock your phone just because you were asked.",
+    "Do not delete anything or act in a way that looks like obstruction; stay calm and ask questions."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.37",
+      "quote": "The privacy of citizens, their homes, correspondence, telephone conversations and telegraphic communications is hereby guaranteed and protected."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

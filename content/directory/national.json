@@ -1,0 +1,34 @@
+[
+  {
+    "id": "legal-aid-council",
+    "name": "Legal Aid Council of Nigeria",
+    "entry_type": "legal_aid",
+    "state": "Federal",
+    "url": "https://www.legalaidcouncil.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "nhrc",
+    "name": "National Human Rights Commission (NHRC)",
+    "entry_type": "ngo",
+    "state": "Federal",
+    "url": "https://www.nigeriarights.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "nba",
+    "name": "Nigerian Bar Association (NBA)",
+    "entry_type": "legal_aid",
+    "state": "Federal",
+    "url": "https://nigerianbar.org.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "police-emergency",
+    "name": "Nigeria Police emergency line",
+    "entry_type": "emergency",
+    "state": "Federal",
+    "phone": "112",
+    "cached_offline": true
+  }
+]

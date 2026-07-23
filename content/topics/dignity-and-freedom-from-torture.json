@@ -1,0 +1,32 @@
+{
+  "id": "dignity-and-freedom-from-torture",
+  "title": "Your right to dignity: no torture or degrading treatment",
+  "category": "arrest-and-police",
+  "jurisdiction": "NG-Federal",
+  "summary": "Every person is entitled to respect for the dignity of their person. No one may be tortured or subjected to inhuman or degrading treatment, held in slavery, or forced into compulsory labour.",
+  "body_plain": "The Constitution protects your dignity at all times, including in police custody. No person shall be subjected to torture or to inhuman or degrading treatment. No person shall be held in slavery or servitude, and no person shall be required to perform forced or compulsory labour (with narrow exceptions such as lawful court orders and genuine emergencies). If you are beaten, humiliated, or tortured in custody, your rights have been violated.",
+  "rights": [
+    "You must not be tortured or subjected to inhuman or degrading treatment (s.34(1)(a)).",
+    "You must not be held in slavery or servitude (s.34(1)(b)).",
+    "You must not be forced into compulsory labour, subject to narrow lawful exceptions (s.34(1)(c))."
+  ],
+  "do_list": [
+    "If you are harmed, seek medical attention and keep records.",
+    "Report abuse to the National Human Rights Commission or a lawyer.",
+    "Write down names, times, and what happened as soon as you can."
+  ],
+  "dont_list": [
+    "Do not accept that mistreatment in custody is normal or lawful - it is not.",
+    "Do not sign a statement obtained through threats or violence."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.34(1)",
+      "quote": "Every individual is entitled to respect for the dignity of his person, and accordingly - no person shall be subject to torture or to inhuman or degrading treatment; no person shall be held in slavery or servitude; and no person shall be required to perform forced or compulsory labour."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "being-arrested",
+  "trigger": "I am being arrested",
+  "description": "What to do, step by step, if the police are arresting you right now.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm. Do not resist, run, or fight - even if the arrest feels unfair." },
+    { "text": "Ask clearly: 'Am I under arrest, or am I free to go?'" },
+    { "text": "Ask why you are being arrested. You must be told the grounds in writing within 24 hours (s.35(3))." },
+    { "text": "Say: 'I wish to remain silent until I speak to my lawyer.' You have this right (s.35(2))." },
+    { "text": "Do not sign any statement until your lawyer is present." },
+    { "text": "Call your lawyer or a trusted person now.", "action": "call", "value": "lawyer" },
+    { "text": "Note the officers' names, numbers, and the station you are taken to." }
+  ],
+  "linked_topic_ids": ["rights-when-arrested", "detention-and-time-limits", "dignity-and-freedom-from-torture"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(2)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(3)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

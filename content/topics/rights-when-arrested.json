@@ -1,0 +1,50 @@
+{
+  "id": "rights-when-arrested",
+  "title": "Your rights when you are arrested",
+  "category": "arrest-and-police",
+  "jurisdiction": "NG-Federal",
+  "summary": "If you are arrested in Nigeria you have the right to stay silent until you speak to a lawyer, to be told in writing within 24 hours why you were arrested, and to be treated with dignity. These rights come directly from the 1999 Constitution.",
+  "body_plain": "Being arrested does not remove your rights. Under the Constitution, anyone who is arrested or detained may stay silent and does not have to answer questions until they have spoken to a legal practitioner or another person of their choice. You must be informed, in writing and in a language you understand, of the facts and grounds for your arrest within twenty-four hours. If you are arrested or detained unlawfully, you are entitled to compensation and a public apology from the appropriate authority. You remain innocent until a court proves you guilty.",
+  "rights": [
+    "You may remain silent and refuse to answer questions until you have consulted a lawyer or a person of your choice (s.35(2)).",
+    "You must be told, in writing and in a language you understand, why you were arrested within 24 hours (s.35(3)).",
+    "You are presumed innocent until proven guilty by a court (s.36(5)).",
+    "If your arrest or detention was unlawful, you are entitled to compensation and a public apology (s.35(6))."
+  ],
+  "do_list": [
+    "Stay calm and ask politely: 'Am I under arrest, or am I free to go?'",
+    "Ask to know the reason for your arrest and request it in writing.",
+    "Say clearly that you wish to remain silent until you speak with your lawyer.",
+    "Call a lawyer or a trusted person as soon as possible."
+  ],
+  "dont_list": [
+    "Do not resist, run, or become violent.",
+    "Do not sign any statement before your lawyer arrives.",
+    "Do not answer questions about the allegation until you have legal advice."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(2)",
+      "quote": "Any person who is arrested or detained shall have the right to remain silent or avoid answering any question until after consultation with a legal practitioner or any other person of his own choice."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(3)",
+      "quote": "Any person who is arrested or detained shall be informed in writing within twenty-four hours (and in a language that he understands) of the facts and grounds for his arrest or detention."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(6)",
+      "quote": "Any person who is unlawfully arrested or detained shall be entitled to compensation and public apology from the appropriate authority or person."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(5)",
+      "quote": "Every person who is charged with a criminal offence shall be presumed to be innocent until he is proved guilty."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KnowYourRights - Nigeria (MVP)</title>
+  <style>
+    :root {
+      --green: #0b6b3a; --green-dark: #084d2a; --ink: #14201a; --muted: #5b6b63;
+      --bg: #f5f7f5; --card: #ffffff; --line: #e2e8e3; --accent: #1a8f57; --danger: #b3261e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--ink); line-height: 1.5; }
+    header { background: linear-gradient(135deg, var(--green), var(--green-dark)); color: #fff; padding: 20px 16px; }
+    header .wrap { max-width: 860px; margin: 0 auto; }
+    header h1 { margin: 0; font-size: 1.35rem; }
+    header p { margin: 4px 0 0; opacity: .9; font-size: .9rem; }
+    main { max-width: 860px; margin: 0 auto; padding: 16px; }
+    .tabs { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+    .tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff;
+      cursor: pointer; font-size: .9rem; }
+    .tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+      margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+    .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .muted { color: var(--muted); font-size: .85rem; }
+    .badge { display: inline-block; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+      background: #e6f4ec; color: var(--green-dark); margin-left: 6px; }
+    .pill { display:inline-block; background:#eef2ef; color:var(--muted); border-radius:999px; padding:2px 8px; font-size:.72rem; }
+    ul { margin: 8px 0; padding-left: 20px; }
+    .cite { font-size: .8rem; color: var(--green-dark); background: #eef7f1; border: 1px solid #d7ebe0;
+      border-radius: 8px; padding: 6px 10px; margin: 6px 6px 0 0; display: inline-block; }
+    .search, .ask input { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
+      font-size: 1rem; }
+    .ask { display: flex; gap: 8px; }
+    .ask button { padding: 0 18px; border: none; border-radius: 10px; background: var(--green); color: #fff;
+      font-weight: 600; cursor: pointer; }
+    .answer { border-left: 4px solid var(--accent); padding-left: 12px; white-space: pre-wrap; }
+    .answer.refused { border-color: var(--danger); }
+    .disclaimer { font-size: .78rem; color: var(--muted); font-style: italic; margin-top: 10px;
+      border-top: 1px dashed var(--line); padding-top: 8px; }
+    .step { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .step:last-child { border-bottom: none; }
+    .step .n { flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--green); color:#fff;
+      display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; }
+    .hidden { display: none; }
+    a { color: var(--green-dark); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>KnowYourRights <span class="pill" style="background:rgba(255,255,255,.2);color:#fff">MVP</span></h1>
+      <p>Know your rights in Nigeria - grounded in the 1999 Constitution.</p>
+    </div>
+  </header>
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-view="ask">Ask</div>
+      <div class="tab" data-view="rights">Rights</div>
+      <div class="tab" data-view="scenarios">Emergencies</div>
+      <div class="tab" data-view="directory">Get help</div>
+    </div>
+
+    <section id="ask" class="view">
+      <div class="card">
+        <h3>Ask a question</h3>
+        <p class="muted">Answers come only from verified law, always with citations. If it isn't sure, it will say so.</p>
+        <div class="ask">
+          <input id="q" placeholder="e.g. Can the police search my phone?" />
+          <button onclick="ask()">Ask</button>
+        </div>
+        <div id="answer"></div>
+      </div>
+      <div class="card">
+        <h3>Try asking</h3>
+        <p class="muted" id="suggestions"></p>
+      </div>
+    </section>
+
+    <section id="rights" class="view hidden">
+      <input class="search" id="search" placeholder="Search your rights..." oninput="doSearch(this.value)" />
+      <div id="topics"></div>
+    </section>
+
+    <section id="scenarios" class="view hidden">
+      <div id="scenarioList"></div>
+    </section>
+
+    <section id="directory" class="view hidden">
+      <div id="dir"></div>
+    </section>
+  </main>
+
+  <script>
+    const API = "/v1";
+
+    document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+      document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+      t.classList.add("active");
+      document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+      document.getElementById(t.dataset.view).classList.remove("hidden");
+    });
+
+    function esc(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+    async function ask() {
+      const q = document.getElementById("q").value.trim();
+      if (!q) return;
+      const box = document.getElementById("answer");
+      box.innerHTML = '<p class="muted">Thinking...</p>';
+      const r = await fetch(API + "/ask", { method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ question: q }) });
+      const d = await r.json();
+      let cites = (d.citations||[]).map(c =>
+        `<span class="cite">${esc(c.source_name)} - ${esc(c.locator)}</span>`).join("");
+      box.innerHTML = `<div class="card"><div class="answer ${d.refused?'refused':''}">${esc(d.answer)}</div>
+        <div>${cites}</div><div class="disclaimer">${esc(d.disclaimer)}</div></div>`;
+    }
+
+    async function loadTopics(list) {
+      const el = document.getElementById("topics");
+      el.innerHTML = list.map(t => `
+        <div class="card">
+          <h3>${esc(t.title)} <span class="badge">${t.status === 'verified' ? 'Verified' : t.status}</span></h3>
+          <p>${esc(t.summary)}</p>
+          <ul>${(t.rights||[]).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+          <div>${(t.citations||[]).map(c => `<span class="cite">${esc(c.source_name)} - ${esc(c.locator)}</span>`).join("")}</div>
+          <p class="muted">Reviewed by: ${esc(t.reviewed_by||'-')} - ${esc(t.reviewed_at||'')}</p>
+        </div>`).join("");
+    }
+
+    async function doSearch(q) {
+      if (!q.trim()) { const all = await (await fetch(API+"/topics")).json(); return loadTopics(all); }
+      const res = await (await fetch(API + "/search?q=" + encodeURIComponent(q))).json();
+      loadTopics(res);
+    }
+
+    async function loadScenarios() {
+      const list = await (await fetch(API + "/scenarios")).json();
+      document.getElementById("scenarioList").innerHTML = list.map(s => `
+        <div class="card">
+          <h3>${esc(s.trigger)}</h3>
+          <p class="muted">${esc(s.description)}</p>
+          ${s.steps.map((st,i)=>`<div class="step"><div class="n">${i+1}</div><div>${esc(st.text)}</div></div>`).join("")}
+          <div style="margin-top:8px">${(s.citations||[]).map(c => `<span class="cite">${esc(c.source_name)} - ${esc(c.locator)}</span>`).join("")}</div>
+        </div>`).join("");
+    }
+
+    async function loadDirectory() {
+      const list = await (await fetch(API + "/directory")).json();
+      document.getElementById("dir").innerHTML = list.map(e => `
+        <div class="card">
+          <h3>${esc(e.name)}</h3>
+          <p class="muted">${esc(e.entry_type)} ${e.state ? '- ' + esc(e.state) : ''}</p>
+          ${e.phone ? `<p>Call: <a href="tel:${esc(e.phone)}">${esc(e.phone)}</a></p>` : ''}
+          ${e.url ? `<p><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.url)}</a></p>` : ''}
+        </div>`).join("");
+    }
+
+    document.getElementById("suggestions").innerHTML =
+      ["Can the police search my phone?","What are my rights when arrested?","How long can I be detained?","I am being beaten in custody"]
+      .map(s => `<a href="#" onclick="document.getElementById('q').value='${s}';ask();return false;">${s}</a>`).join(" &nbsp;·&nbsp; ");
+
+    doSearch("");
+    loadScenarios();
+    loadDirectory();
+  </script>
+</body>
+</html>

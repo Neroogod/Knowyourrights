@@ -1,0 +1,35 @@
+{
+  "id": "property-rights",
+  "title": "Your right to own property and protection from seizure",
+  "category": "property-and-economic",
+  "jurisdiction": "NG-Federal",
+  "summary": "You have the right to acquire and own immovable property anywhere in Nigeria, and property cannot be taken compulsorily except by a law that requires prompt payment of compensation and access to court.",
+  "body_plain": "The Constitution protects property rights. Every citizen of Nigeria has the right to acquire and own immovable property anywhere in Nigeria. No property or interest in property can be taken possession of compulsorily except in the manner and for the purposes prescribed by a law that, among other things, requires the prompt payment of compensation and gives any person claiming compensation a right of access to a court or tribunal.",
+  "rights": [
+    "You may acquire and own immovable property anywhere in Nigeria (s.43).",
+    "Your property cannot be compulsorily acquired except under a law requiring prompt compensation (s.44(1)(a)).",
+    "You have a right of access to court to determine your interest and compensation (s.44(1)(b))."
+  ],
+  "do_list": [
+    "Keep documentation of ownership and any compensation offered.",
+    "Seek legal advice if your property is being taken."
+  ],
+  "dont_list": [
+    "Do not accept seizure of property without lawful process and compensation."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.43",
+      "quote": "Subject to the provisions of this Constitution, every citizen of Nigeria shall have the right to acquire and own immovable property anywhere in Nigeria."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.44(1)",
+      "quote": "No moveable property or any interest in an immovable property shall be taken possession of compulsorily ... except in the manner and for the purposes prescribed by a law that, among other things (a) requires the prompt payment of compensation therefore and (b) gives to any person claiming such compensation a right of access ... to a court or tribunal."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

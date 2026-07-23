@@ -1,0 +1,23 @@
+{
+  "id": "joining-a-protest",
+  "trigger": "I want to join a peaceful protest",
+  "description": "What to know before and during a peaceful protest.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "You have the right to assemble peacefully and associate with others (s.40)." },
+    { "text": "You have the right to express your opinions and share information (s.39)." },
+    { "text": "Keep it peaceful - violence and destruction are not protected." },
+    { "text": "Know the organisers, the route, and have an emergency contact." },
+    { "text": "If stopped or dispersed, ask on what legal authority, and stay calm." },
+    { "text": "If arrested, remember your rights and call a lawyer.", "action": "call", "value": "lawyer" }
+  ],
+  "linked_topic_ids": ["peaceful-assembly-and-association", "freedom-of-expression", "rights-when-arrested"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.40" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.39(1)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

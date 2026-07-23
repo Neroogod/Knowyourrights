@@ -1,0 +1,33 @@
+{
+  "id": "freedom-from-discrimination",
+  "title": "Your right to freedom from discrimination",
+  "category": "equality-and-dignity",
+  "jurisdiction": "NG-Federal",
+  "summary": "You cannot be treated worse than other Nigerians simply because of your community, ethnic group, place of origin, sex, religion or political opinion. The Constitution forbids this kind of discrimination by any law or government action.",
+  "body_plain": "The Constitution protects you from discrimination. A citizen of Nigeria must not, only because of the community, ethnic group, place of origin, sex, religion or political opinion they belong to, be subjected to disabilities or restrictions that citizens of other groups are not subjected to. In the same way, you cannot be denied a privilege or advantage that is given to citizens of other groups. This applies both to written laws and to how officials actually treat people in practice. You also cannot be given a special advantage over others on those same grounds. If a government office, official or law treats you unequally on any of these grounds, that treatment is unconstitutional.",
+  "rights": [
+    "You cannot be placed under disabilities or restrictions that other Nigerians are not subjected to, only because of your community, ethnic group, place of origin, sex, religion or political opinion (s.42(1)).",
+    "You cannot be denied a privilege or advantage that is granted to citizens of other communities, ethnic groups, places of origin, sexes, religions or political opinions (s.42(1)).",
+    "This protection covers both what the law says and how officials apply it in practice (s.42(1))."
+  ],
+  "do_list": [
+    "Write down exactly what happened, who was involved, and the date.",
+    "Ask, in writing, for the reason you were refused a service or treated differently.",
+    "Keep any documents, messages or names of witnesses.",
+    "Speak to a lawyer or the National Human Rights Commission about enforcing your rights."
+  ],
+  "dont_list": [
+    "Do not assume unequal treatment by an official is normal or lawful - it may be unconstitutional.",
+    "Do not throw away evidence such as letters, forms or messages."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.42(1)",
+      "quote": "A citizen of Nigeria of a particular community, ethnic group, place of origin, sex, religion or political opinion shall not, by reason only that he is such a person ... be subjected either expressly by, or in the practical application of, any law in force in Nigeria or any executive or administrative action of the government, to disabilities or restrictions to which citizens of Nigeria of other communities, ethnic groups, places of origin, sex, religions or political opinions are not made subject."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

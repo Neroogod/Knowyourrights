@@ -1,0 +1,23 @@
+{
+  "id": "checkpoint-stop",
+  "trigger": "Stopped at a checkpoint",
+  "description": "What to do if you are stopped by police or security at a checkpoint.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Slow down, stay calm, and keep your hands visible." },
+    { "text": "Be polite. You are presumed innocent (s.36(5)); a stop is not an accusation." },
+    { "text": "If asked to search your phone, you may ask on what legal authority (s.37)." },
+    { "text": "If you are asked to 'follow to the station', ask: 'Am I under arrest, and on what grounds?'" },
+    { "text": "You may remain silent about allegations until you speak to a lawyer (s.35(2))." },
+    { "text": "Note names, numbers, and location. Call someone you trust if things escalate.", "action": "call", "value": "trusted_contact" }
+  ],
+  "linked_topic_ids": ["rights-when-arrested", "privacy-and-phone-searches", "dignity-and-freedom-from-torture"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(2)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.37" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

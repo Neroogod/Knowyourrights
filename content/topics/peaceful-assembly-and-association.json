@@ -1,0 +1,30 @@
+{
+  "id": "peaceful-assembly-and-association",
+  "title": "Your right to protest and to associate",
+  "category": "civil-liberties",
+  "jurisdiction": "NG-Federal",
+  "summary": "You may assemble peacefully and associate with others, including forming or joining a political party, trade union, or other association.",
+  "body_plain": "The Constitution guarantees the right to assemble freely and to associate with others. In particular, you may form or belong to any political party, trade union, or any other association for the protection of your interests. Peaceful assembly and protest are protected; the right is subject only to limits that are reasonably justifiable in a democratic society.",
+  "rights": [
+    "You may assemble freely and peacefully with others (s.40).",
+    "You may form or join a political party, trade union, or other association (s.40)."
+  ],
+  "do_list": [
+    "Keep protests peaceful and lawful.",
+    "Know the organisers and your route; document any interference."
+  ],
+  "dont_list": [
+    "Do not assume a peaceful protest is illegal.",
+    "Do not engage in violence or destruction, which are not protected."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.40",
+      "quote": "Every person shall be entitled to assemble freely and associate with other persons, and in particular he may form or belong to any political party, trade union or any other association for the protection of his interests."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

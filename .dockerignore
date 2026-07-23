@@ -1,0 +1,15 @@
+# Keep the backend image small and clean.
+.venv/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.git/
+.gitignore
+data/
+# The Flutter app is a separate deliverable and not part of the API image.
+app/
+# Regenerated at build time.
+data/content_pack.json
+data/sources/

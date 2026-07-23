@@ -1,0 +1,24 @@
+{
+  "id": "rights-were-violated",
+  "trigger": "I think my rights were violated",
+  "description": "Steps to take if a government official, the police, or an institution has breached your fundamental rights.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Get to safety first. Deal with any urgent medical needs and, if you were injured, get a medical report." },
+    { "text": "Write down exactly what happened: date, time, place, who was involved, and what was said or done." },
+    { "text": "Collect evidence - documents, photographs, messages, and the names and contacts of any witnesses." },
+    { "text": "You can apply to a High Court in your State for redress. Any breach of a Chapter IV right can be taken there (s.46(1))." },
+    { "text": "Contact a lawyer to file a Fundamental Rights Enforcement application on your behalf.", "action": "call", "value": "lawyer" },
+    { "text": "If you cannot afford a lawyer, call the Legal Aid Council.", "action": "call", "value": "legal-aid-council" },
+    { "text": "You can also report the violation to the National Human Rights Commission.", "action": "call", "value": "nhrc" }
+  ],
+  "linked_topic_ids": ["enforcing-your-fundamental-rights", "dignity-and-freedom-from-torture", "freedom-from-discrimination"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.46(1)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.46(2)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

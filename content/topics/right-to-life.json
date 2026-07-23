@@ -1,0 +1,30 @@
+{
+  "id": "right-to-life",
+  "title": "Your right to life",
+  "category": "fundamental-rights",
+  "jurisdiction": "NG-Federal",
+  "summary": "Every person has a right to life. No one may be intentionally deprived of their life except in execution of a court sentence for a criminal offence of which they have been found guilty.",
+  "body_plain": "The right to life is the first of the fundamental rights in the Constitution. Every person has a right to life, and no one shall be intentionally deprived of their life, save in execution of the sentence of a court in respect of a criminal offence of which they have been found guilty in Nigeria. The Constitution allows the use of only such force as is reasonably necessary in narrowly defined situations, such as defence against unlawful violence.",
+  "rights": [
+    "Every person has a right to life (s.33(1)).",
+    "You may not be intentionally killed except in execution of a lawful court sentence (s.33(1)).",
+    "Force against a person must be no more than reasonably necessary and only in the limited cases the Constitution allows (s.33(2))."
+  ],
+  "do_list": [
+    "Report unlawful killings or excessive force to the National Human Rights Commission.",
+    "Preserve any evidence and record witnesses where it is safe to do so."
+  ],
+  "dont_list": [
+    "Do not accept that lethal or excessive force is lawful outside the narrow constitutional exceptions."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.33(1)",
+      "quote": "Every person has a right to life, and no one shall be deprived intentionally of his life, save in execution of the sentence of a court in respect of a criminal offence of which he has been found guilty in Nigeria."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

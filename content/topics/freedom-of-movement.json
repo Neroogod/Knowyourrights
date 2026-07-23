@@ -1,0 +1,29 @@
+{
+  "id": "freedom-of-movement",
+  "title": "Your right to move freely in Nigeria",
+  "category": "civil-liberties",
+  "jurisdiction": "NG-Federal",
+  "summary": "As a citizen you are entitled to move and travel freely throughout Nigeria and to live in any part of it, and you cannot be expelled from Nigeria or refused entry or exit.",
+  "body_plain": "The Constitution guarantees freedom of movement and travel. Every citizen of Nigeria is entitled to move and travel freely throughout Nigeria and to reside in any part of it, and no citizen shall be expelled from Nigeria or refused entry or exit. This right can be limited only by laws that are reasonably justifiable in a democratic society, such as restrictions on a person reasonably suspected of a criminal offence.",
+  "rights": [
+    "You may move freely throughout Nigeria and live in any part of it (s.41(1)).",
+    "As a citizen, you cannot be expelled from Nigeria or refused entry or exit (s.41(1))."
+  ],
+  "do_list": [
+    "Carry valid identification when travelling.",
+    "If restricted, ask on what legal basis your movement is being limited."
+  ],
+  "dont_list": [
+    "Do not assume checkpoints can bar a citizen from lawful travel without legal basis."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.41(1)",
+      "quote": "Every citizen of Nigeria is entitled to move freely throughout Nigeria and to reside in any part thereof, and no citizen of Nigeria shall be expelled from Nigeria or refused entry thereby or exit therefrom."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

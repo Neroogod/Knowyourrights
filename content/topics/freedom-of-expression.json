@@ -1,0 +1,35 @@
+{
+  "id": "freedom-of-expression",
+  "title": "Your right to freedom of expression and the press",
+  "category": "civil-liberties",
+  "jurisdiction": "NG-Federal",
+  "summary": "You have the right to hold opinions and to receive and share ideas and information without interference, and to own and operate a medium of information.",
+  "body_plain": "The Constitution protects freedom of expression. Every person is entitled to hold opinions and to receive and impart ideas and information without interference. This includes the freedom of the press: every person is entitled to own, establish and operate any medium for the dissemination of information, ideas and opinions, subject to conditions the Constitution allows (for example, licensing of broadcast media).",
+  "rights": [
+    "You may hold opinions and receive and share ideas and information without interference (s.39(1)).",
+    "You may own, establish and operate a medium for sharing information, ideas and opinions (s.39(2))."
+  ],
+  "do_list": [
+    "Express your views and share information peacefully and lawfully.",
+    "Keep records if you are censored or silenced unlawfully."
+  ],
+  "dont_list": [
+    "Do not assume criticism of government is itself a crime.",
+    "Do not confuse defamation or incitement (which have legal limits) with protected expression."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.39(1)",
+      "quote": "Every person shall be entitled to freedom of expression, including freedom to hold opinions and to receive and impart ideas and information without interference."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.39(2)",
+      "quote": "every person shall be entitled to own, establish and operate any medium for the dissemination of information, ideas and opinions."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

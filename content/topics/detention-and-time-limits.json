@@ -1,0 +1,42 @@
+{
+  "id": "detention-and-time-limits",
+  "title": "How long can the police hold you?",
+  "category": "detention-and-bail",
+  "jurisdiction": "NG-Federal",
+  "summary": "The Constitution limits how long you can be held before being taken to court. Where a court is within 40km, you should be brought before it within one day; otherwise within two days, or a longer period a court considers reasonable.",
+  "body_plain": "You cannot be held indefinitely. If you are arrested on suspicion of an offence, the Constitution says you must be brought before a court within a reasonable time. 'A reasonable time' means one day where there is a competent court within a radius of forty kilometres, and two days in any other case (or a longer period the court considers reasonable). If you are not tried within two months (in custody) or three months (on bail) you are entitled to be released, without prejudice to further proceedings. A person awaiting trial should not be detained longer than the maximum sentence for the offence.",
+  "rights": [
+    "You must be brought before a court within a reasonable time: one day if a court is within 40km, otherwise two days (s.35(4)-(5)).",
+    "If not tried within two months in custody, or three months on bail, you are entitled to release (s.35(4)).",
+    "You should not be detained awaiting trial longer than the maximum sentence for the offence (s.35(1) proviso)."
+  ],
+  "do_list": [
+    "Note the date and time of your arrest.",
+    "Ask to be taken before a court and ask your lawyer to apply for bail.",
+    "Keep a record of how long you have been held."
+  ],
+  "dont_list": [
+    "Do not assume the police can hold you for as long as they wish - they cannot.",
+    "Do not pay for bail at a police station; bail from the police should not be sold."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(4)",
+      "quote": "Any person who is arrested or detained ... shall be brought before a court of law within a reasonable time, and if he is not tried within a period of two months from the date of his arrest or detention in the case of a person who is in custody or is not entitled to bail; or three months from the date of his arrest or detention in the case of a person who has been released on bail, he shall ... be released."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(5)",
+      "quote": "'a reasonable time' means - in the case of an arrest or detention in any place where there is a court of competent jurisdiction within a radius of forty kilometres, a period of one day; and in any other case, a period of two days or such longer period as in the circumstances may be considered by the court to be reasonable."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(1) proviso",
+      "quote": "a person who is charged with an offence and who has been detained in lawful custody awaiting trial shall not continue to be kept in such detention for a period longer than the maximum period of imprisonment prescribed for the offence."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "mistreated-in-custody",
+  "trigger": "I am being threatened or beaten in custody",
+  "description": "What to do if you are being harmed, threatened, or degraded while detained.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Do not sign any statement obtained through threats or violence." },
+    { "text": "Remember: torture and inhuman or degrading treatment are prohibited (s.34)." },
+    { "text": "Ask to see a lawyer and to receive medical attention." },
+    { "text": "If you can, remember or record the names of those involved and the time." },
+    { "text": "Report the abuse to the National Human Rights Commission.", "action": "link", "value": "https://www.nigeriarights.gov.ng/" },
+    { "text": "Contact a lawyer or the Legal Aid Council as soon as possible.", "action": "call", "value": "legal_aid" }
+  ],
+  "linked_topic_ids": ["dignity-and-freedom-from-torture", "rights-when-arrested"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.34(1)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

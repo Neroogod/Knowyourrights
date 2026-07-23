@@ -1,0 +1,54 @@
+{
+  "id": "fair-hearing-and-presumption-of-innocence",
+  "title": "Your right to a fair hearing and to be presumed innocent",
+  "category": "courts-and-trial",
+  "jurisdiction": "NG-Federal",
+  "summary": "You are presumed innocent until a court proves you guilty, and you are entitled to a fair hearing within a reasonable time by an independent court or tribunal.",
+  "body_plain": "The Constitution guarantees a fair hearing. In the determination of your civil rights and obligations, you are entitled to a fair hearing within a reasonable time by a court or other tribunal established by law. In criminal matters, every person charged with an offence is presumed innocent until proved guilty. You are also entitled to be told promptly and in detail, in a language you understand, what offence you are charged with; to be given adequate time and facilities to prepare your defence; to defend yourself in person or through legal practitioners of your own choice; to question the witnesses against you and call your own witnesses; and to a free interpreter if you cannot understand the language of the trial. You cannot be tried again for an offence you have already been convicted or acquitted of, and you cannot be punished for something that was not a crime when you did it. These protections exist to keep the process fair and to stop punishment before proof.",
+  "rights": [
+    "You are presumed innocent until proven guilty by a court (s.36(5)).",
+    "You are entitled to a fair hearing within a reasonable time by an independent and impartial court or tribunal (s.36(1)).",
+    "You must be informed promptly, in detail and in a language you understand, of the offence charged (s.36(6)(a)).",
+    "You are entitled to adequate time and facilities to prepare your defence (s.36(6)(b)).",
+    "You may defend yourself in person or by legal practitioners of your own choice (s.36(6)(c)).",
+    "You may question the prosecution's witnesses and call your own witnesses on the same terms (s.36(6)(d)).",
+    "You are entitled to a free interpreter if you cannot understand the language used at trial (s.36(6)(e)).",
+    "You cannot be tried again for an offence you were already convicted or acquitted of (s.36(9))."
+  ],
+  "do_list": [
+    "Insist on being formally charged before a court rather than being punished informally.",
+    "Ask for time and facilities to prepare your defence with a lawyer.",
+    "Ask for an interpreter if the trial is not in a language you understand.",
+    "Choose your own lawyer - you are not obliged to accept one imposed on you."
+  ],
+  "dont_list": [
+    "Do not accept guilt or punishment before a court has decided your case.",
+    "Do not proceed in a serious matter without legal representation if you can avoid it.",
+    "Do not agree to be tried twice for the same offence you were already cleared of."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(5)",
+      "quote": "Every person who is charged with a criminal offence shall be presumed to be innocent until he is proved guilty."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(1)",
+      "quote": "In the determination of his civil rights and obligations ... a person shall be entitled to a fair hearing within a reasonable time by a court or other tribunal established by law and constituted in such manner as to secure its independence and impartiality."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(6)",
+      "quote": "Every person who is charged with a criminal offence shall be entitled to - be informed promptly in the language that he understands and in detail of the nature of the offence; be given adequate time and facilities for the preparation of his defence; defend himself in person or by legal practitioners of his own choice; examine ... the witnesses called by the prosecution ... and ... witnesses to testify on his behalf ...; have without payment the assistance of an interpreter if he cannot understand the language used at the trial of the offence."
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(9)",
+      "quote": "No person who shows that he has been tried by any court of competent jurisdiction or tribunal for a criminal offence and either convicted or acquitted shall again be tried for that offence ... save upon the order of a superior court."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

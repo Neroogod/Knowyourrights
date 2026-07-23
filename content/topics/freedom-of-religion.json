@@ -1,0 +1,30 @@
+{
+  "id": "freedom-of-religion",
+  "title": "Your right to freedom of thought, conscience and religion",
+  "category": "civil-liberties",
+  "jurisdiction": "NG-Federal",
+  "summary": "You are free to hold, change, and practise your religion or belief - alone or with others, in public or in private.",
+  "body_plain": "The Constitution protects freedom of thought, conscience and religion. Every person is entitled to this freedom, including the freedom to change their religion or belief, and the freedom (alone or with others, in public or in private) to manifest and propagate their religion or belief in worship, teaching, practice and observance. No person at a place of education can be required to receive religious instruction of a religion other than their own.",
+  "rights": [
+    "You may hold, change, and practise your religion or belief (s.38(1)).",
+    "You may manifest your belief in worship, teaching, practice and observance, alone or with others (s.38(1)).",
+    "You cannot be forced to receive religious instruction of another religion at a place of education (s.38(2))."
+  ],
+  "do_list": [
+    "Practise your faith freely and peacefully.",
+    "Report coercion into another religion, especially in schools."
+  ],
+  "dont_list": [
+    "Do not accept forced religious instruction contrary to your beliefs in education settings."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.38(1)",
+      "quote": "Every person shall be entitled to freedom of thought, conscience and religion, including freedom to change his religion or belief, and freedom (either alone or in community with others, and in public or in private) to manifest and propagate his religion or belief in worship, teaching, practice and observance."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}
