@@ -85,6 +85,22 @@ class ContentRepository {
         .toList();
   }
 
+  /// Look up a scenario by id; null when the pack does not contain it.
+  Scenario? scenarioById(String id) {
+    for (final s in scenarios) {
+      if (s.id == id) return s;
+    }
+    return null;
+  }
+
+  /// Look up a topic by id; null when the pack does not contain it.
+  Topic? topicById(String id) {
+    for (final t in topics) {
+      if (t.id == id) return t;
+    }
+    return null;
+  }
+
   List<Topic> searchTopics(String query) {
     final q = _tokens(query);
     if (q.isEmpty) return topics;
