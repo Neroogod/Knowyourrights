@@ -41,6 +41,9 @@ Health check path: `/v1/health`.
 4. Your API will be live at `https://knowyourrights-api.onrender.com`.
    (Free instances sleep when idle and wake on the next request.)
 
+**Live now:** `https://knowyourrights-api.onrender.com`  
+Web demo: open that URL in a browser. Health: `/v1/health`.
+
 ## Option B — Fly.io (deploys straight from your Mac)
 
 1. Install the CLI: `brew install flyctl`.
