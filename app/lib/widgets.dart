@@ -112,6 +112,65 @@ class SectionLabel extends StatelessWidget {
   }
 }
 
+/// A rounded surface with an optional coloured accent rule down its left edge.
+///
+/// Flutter cannot paint a `Border` with a non-uniform colour together with a
+/// `borderRadius`, so the rule is drawn as a clipped stripe inside a uniformly
+/// bordered box rather than as a thicker left `BorderSide`.
+class AccentSurface extends StatelessWidget {
+  final Widget child;
+  final Color? accent;
+  final EdgeInsets padding;
+  final VoidCallback? onTap;
+  static const double _ruleWidth = 3;
+
+  const AccentSurface({
+    required this.child,
+    this.accent,
+    this.padding = const EdgeInsets.fromLTRB(15, 14, 15, 14),
+    this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.kyr;
+    final EdgeInsets pad = EdgeInsets.fromLTRB(
+      padding.left + (accent != null ? _ruleWidth : 0),
+      padding.top,
+      padding.right,
+      padding.bottom,
+    );
+
+    final Widget content = Stack(children: [
+      Padding(padding: pad, child: child),
+      if (accent != null)
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: _ruleWidth,
+          child: ColoredBox(color: accent!),
+        ),
+    ]);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: p.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: p.line),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: onTap == null
+          ? content
+          : Material(
+              color: Colors.transparent,
+              child: InkWell(onTap: onTap, child: content),
+            ),
+    );
+  }
+}
+
 /// Which meaning an [InfoBlock] carries; drives its accent rule colour.
 enum BlockKind { rights, dos, donts }
 
@@ -134,18 +193,8 @@ class InfoBlock extends StatelessWidget {
     };
     final Color iconColor = kind == BlockKind.rights ? p.goldInk : accent;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: p.card,
-        border: Border(
-          left: BorderSide(color: accent, width: 3),
-          top: BorderSide(color: p.line),
-          right: BorderSide(color: p.line),
-          bottom: BorderSide(color: p.line),
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
+    return AccentSurface(
+      accent: accent,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(title.toUpperCase(),
             style: TextStyle(
@@ -176,29 +225,6 @@ class KyrCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.kyr;
-    return Material(
-      color: p.card,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: accent == null
-                ? Border.all(color: p.line)
-                : Border(
-                    left: BorderSide(color: accent!, width: 3),
-                    top: BorderSide(color: p.line),
-                    right: BorderSide(color: p.line),
-                    bottom: BorderSide(color: p.line),
-                  ),
-          ),
-          padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
-          child: child,
-        ),
-      ),
-    );
+    return AccentSurface(accent: accent, onTap: onTap, child: child);
   }
 }

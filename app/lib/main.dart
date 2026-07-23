@@ -726,17 +726,8 @@ class _AnswerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.kyr;
     final accent = response.refused ? p.sos : p.green;
-    return Container(
-      decoration: BoxDecoration(
-        color: p.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border(
-          left: BorderSide(color: accent, width: 4),
-          top: BorderSide(color: p.line),
-          right: BorderSide(color: p.line),
-          bottom: BorderSide(color: p.line),
-        ),
-      ),
+    return AccentSurface(
+      accent: accent,
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(
