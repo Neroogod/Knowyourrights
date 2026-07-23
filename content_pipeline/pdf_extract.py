@@ -1,7 +1,11 @@
 """Extract and normalise plain text from legal-source PDFs (e.g. the Constitution)."""
 
+import logging
 import re
 from pathlib import Path
+
+# The NDPA copy has malformed cross-reference objects; pypdf logs one per object.
+logging.getLogger("pypdf").setLevel(logging.ERROR)
 
 PAGE_MARKER = re.compile(r"--\s*\d+\s*of\s*\d+\s*--")
 MULTISPACE = re.compile(r"[ \t\u00a0]+")

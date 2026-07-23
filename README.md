@@ -41,8 +41,30 @@ pip install -r requirements-dev.txt
 python content_pipeline/build_pack.py --run
 ```
 
-This validates all content, writes `data/content_pack.json`, and extracts the Constitution
-text to `data/sources/constitution.txt`.
+This validates all content, writes `data/content_pack.json`, then extracts every legal
+source registered in `content_pipeline/sources.py` to `data/sources/<source-id>.txt`,
+splits each into numbered sections, and grades it.
+
+The build prints a source report, because a damaged document is the quietest way to break
+a citation:
+
+```
+constitution-1999     273 sections   85% coverage  DEGRADED (probe) - s.35 lacks 'personal liberty'
+interpretation-act     39 sections   98% coverage  citable
+cama-2020             870 sections  100% coverage  citable
+ndpa-2023              16 sections   25% coverage  DEGRADED (coverage)
+```
+
+A source is **citable** only if it parses at least 80% of its known sections *and* its
+probes land the expected text on the expected locator. The second check matters more than
+the first: a document can parse most of its sections while attaching the wrong body to a
+locator, and that failure still looks like a valid citation.
+
+Current state: **CAMA 2020 parses completely** and is ready to ground company content. The
+**NDPA 2023** copy has a damaged text layer (25%), and this **Constitution** PDF loses
+inline numbering in Chapter IV so bodies misattach to locators — both need cleaner
+documents before anything is cited from parsed text. Shipped rights citations are
+unaffected: they are hand-authored and lawyer-checked, not parsed.
 
 ## Run the API + demo
 

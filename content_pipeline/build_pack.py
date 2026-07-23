@@ -16,11 +16,12 @@ if BACKEND_ON_PATH not in sys.path:
 
 from backend.schemas import ContentPack, DirectoryEntry, Scenario, Topic  # noqa: E402
 from content_pipeline.pdf_extract import extract_text  # noqa: E402
+from content_pipeline.sectioniser import SourceReport, split_sections, verify_sections  # noqa: E402
+from content_pipeline.sources import LegalSource, available_sources  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONTENT_DIR = REPO_ROOT / "content"
 DATA_DIR = REPO_ROOT / "data"
-CONSTITUTION_PDF = REPO_ROOT.parent / "StartUp" / "Know_your_rights" / "constitution.pdf"
 
 
 def _load_json(path: Path) -> object:
@@ -59,12 +60,23 @@ def build_pack(content_dir: Path = CONTENT_DIR, version: int = 1) -> ContentPack
     )
 
 
-def extract_constitution_source(pdf_path: Path, out_path: Path) -> int:
-    """Extract the Constitution text to a raw source file. Returns character count."""
-    text = extract_text(pdf_path)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(text, encoding="utf-8")
-    return len(text)
+def ingest_source(source: LegalSource, out_dir: Path) -> SourceReport:
+    """Extract one legal source to text, split it into sections, and grade it.
+
+    The report is what makes a bad document visible: a source that parses badly,
+    or attaches the wrong body to a locator, is marked not citable so it cannot
+    quietly become the basis of a citation.
+    """
+    text = extract_text(source.path())
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / f"{source.id}.txt").write_text(text, encoding="utf-8")
+    sections = split_sections(text, max_section=source.max_section)
+    return verify_sections(sections, source.max_section, source.probes)
+
+
+def ingest_sources(out_dir: Path) -> dict[str, SourceReport]:
+    """Extract and grade every registered source present on disk."""
+    return {s.id: ingest_source(s, out_dir) for s in available_sources()}
 
 
 def main() -> None:
@@ -79,11 +91,20 @@ def main() -> None:
     print(f"  scenarios: {len(pack.scenarios)}")
     print(f"  directory: {len(pack.directory)}")
 
-    if CONSTITUTION_PDF.exists():
-        chars = extract_constitution_source(CONSTITUTION_PDF, DATA_DIR / "sources" / "constitution.txt")
-        print(f"  extracted Constitution source: {chars} chars")
-    else:
-        print("  Constitution PDF not found; skipped source extraction")
+    reports = ingest_sources(DATA_DIR / "sources")
+    if not reports:
+        print("  legal sources: none found on disk")
+        return
+    print("\nLegal sources:")
+    for source_id, report in reports.items():
+        detail = f" - {', '.join(report.failed_probes)}" if report.failed_probes else ""
+        print(
+            f"  {source_id:<20} {report.section_count:>4} sections  "
+            f"{report.coverage:>4.0%} coverage  {report.verdict}{detail}"
+        )
+    degraded = [sid for sid, r in reports.items() if not r.citable]
+    if degraded:
+        print(f"\n  NOTE: not citable until replaced with a cleaner document: {', '.join(degraded)}")
 
 
 if __name__ == "__main__":
