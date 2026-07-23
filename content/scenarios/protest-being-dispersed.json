@@ -1,0 +1,50 @@
+{
+  "id": "protest-being-dispersed",
+  "trigger": "Police are dispersing our protest",
+  "description": "What to do if a peaceful protest you are in is being broken up.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and keep your hands visible; do not run or fight."
+    },
+    {
+      "text": "Peaceful assembly is your right (s.40); a peaceful protest is not a crime."
+    },
+    {
+      "text": "If ordered to leave, move calmly; do not give a reason to be arrested."
+    },
+    {
+      "text": "No one may beat or treat you in an inhuman way (s.34(1))."
+    },
+    {
+      "text": "If arrested, ask on what grounds and remain silent until your lawyer comes."
+    },
+    {
+      "text": "Note officers' names, numbers, and record events if it is safe."
+    },
+    {
+      "text": "Call a lawyer or trusted person if anyone is detained or hurt.",
+      "action": "call",
+      "value": "trusted_contact"
+    }
+  ],
+  "linked_topic_ids": [
+    "peaceful-assembly-and-association",
+    "dignity-and-freedom-from-torture",
+    "rights-when-arrested"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.40"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.34(1)"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

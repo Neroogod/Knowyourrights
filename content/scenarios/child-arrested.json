@@ -1,0 +1,50 @@
+{
+  "id": "child-arrested",
+  "trigger": "My child has been arrested",
+  "description": "What to do if your child or a minor in your care has been arrested.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and go to the station where they are held."
+    },
+    {
+      "text": "Ask on what grounds the child is held (s.35(3)); they are presumed innocent (s.36(5))."
+    },
+    {
+      "text": "Insist that the child not be questioned or made to sign anything without a lawyer and a parent or guardian."
+    },
+    {
+      "text": "The child has a right to dignity and must not be beaten or degraded (s.34(1))."
+    },
+    {
+      "text": "Ask about release on bail; police bail is free."
+    },
+    {
+      "text": "Note the officers' names, numbers, and the time."
+    },
+    {
+      "text": "Call a lawyer or Legal Aid immediately.",
+      "action": "call",
+      "value": "lawyer"
+    }
+  ],
+  "linked_topic_ids": [
+    "rights-when-arrested",
+    "dignity-and-freedom-from-torture",
+    "fair-hearing-and-presumption-of-innocence"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(3)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(5)"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

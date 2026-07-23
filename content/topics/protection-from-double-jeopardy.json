@@ -1,0 +1,35 @@
+{
+  "id": "protection-from-double-jeopardy",
+  "title": "You cannot be tried twice for the same offence",
+  "category": "courts-and-trial",
+  "jurisdiction": "NG-Federal",
+  "summary": "Once you have been tried and either convicted or acquitted, you generally cannot be tried again for the same offence.",
+  "body_plain": "The Constitution protects you from being tried again for a criminal offence for which you have already been convicted or acquitted, except on the order of a superior court in the course of an appeal. It also protects you from being tried again for a criminal offence for which you have been pardoned. This stops the authorities from repeatedly prosecuting a person for the same matter.",
+  "rights": [
+    "You cannot be tried again for an offence you were already convicted or acquitted of (s.36(9)).",
+    "You cannot be tried again for an offence for which you have been pardoned (s.36(10)).",
+    "Only a superior court on appeal can revisit the matter."
+  ],
+  "do_list": [
+    "Keep records of any past trial, judgment, or pardon.",
+    "Tell your lawyer if you are charged again for the same matter.",
+    "Raise the earlier outcome as a defence."
+  ],
+  "dont_list": [
+    "Do not assume you can be endlessly recharged for the same offence.",
+    "Do not lose your court documents from an earlier case."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(9)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(10)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

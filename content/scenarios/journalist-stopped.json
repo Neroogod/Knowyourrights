@@ -1,0 +1,50 @@
+{
+  "id": "journalist-stopped",
+  "trigger": "I am a journalist being stopped for my work",
+  "description": "What to do if you are stopped, searched or detained because of reporting or filming.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and identify yourself as a journalist if it is safe to do so."
+    },
+    {
+      "text": "You have a right to freedom of expression, including the press (s.39)."
+    },
+    {
+      "text": "Do not hand over or delete your footage; ask on what authority it is demanded."
+    },
+    {
+      "text": "If detained, ask on what grounds (s.35(3)) and remain silent until your lawyer comes."
+    },
+    {
+      "text": "Note the officers' names, numbers, location and time."
+    },
+    {
+      "text": "Contact your editor, lawyer, or a trusted colleague.",
+      "action": "call",
+      "value": "trusted_contact"
+    },
+    {
+      "text": "Back up your material as soon as you safely can."
+    }
+  ],
+  "linked_topic_ids": [
+    "freedom-of-expression",
+    "rights-when-arrested",
+    "privacy-and-phone-searches"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.39"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(3)"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

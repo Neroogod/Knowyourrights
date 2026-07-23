@@ -1,0 +1,35 @@
+{
+  "id": "no-punishment-without-law",
+  "title": "No punishment without a law",
+  "category": "courts-and-trial",
+  "jurisdiction": "NG-Federal",
+  "summary": "You can only be punished for something that was already a defined offence, with a set penalty, at the time you did it.",
+  "body_plain": "The Constitution says no one can be convicted of a criminal offence unless that offence is defined, and the penalty prescribed, in a written law. You also cannot be punished more heavily than the penalty that was in force when the offence was committed. This means the authorities cannot invent an offence after the fact or increase your punishment retroactively.",
+  "rights": [
+    "You can only be convicted of an offence defined in a written law (s.36(12)).",
+    "You cannot be given a heavier penalty than the one in force when you acted (s.36(8)).",
+    "Offences and penalties cannot be applied retroactively against you."
+  ],
+  "do_list": [
+    "Ask which specific written law you are accused of breaking.",
+    "Tell your lawyer if the 'offence' is not clearly written in law.",
+    "Keep note of the exact charge."
+  ],
+  "dont_list": [
+    "Do not accept a charge that is not based on a clear written law.",
+    "Do not accept a penalty heavier than the law allowed at the time."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(12)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(8)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

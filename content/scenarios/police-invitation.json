@@ -1,0 +1,50 @@
+{
+  "id": "police-invitation",
+  "trigger": "The police sent me an invitation",
+  "description": "What to do if you receive a police invitation or are asked to 'come to the station'.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm. An invitation is not a conviction; you are presumed innocent (s.36(5))."
+    },
+    {
+      "text": "Do not ignore it, but do not go alone if you can avoid it."
+    },
+    {
+      "text": "Contact a lawyer before you go, and arrange to go with them if possible.",
+      "action": "call",
+      "value": "lawyer"
+    },
+    {
+      "text": "Tell a trusted person where you are going and when."
+    },
+    {
+      "text": "At the station, you may remain silent until your lawyer is present (s.35(2))."
+    },
+    {
+      "text": "Ask what the matter is about and whether you are a suspect or a witness."
+    },
+    {
+      "text": "Do not sign any statement without reading it and speaking to your lawyer."
+    }
+  ],
+  "linked_topic_ids": [
+    "fair-hearing-and-presumption-of-innocence",
+    "right-to-a-lawyer",
+    "right-to-remain-silent"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(1)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(5)"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

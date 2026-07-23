@@ -1,0 +1,32 @@
+{
+  "id": "privacy-of-home-and-communication",
+  "title": "Your right to privacy of home and communication",
+  "category": "privacy-and-searches",
+  "jurisdiction": "NG-Federal",
+  "summary": "Your home, your correspondence, and your telephone conversations are private and protected. They cannot be intruded upon except by a procedure the law allows.",
+  "body_plain": "The Constitution guarantees and protects the privacy of citizens, their homes, correspondence, telephone conversations and telegraphic communications. This is broader than your phone - it covers your house, your letters and messages, and your calls. Any search or interception must follow a procedure permitted by law, such as a valid warrant; it cannot simply be done because someone in authority wishes to.",
+  "rights": [
+    "Your home, correspondence and communications are private (s.37).",
+    "A search of your home generally requires lawful authority such as a warrant.",
+    "Interception of your communications must follow a lawful procedure."
+  ],
+  "do_list": [
+    "Ask to see a search warrant before anyone searches your home.",
+    "Watch and record what is searched or taken.",
+    "Note names, numbers and the time."
+  ],
+  "dont_list": [
+    "Do not invite a search without asking about legal authority.",
+    "Do not sign a record of a search you have not read."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.37",
+      "quote": "The privacy of citizens, their homes, correspondence, telephone conversations and telegraphic communications is hereby guaranteed and protected."
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

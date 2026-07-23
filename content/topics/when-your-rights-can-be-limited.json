@@ -1,0 +1,31 @@
+{
+  "id": "when-your-rights-can-be-limited",
+  "title": "When can your rights be limited?",
+  "category": "civil-liberties",
+  "jurisdiction": "NG-Federal",
+  "summary": "Some rights can be limited by a law that is reasonably justifiable in a democratic society - for example for public safety or the rights of others. Limits must be lawful, not arbitrary.",
+  "body_plain": "The Constitution allows certain rights - such as privacy, expression, assembly and movement - to be limited by a law that is reasonably justifiable in a democratic society, for reasons like defence, public safety, public order, public morality, public health, or protecting other people's rights. This is an honest and important point: your rights are strong but not always absolute. The key is that any limit must come from law and be reasonable - authorities cannot restrict you arbitrarily or just because they wish to.",
+  "rights": [
+    "Some rights can be limited only by a law reasonably justifiable in a democratic society (s.45).",
+    "Valid reasons include public safety, public order, health, or the rights of others.",
+    "A limit that is arbitrary or not based on law is not lawful."
+  ],
+  "do_list": [
+    "Ask on what specific law a restriction is based.",
+    "Note whether the restriction seems reasonable and lawful.",
+    "Raise unlawful restrictions with a lawyer or the NHRC."
+  ],
+  "dont_list": [
+    "Do not assume every restriction is lawful just because it is claimed.",
+    "Do not assume your rights are absolute in every situation."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.45(1)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

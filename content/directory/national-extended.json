@@ -1,0 +1,47 @@
+[
+  {
+    "id": "frsc",
+    "name": "Federal Road Safety Corps (FRSC)",
+    "entry_type": "emergency",
+    "state": "Federal",
+    "phone": "122",
+    "url": "https://frsc.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "naptip",
+    "name": "NAPTIP (Anti-Trafficking Agency)",
+    "entry_type": "ngo",
+    "state": "Federal",
+    "phone": null,
+    "url": "https://www.naptip.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "public-complaints-commission",
+    "name": "Public Complaints Commission (Ombudsman)",
+    "entry_type": "legal_aid",
+    "state": "Federal",
+    "phone": null,
+    "url": "https://pcc.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "fida-nigeria",
+    "name": "FIDA Nigeria (Women Lawyers - legal aid for women & children)",
+    "entry_type": "legal_aid",
+    "state": "Federal",
+    "phone": null,
+    "url": "https://fidanigeria.org/",
+    "cached_offline": true
+  },
+  {
+    "id": "efcc",
+    "name": "EFCC (report extortion & corruption)",
+    "entry_type": "ngo",
+    "state": "Federal",
+    "phone": null,
+    "url": "https://www.efcc.gov.ng/",
+    "cached_offline": true
+  }
+]

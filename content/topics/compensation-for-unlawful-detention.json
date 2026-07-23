@@ -1,0 +1,35 @@
+{
+  "id": "compensation-for-unlawful-detention",
+  "title": "Compensation for unlawful arrest or detention",
+  "category": "enforcement-and-remedies",
+  "jurisdiction": "NG-Federal",
+  "summary": "If you are unlawfully arrested or detained, the Constitution says you are entitled to compensation and a public apology from the appropriate authority.",
+  "body_plain": "The Constitution provides that any person who is unlawfully arrested or detained is entitled to compensation and a public apology from the appropriate authority or person. This means an unlawful detention is not just wrong in principle - it can give you a legal claim. You enforce this by applying to a High Court, usually with the help of a lawyer or a legal aid organisation.",
+  "rights": [
+    "If you are unlawfully arrested or detained, you are entitled to compensation and a public apology (s.35(6)).",
+    "You enforce this right by applying to a High Court (s.46).",
+    "Keep evidence of what happened to support a claim."
+  ],
+  "do_list": [
+    "Write down dates, times, names, and any witnesses.",
+    "Keep any documents, medical reports, or photos.",
+    "Speak to a lawyer or Legal Aid about a claim."
+  ],
+  "dont_list": [
+    "Do not throw away evidence of the detention.",
+    "Do not accept that nothing can be done about an unlawful detention."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(6)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.46(1)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

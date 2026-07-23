@@ -1,0 +1,50 @@
+{
+  "id": "refused-bail",
+  "trigger": "Police refuse to release me on bail",
+  "description": "What to do if you are held at the station and refused bail.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and polite; do not argue or offer money."
+    },
+    {
+      "text": "Bail at the police station is free. Ask to be released on bail if you have not been charged to court."
+    },
+    {
+      "text": "If you are not tried within a reasonable time, you are entitled to release, on conditions if needed (s.35(4))."
+    },
+    {
+      "text": "Offer a trusted person as surety if the police ask for one."
+    },
+    {
+      "text": "Ask when you will be taken to court and note the time you were arrested."
+    },
+    {
+      "text": "Call your lawyer or Legal Aid to help secure your release.",
+      "action": "call",
+      "value": "lawyer"
+    },
+    {
+      "text": "Do not sign conditions you do not understand without your lawyer."
+    }
+  ],
+  "linked_topic_ids": [
+    "right-to-bail",
+    "detention-and-time-limits",
+    "rights-when-arrested"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(4)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(5)"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

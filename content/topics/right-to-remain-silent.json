@@ -1,0 +1,35 @@
+{
+  "id": "right-to-remain-silent",
+  "title": "Your right to remain silent",
+  "category": "arrest-and-police",
+  "jurisdiction": "NG-Federal",
+  "summary": "When you are arrested, you do not have to answer questions. You cannot be forced to say anything that could be used against you.",
+  "body_plain": "The Constitution says a person who is arrested or detained has the right to remain silent or to avoid answering any question until they have consulted a lawyer or a person of their own choice. In addition, no one charged with an offence can be compelled to give evidence against themselves at trial. Staying silent is not an admission of guilt - it is a protected right.",
+  "rights": [
+    "You may remain silent until you speak to a lawyer (s.35(2)).",
+    "You cannot be compelled to give evidence against yourself (s.36(11)).",
+    "Silence is not an admission of guilt."
+  ],
+  "do_list": [
+    "Say clearly: 'I wish to remain silent until I speak to my lawyer.'",
+    "Give only your basic identity if required, then wait for your lawyer.",
+    "Note anyone who pressures you to talk."
+  ],
+  "dont_list": [
+    "Do not feel forced to explain or defend yourself on the spot.",
+    "Do not let anyone tell you that staying silent proves guilt."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(2)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(11)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

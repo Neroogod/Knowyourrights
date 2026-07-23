@@ -1,0 +1,50 @@
+{
+  "id": "woman-being-arrested",
+  "trigger": "I am a woman being arrested",
+  "description": "Steps and dignity protections if you are a woman being arrested or searched.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and do not resist, even if the arrest feels unfair."
+    },
+    {
+      "text": "You have a right to dignity; you must not be treated in a degrading way (s.34(1))."
+    },
+    {
+      "text": "Ask to be searched by a female officer and in a private place."
+    },
+    {
+      "text": "Say: 'I wish to remain silent until I speak to my lawyer' (s.35(2))."
+    },
+    {
+      "text": "Ask that your family or a trusted person be informed."
+    },
+    {
+      "text": "Note the officers' names, numbers, and the station."
+    },
+    {
+      "text": "Call your lawyer or a trusted person now.",
+      "action": "call",
+      "value": "trusted_contact"
+    }
+  ],
+  "linked_topic_ids": [
+    "dignity-and-freedom-from-torture",
+    "rights-when-arrested",
+    "freedom-from-discrimination"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.34(1)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(2)"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

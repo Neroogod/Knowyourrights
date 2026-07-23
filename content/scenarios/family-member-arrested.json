@@ -1,0 +1,50 @@
+{
+  "id": "family-member-arrested",
+  "trigger": "My family member has been arrested",
+  "description": "What to do to help someone who has just been arrested.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm. Find out which station they have been taken to."
+    },
+    {
+      "text": "Go to the station and ask, politely, why they are being held and on what grounds (s.35(3))."
+    },
+    {
+      "text": "Remind them, if you can, not to sign anything or answer questions without a lawyer (s.35(2))."
+    },
+    {
+      "text": "Ask whether they will be released on bail or charged to court. Police bail is free."
+    },
+    {
+      "text": "Note the officers' names, numbers, and the time of arrest."
+    },
+    {
+      "text": "Call a lawyer or Legal Aid to assist.",
+      "action": "call",
+      "value": "lawyer"
+    },
+    {
+      "text": "If they are held beyond the lawful time (s.35(4)), raise it with the lawyer."
+    }
+  ],
+  "linked_topic_ids": [
+    "rights-when-arrested",
+    "right-to-bail",
+    "detention-and-time-limits"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(3)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(4)"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

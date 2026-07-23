@@ -1,0 +1,35 @@
+{
+  "id": "brought-before-a-court-promptly",
+  "title": "Being brought before a court in time",
+  "category": "detention-and-bail",
+  "jurisdiction": "NG-Federal",
+  "summary": "If you are arrested, the police must bring you before a court within a reasonable time - broadly one day where a court is nearby, or two days otherwise.",
+  "body_plain": "The Constitution requires that anyone who is arrested and detained be brought before a court within a reasonable time. It explains 'reasonable time' as, in general, one day where there is a court within about forty kilometres, and two days (or such longer period a court considers reasonable) in other cases. If this does not happen, your continued detention may be unlawful and you may be entitled to release.",
+  "rights": [
+    "You must be brought before a court within a reasonable time (s.35(4)).",
+    "'Reasonable time' is broadly one or two days depending on distance to a court (s.35(5)).",
+    "Detention beyond the lawful time may entitle you to release."
+  ],
+  "do_list": [
+    "Note the exact date and time of your arrest.",
+    "Ask when you will be taken to court.",
+    "Have your lawyer raise any delay beyond the lawful limit."
+  ],
+  "dont_list": [
+    "Do not assume long detention without charge is normal or lawful.",
+    "Do not sign anything agreeing to be held indefinitely."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(4)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(5)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

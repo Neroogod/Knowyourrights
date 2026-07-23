@@ -1,0 +1,35 @@
+{
+  "id": "freedom-from-forced-labour",
+  "title": "Freedom from slavery and forced labour",
+  "category": "equality-and-dignity",
+  "jurisdiction": "NG-Federal",
+  "summary": "No one may hold you in slavery or servitude, and you cannot be forced to perform forced or compulsory labour.",
+  "body_plain": "As part of your right to dignity, the Constitution says no person shall be held in slavery or servitude, and no person shall be required to perform forced or compulsory labour. There are narrow, defined exceptions (such as work done as part of a lawful court sentence, or normal communal obligations), but you cannot simply be compelled to labour for someone against your will.",
+  "rights": [
+    "You may not be held in slavery or servitude (s.34(1)(b)).",
+    "You may not be forced to perform forced or compulsory labour (s.34(1)(c)).",
+    "Only narrow, lawful exceptions apply (e.g. a lawful court sentence)."
+  ],
+  "do_list": [
+    "Refuse forced labour calmly and ask on what lawful basis it is demanded.",
+    "Record who is compelling you and how.",
+    "Report the matter to the NHRC or a lawyer."
+  ],
+  "dont_list": [
+    "Do not accept that anyone can force you to work against your will.",
+    "Do not sign away this right under pressure."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.34(1)(b)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.34(1)(c)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

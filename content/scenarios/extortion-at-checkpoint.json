@@ -1,0 +1,50 @@
+{
+  "id": "extortion-at-checkpoint",
+  "trigger": "I am being extorted at a checkpoint",
+  "description": "What to do if officers at a checkpoint demand money to let you pass.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and polite; keep your hands visible."
+    },
+    {
+      "text": "You have a right to move freely in Nigeria (s.41); passing a checkpoint is not an offence."
+    },
+    {
+      "text": "No one may treat you in a degrading way or extort you (s.34(1))."
+    },
+    {
+      "text": "Do not hand over money quietly. Ask calmly what offence you have committed."
+    },
+    {
+      "text": "If it is safe, record the demand and note the location."
+    },
+    {
+      "text": "Note the officers' names, numbers, and the checkpoint."
+    },
+    {
+      "text": "Report extortion to the NHRC or the police complaint desk afterwards.",
+      "action": "call",
+      "value": "trusted_contact"
+    }
+  ],
+  "linked_topic_ids": [
+    "freedom-of-movement",
+    "dignity-and-freedom-from-torture",
+    "privacy-and-phone-searches"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.34(1)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.41"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

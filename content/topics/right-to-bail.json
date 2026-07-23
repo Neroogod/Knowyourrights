@@ -1,0 +1,35 @@
+{
+  "id": "right-to-bail",
+  "title": "Your right to bail",
+  "category": "detention-and-bail",
+  "jurisdiction": "NG-Federal",
+  "summary": "If you are arrested and not quickly brought before a court, you are generally entitled to be released, on conditions if necessary. Bail at the police station is free.",
+  "body_plain": "When you are arrested and not tried within a reasonable time, the Constitution says you should be released either unconditionally or on reasonable conditions to make sure you later appear in court. You are also presumed innocent until proven guilty, which supports your right to be free while a case is pending. Bail at the police station is free - you should never be asked to pay an officer for it.",
+  "rights": [
+    "If you are not tried within a reasonable time, you are entitled to release, on conditions if needed (s.35(4)).",
+    "You are presumed innocent until proven guilty (s.36(5)).",
+    "Bail at the police station is free."
+  ],
+  "do_list": [
+    "Ask calmly to be released on bail if you are not being charged to court.",
+    "Have a trusted person or lawyer come to stand as surety if needed.",
+    "Keep any bail documents safe."
+  ],
+  "dont_list": [
+    "Do not pay an officer for bail; it is free.",
+    "Do not sign conditions you do not understand without asking your lawyer."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(4)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(5)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

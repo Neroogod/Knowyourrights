@@ -1,0 +1,35 @@
+{
+  "id": "right-to-a-lawyer",
+  "title": "Your right to a lawyer",
+  "category": "courts-and-trial",
+  "jurisdiction": "NG-Federal",
+  "summary": "You have the right to defend yourself with a legal practitioner of your own choice, and to consult a lawyer when you are arrested.",
+  "body_plain": "The Constitution guarantees that anyone facing a criminal charge may defend themselves in person or through a legal practitioner of their own choice. When you are arrested or detained, you are also entitled to remain silent until you have consulted a lawyer or any other person of your choice. If you cannot afford a lawyer, the Legal Aid Council and the Nigerian Bar Association may be able to help.",
+  "rights": [
+    "You may defend yourself with a lawyer of your own choice (s.36(6)(c)).",
+    "You may stay silent until you have spoken to a lawyer (s.35(2)).",
+    "If you cannot afford one, legal aid may be available."
+  ],
+  "do_list": [
+    "Ask clearly to speak to a lawyer before answering questions.",
+    "Contact Legal Aid or the NBA if you cannot afford a private lawyer.",
+    "Give your lawyer the officers' names, the station, and the time."
+  ],
+  "dont_list": [
+    "Do not answer questions or sign statements while being denied a lawyer.",
+    "Do not accept that you are 'not allowed' a lawyer; it is your right."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(6)(c)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(2)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

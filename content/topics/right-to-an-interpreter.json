@@ -1,0 +1,35 @@
+{
+  "id": "right-to-an-interpreter",
+  "title": "Your right to understand the charge",
+  "category": "courts-and-trial",
+  "jurisdiction": "NG-Federal",
+  "summary": "You must be told, in a language you understand, what you are accused of - and you are entitled to an interpreter free of charge if you need one.",
+  "body_plain": "The Constitution says a person charged with a criminal offence must be informed promptly, in the language they understand and in detail, of the nature of the offence. It also guarantees the free help of an interpreter if the person cannot understand the language used at the trial. You should never be made to answer a charge you do not understand.",
+  "rights": [
+    "You must be told the charge promptly, in a language you understand (s.36(6)(a)).",
+    "You are entitled to a free interpreter if you need one (s.36(6)(e)).",
+    "You should not be tried in a language you cannot follow."
+  ],
+  "do_list": [
+    "Say if you do not understand the language being used.",
+    "Ask for an interpreter and for the charge to be explained.",
+    "Wait for your lawyer before responding to a charge you do not understand."
+  ],
+  "dont_list": [
+    "Do not sign or answer a charge you do not understand.",
+    "Do not let anyone rush you past your right to an interpreter."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(6)(a)"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.36(6)(e)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

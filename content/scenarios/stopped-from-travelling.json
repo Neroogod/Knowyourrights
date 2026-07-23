@@ -1,0 +1,46 @@
+{
+  "id": "stopped-from-travelling",
+  "trigger": "I am being stopped from travelling within Nigeria",
+  "description": "What to do if you are prevented from moving freely within the country.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and ask why you are being stopped."
+    },
+    {
+      "text": "You have a right to move freely throughout Nigeria and to reside anywhere in it (s.41)."
+    },
+    {
+      "text": "Ask on what specific legal authority your movement is being restricted."
+    },
+    {
+      "text": "Do not offer money to be allowed to pass."
+    },
+    {
+      "text": "Note the officers' names, numbers, the location and time."
+    },
+    {
+      "text": "If your right is being denied unlawfully, keep a record for a complaint."
+    },
+    {
+      "text": "Call a lawyer or trusted person if you are detained.",
+      "action": "call",
+      "value": "trusted_contact"
+    }
+  ],
+  "linked_topic_ids": [
+    "freedom-of-movement",
+    "when-your-rights-can-be-limited",
+    "freedom-from-discrimination"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.41"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

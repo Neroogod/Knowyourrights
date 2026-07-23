@@ -1,0 +1,31 @@
+{
+  "id": "right-to-personal-liberty",
+  "title": "Your right to personal liberty",
+  "category": "fundamental-rights",
+  "jurisdiction": "NG-Federal",
+  "summary": "You are entitled to your personal liberty. You cannot be deprived of your freedom except in the specific cases and by the lawful procedure the Constitution allows.",
+  "body_plain": "The Constitution says every person is entitled to their personal liberty, and no one may be deprived of it except in the situations the law clearly allows - such as being arrested on reasonable suspicion of an offence, and only through a procedure permitted by law. This is the foundation of the other rights around arrest, detention and bail: freedom is the rule, and any detention must justify itself under the law.",
+  "rights": [
+    "Your personal liberty is guaranteed (s.35(1)).",
+    "You can only be detained in the specific cases the law allows, and only by lawful procedure.",
+    "If you are detained, you keep your rights to know why, to remain silent, and to a lawyer."
+  ],
+  "do_list": [
+    "Ask whether you are under arrest or free to go.",
+    "If detained, calmly ask on what legal grounds.",
+    "Keep a record of what happened and who was involved."
+  ],
+  "dont_list": [
+    "Do not resist physically, even if the detention feels unlawful.",
+    "Do not assume you must go along with any request just because it comes from an officer."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.35(1)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

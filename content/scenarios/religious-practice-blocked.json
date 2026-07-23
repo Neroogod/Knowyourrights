@@ -1,0 +1,46 @@
+{
+  "id": "religious-practice-blocked",
+  "trigger": "I am being stopped from practising my religion",
+  "description": "What to do if you are prevented from worshipping or observing your faith.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    {
+      "text": "Stay calm and polite."
+    },
+    {
+      "text": "You have freedom of thought, conscience and religion, including worship and observance (s.38)."
+    },
+    {
+      "text": "Ask on what specific legal basis you are being restricted."
+    },
+    {
+      "text": "Some limits can exist by law for public order or the rights of others (s.45); ask if that is claimed."
+    },
+    {
+      "text": "Do not respond with force; keep a record of what happened."
+    },
+    {
+      "text": "Note who restricted you, where, when, and any witnesses."
+    },
+    {
+      "text": "Report the matter to the NHRC or a lawyer.",
+      "action": "call",
+      "value": "trusted_contact"
+    }
+  ],
+  "linked_topic_ids": [
+    "freedom-of-religion",
+    "when-your-rights-can-be-limited",
+    "enforcing-your-fundamental-rights"
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.38"
+    }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

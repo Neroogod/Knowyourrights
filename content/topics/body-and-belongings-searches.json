@@ -1,0 +1,35 @@
+{
+  "id": "body-and-belongings-searches",
+  "title": "When can the police search you?",
+  "category": "privacy-and-searches",
+  "jurisdiction": "NG-Federal",
+  "summary": "A search of your body or belongings must have lawful authority and must be done in a way that respects your dignity.",
+  "body_plain": "Your privacy is protected by the Constitution, and your dignity means you must not be searched in a degrading or inhuman way. While there are lawful procedures that permit searches in defined circumstances, a search cannot lawfully be arbitrary, humiliating, or used to extort you. A woman should ordinarily be searched by a female officer, and searches should be done as privately as the situation allows.",
+  "rights": [
+    "Searches must have lawful authority and respect your privacy (s.37).",
+    "You must not be searched in a degrading or inhuman way (s.34(1)).",
+    "A woman should ordinarily be searched by a female officer."
+  ],
+  "do_list": [
+    "Ask on what legal authority you are being searched.",
+    "Ask for privacy and, for a woman, a female officer.",
+    "Note who searched you, where, and any witnesses."
+  ],
+  "dont_list": [
+    "Do not physically resist, but do not consent to a degrading search.",
+    "Do not let a search be used to extort money from you."
+  ],
+  "citations": [
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.37"
+    },
+    {
+      "source_name": "1999 Constitution of the Federal Republic of Nigeria",
+      "locator": "s.34(1)"
+    }
+  ],
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}
