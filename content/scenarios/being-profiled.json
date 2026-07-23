@@ -1,0 +1,24 @@
+{
+  "id": "being-profiled",
+  "trigger": "I am being targeted for who I am",
+  "description": "What to do if you are stopped or harassed because of your tribe, religion, sex, dressing, or gadgets.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm and polite. Being different is not a crime, and you are presumed innocent (s.36(5))." },
+    { "text": "You have a right to move freely in Nigeria (s.41) and to be free from discrimination (s.42)." },
+    { "text": "Ask calmly: 'Am I being stopped for a specific reason, or am I free to go?'" },
+    { "text": "Do not consent to searches of your phone or property without asking on what authority (s.37)." },
+    { "text": "Do not insult or resist. Keep your answers short and factual." },
+    { "text": "Note the officers' names, numbers, location, time, and any witnesses." },
+    { "text": "Report profiling or extortion to the NHRC or Legal Aid afterwards.", "action": "call", "value": "trusted_contact" }
+  ],
+  "linked_topic_ids": ["freedom-from-discrimination", "freedom-of-movement", "privacy-and-phone-searches"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.42" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.41" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

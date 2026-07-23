@@ -1,0 +1,24 @@
+{
+  "id": "denied-a-lawyer",
+  "trigger": "I am being denied a lawyer or a phone call",
+  "description": "What to do if the police will not let you contact a lawyer or your family.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm and keep asking respectfully; do not give up your right." },
+    { "text": "Say clearly: 'I have a right to a lawyer of my choice (s.36(6)(c)), and I wish to remain silent until I speak to one (s.35(2)).'" },
+    { "text": "Ask for the name and number of the officer refusing you, and note the time." },
+    { "text": "Do not answer questions or sign any statement while you are being denied a lawyer." },
+    { "text": "Ask them to inform your family or a named person that you are being held." },
+    { "text": "If you get any chance to call, contact your lawyer or a trusted person immediately.", "action": "call", "value": "lawyer" },
+    { "text": "Being denied a lawyer is a rights violation you or your lawyer can raise in court (s.46)." }
+  ],
+  "linked_topic_ids": ["rights-when-arrested", "fair-hearing-and-presumption-of-innocence", "enforcing-your-fundamental-rights"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(2)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.36(6)(c)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

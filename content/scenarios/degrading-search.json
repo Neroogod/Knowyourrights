@@ -1,0 +1,24 @@
+{
+  "id": "degrading-search",
+  "trigger": "I am being searched in a degrading way",
+  "description": "What to do if a search on your body is humiliating, or a woman is searched by a male officer.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "You have a right to dignity; no one may treat you in a degrading or inhuman way (s.34(1))." },
+    { "text": "Ask to be searched in a private place and, for a woman, by a female officer." },
+    { "text": "Say clearly and calmly: 'This search is degrading. I ask to be treated with dignity (s.34).'" },
+    { "text": "You must not be singled out or mistreated because of your sex, tribe, religion, or status (s.42)." },
+    { "text": "Do not physically resist, but do not consent to being stripped or humiliated in public." },
+    { "text": "Note who conducted the search, where, and any witnesses present." },
+    { "text": "Call your lawyer or a trusted person and report to the NHRC afterwards.", "action": "call", "value": "trusted_contact" }
+  ],
+  "linked_topic_ids": ["dignity-and-freedom-from-torture", "freedom-from-discrimination", "privacy-and-phone-searches"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.34(1)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.42" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

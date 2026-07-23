@@ -1,0 +1,24 @@
+{
+  "id": "asked-to-sign-statement",
+  "trigger": "They want me to sign a statement",
+  "description": "What to do if the police are pressuring you to write or sign a statement.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "You have the right to remain silent until you speak to your lawyer (s.35(2))." },
+    { "text": "Say: 'I would like my lawyer present before I make or sign any statement.'" },
+    { "text": "Do not sign a statement you did not write, or one you have not read fully." },
+    { "text": "Do not sign a blank or incomplete page. Never sign under threat or beating." },
+    { "text": "You are presumed innocent (s.36(5)); you do not have to prove anything to them now." },
+    { "text": "If you are forced to write, you may state that you are doing so under duress and without a lawyer." },
+    { "text": "Call your lawyer before signing anything.", "action": "call", "value": "lawyer" }
+  ],
+  "linked_topic_ids": ["rights-when-arrested", "fair-hearing-and-presumption-of-innocence", "dignity-and-freedom-from-torture"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(2)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.36(5)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

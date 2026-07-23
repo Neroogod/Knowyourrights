@@ -1,0 +1,24 @@
+{
+  "id": "life-in-danger",
+  "trigger": "My life is in danger right now",
+  "description": "Fast steps if you are being attacked or your safety is under immediate threat.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Get to a safer place if you can - move toward people, light, or a public building." },
+    { "text": "Call the national emergency line now.", "action": "call", "value": "emergency_line" },
+    { "text": "Then call someone you trust and tell them where you are.", "action": "call", "value": "trusted_contact" },
+    { "text": "Your right to life is protected by law (s.33). Say loudly where others can hear: 'Help, my life is in danger.'" },
+    { "text": "If it is safe, note who is threatening you and any vehicle or details." },
+    { "text": "No one may torture or treat you in an inhuman way, including those meant to protect you (s.34(1))." },
+    { "text": "Once safe, report to the police and, if a rights violation occurred, to the NHRC or Legal Aid." }
+  ],
+  "linked_topic_ids": ["right-to-life", "dignity-and-freedom-from-torture", "enforcing-your-fundamental-rights"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.33" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.34(1)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

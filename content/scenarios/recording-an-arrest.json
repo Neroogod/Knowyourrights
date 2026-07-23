@@ -1,0 +1,24 @@
+{
+  "id": "recording-an-arrest",
+  "trigger": "I am witnessing or recording an arrest",
+  "description": "What to do if you want to safely record police action happening to you or someone else.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Keep a safe distance and do not interfere with what the officers are doing." },
+    { "text": "You may observe and record events in a public place; this is part of freedom of expression (s.39)." },
+    { "text": "Stay calm if told to stop. Do not fight for your phone, but do not delete your footage." },
+    { "text": "If asked why you are recording, say: 'I am a bystander recording in a public place.'" },
+    { "text": "If you are the one arrested, you keep your right to grounds, silence, and a lawyer (s.35)." },
+    { "text": "Back up or share the footage with someone you trust as soon as you can.", "action": "call", "value": "trusted_contact" },
+    { "text": "Note the officers' names, numbers, location, and time." }
+  ],
+  "linked_topic_ids": ["freedom-of-expression", "rights-when-arrested", "privacy-and-phone-searches"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.39" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(3)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

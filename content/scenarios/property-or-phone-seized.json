@@ -1,0 +1,24 @@
+{
+  "id": "property-or-phone-seized",
+  "trigger": "Police seized my phone or property",
+  "description": "What to do if officers take your phone, money, or other belongings.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm. Do not struggle over the item, but do not agree that they can keep it." },
+    { "text": "Ask why it is being taken and on what legal authority. Your property and privacy are protected (s.44, s.37)." },
+    { "text": "Ask for a receipt or written record listing exactly what was taken." },
+    { "text": "Note the item, its condition, the officer's name and number, and the station." },
+    { "text": "Do not share your phone password unless your lawyer advises it; ask on what authority they demand it (s.37)." },
+    { "text": "Property lawfully seized for a case should be documented and returnable; keep any receipt safe." },
+    { "text": "Call your lawyer or a trusted person to help recover it.", "action": "call", "value": "lawyer" }
+  ],
+  "linked_topic_ids": ["property-rights", "privacy-and-phone-searches", "enforcing-your-fundamental-rights"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.37" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.44" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

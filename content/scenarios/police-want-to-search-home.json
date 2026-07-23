@@ -1,0 +1,24 @@
+{
+  "id": "police-want-to-search-home",
+  "trigger": "Police want to search my home",
+  "description": "What to do if officers come to search your house or apartment.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm. Do not obstruct the officers, but do not invite them in without asking questions." },
+    { "text": "Your home and privacy are protected (s.37). Ask politely: 'Do you have a search warrant?'" },
+    { "text": "If they have a warrant, ask to read it. Check the address, what they are looking for, and who signed it." },
+    { "text": "If they have no warrant, ask on what legal authority they are searching. Say you do not consent, but do not physically resist." },
+    { "text": "Stay present and watch the search. Do not sign anything you have not read." },
+    { "text": "Write down what was searched, what was taken, and the officers' names and numbers." },
+    { "text": "Call your lawyer or a trusted person to come now.", "action": "call", "value": "lawyer" }
+  ],
+  "linked_topic_ids": ["privacy-and-phone-searches", "property-rights", "rights-when-arrested"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.37" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.44" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

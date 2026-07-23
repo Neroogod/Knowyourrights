@@ -1,0 +1,24 @@
+{
+  "id": "arrested-for-someone-else",
+  "trigger": "Police want to arrest me for someone else's offence",
+  "description": "What to do if the police try to hold you because of what a relative or friend is accused of.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm and do not resist, even though holding you for another person's act is wrong." },
+    { "text": "You are presumed innocent and answerable only for your own conduct (s.36(5))." },
+    { "text": "Say clearly: 'I have not been accused of any offence. On what grounds am I being arrested?' (s.35(3))." },
+    { "text": "Do not agree to be held 'until the person shows up'. Ask to be released or charged." },
+    { "text": "You may remain silent until you speak to a lawyer (s.35(2))." },
+    { "text": "Note the officers' names, numbers, and the station you are taken to." },
+    { "text": "Call your lawyer or a trusted person now.", "action": "call", "value": "lawyer" }
+  ],
+  "linked_topic_ids": ["rights-when-arrested", "fair-hearing-and-presumption-of-innocence", "detention-and-time-limits"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(1)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.36(5)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "police-demanding-money",
+  "trigger": "Police are demanding money to release me",
+  "description": "What to do if an officer asks you to pay for 'bail' or to be let go.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm and polite. Do not argue or insult the officer." },
+    { "text": "Bail at the police station is free. You are not required to pay any officer to be released." },
+    { "text": "If you are not charged, the police must either release you or bring you before a court within the time limit (s.35(4))." },
+    { "text": "Do not hand over money quietly. If you can, say: 'I understand bail is free. I would like to call my lawyer.'" },
+    { "text": "Note the officer's name, number, and the station. If it is safe, record the request." },
+    { "text": "Call your lawyer or someone you trust to come to the station now.", "action": "call", "value": "lawyer" },
+    { "text": "You can report an unlawful demand to the police complaint desk, the NHRC, or Legal Aid afterwards." }
+  ],
+  "linked_topic_ids": ["rights-when-arrested", "detention-and-time-limits", "dignity-and-freedom-from-torture"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.35(4)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.34(1)" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}

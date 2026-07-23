@@ -1,0 +1,24 @@
+{
+  "id": "threatened-with-eviction",
+  "trigger": "My landlord is trying to force me out",
+  "description": "What to do if a landlord tries to evict you by locking you out, seizing property, or threats.",
+  "jurisdiction": "NG-Federal",
+  "steps": [
+    { "text": "Stay calm. A landlord cannot lawfully throw you out by force, threats, or by changing the locks." },
+    { "text": "You are entitled to due process; disputes should go through a court, not self-help (s.36(1))." },
+    { "text": "Your belongings are your property and may not simply be seized (s.44)." },
+    { "text": "Ask for any notice or court order in writing. Keep a copy of your tenancy agreement and receipts." },
+    { "text": "Do not sign away your rights under pressure, and do not respond to threats with violence." },
+    { "text": "Write down what happened, dates, and any witnesses." },
+    { "text": "Contact Legal Aid or a lawyer; eviction is governed by tenancy law and often needs a court order.", "action": "call", "value": "lawyer" }
+  ],
+  "linked_topic_ids": ["property-rights", "fair-hearing-and-presumption-of-innocence", "enforcing-your-fundamental-rights"],
+  "citations": [
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.36(1)" },
+    { "source_name": "1999 Constitution of the Federal Republic of Nigeria", "locator": "s.44" }
+  ],
+  "offline_priority": true,
+  "status": "verified",
+  "reviewed_by": "Seed content (pending independent lawyer review)",
+  "reviewed_at": "2026-07-23"
+}
