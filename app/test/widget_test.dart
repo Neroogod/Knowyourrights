@@ -1,8 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:knowyourrights_app/actions.dart';
 import 'package:knowyourrights_app/api_client.dart';
 import 'package:knowyourrights_app/models.dart';
 
 void main() {
+  test('callTargetFor maps the emergency line to a concrete number', () {
+    final t = callTargetFor('emergency_line');
+    expect(t.number, '112');
+    expect(t.label.contains('112'), isTrue);
+  });
+
+  test('callTargetFor leaves lawyer/trusted contact for the user to dial', () {
+    expect(callTargetFor('lawyer').number, isNull);
+    expect(callTargetFor('trusted_contact').number, isNull);
+    expect(callTargetFor(null).number, isNull);
+  });
+
   test('Topic.fromJson parses fields and citations', () {
     final t = Topic.fromJson({
       'id': 'rights-when-arrested',

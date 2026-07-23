@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'actions.dart';
 import 'api_client.dart';
 import 'models.dart';
 
@@ -345,7 +346,7 @@ class ScenariosScreen extends StatelessWidget {
             title: Text(s.trigger, style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(s.description, maxLines: 2, overflow: TextOverflow.ellipsis),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => ScenarioDetailScreen(scenario: s)),
+              MaterialPageRoute(builder: (_) => ScenarioDetailScreen(scenario: s, repo: repo)),
             ),
           ),
         );
@@ -356,10 +357,32 @@ class ScenariosScreen extends StatelessWidget {
 
 class ScenarioDetailScreen extends StatelessWidget {
   final Scenario scenario;
-  const ScenarioDetailScreen({required this.scenario, super.key});
+  final ContentRepository repo;
+  const ScenarioDetailScreen({required this.scenario, required this.repo, super.key});
+
+  Future<void> _call(BuildContext context, String? value) async {
+    final target = callTargetFor(value);
+    try {
+      final ok = await dialNumber(target.number);
+      if (!ok && context.mounted) {
+        _toast(context, 'Could not open the phone app. ${target.label}.');
+      }
+    } catch (_) {
+      if (context.mounted) _toast(context, 'Could not open the phone app. ${target.label}.');
+    }
+  }
+
+  void _toast(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
 
   @override
   Widget build(BuildContext context) {
+    final linked = scenario.linkedTopicIds
+        .map((id) => repo.topics.where((t) => t.id == id))
+        .expand((e) => e)
+        .toList();
+
     return Scaffold(
       appBar: AppBar(backgroundColor: kGreen, foregroundColor: Colors.white, title: Text(scenario.trigger)),
       body: ListView(
@@ -369,25 +392,60 @@ class ScenarioDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           ...scenario.steps.asMap().entries.map((e) {
             final step = e.value;
+            final isCall = step.action == 'call';
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: kGreen,
-                    child: Text('${e.key + 1}',
-                        style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 14,
+                        backgroundColor: kGreen,
+                        child: Text('${e.key + 1}',
+                            style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(step.text, style: const TextStyle(fontSize: 15))),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(step.text, style: const TextStyle(fontSize: 15))),
+                  if (isCall)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 40, top: 8),
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(backgroundColor: kGreen),
+                        onPressed: () => _call(context, step.value),
+                        icon: const Icon(Icons.call, size: 18),
+                        label: Text(callTargetFor(step.value).label),
+                      ),
+                    ),
                 ],
               ),
             );
           }),
           const SizedBox(height: 12),
           Wrap(children: scenario.citations.map((c) => CitationChip(c)).toList()),
+          if (linked.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const Text('Learn more', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 4),
+            ...linked.map((t) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.menu_book_outlined, color: kGreen),
+                  title: Text(t.title),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => TopicDetailScreen(topic: t)),
+                  ),
+                )),
+          ],
+          const SizedBox(height: 16),
+          const Text(
+            'This is legal information, not legal advice.',
+            style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12, color: Colors.black54),
+          ),
         ],
       ),
     );
@@ -404,21 +462,58 @@ class DirectoryScreen extends StatelessWidget {
     return ListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: entries.length,
-      itemBuilder: (_, i) {
+      itemBuilder: (context, i) {
         final e = entries[i];
         return Card(
-          child: ListTile(
-            leading: const Icon(Icons.contact_phone, color: kGreen),
-            title: Text(e.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text([
-              e.entryType,
-              if (e.state != null) e.state!,
-              if (e.phone != null) 'Call: ${e.phone}',
-              if (e.url != null) e.url!,
-            ].join('  -  ')),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const Icon(Icons.contact_phone, color: kGreen),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(e.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ]),
+                const SizedBox(height: 4),
+                Text([e.entryType, if (e.state != null) e.state!].join('  -  '),
+                    style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, children: [
+                  if (e.phone != null)
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: kGreen),
+                      onPressed: () => _launch(context, dialNumber(e.phone), 'Could not open the phone app.'),
+                      icon: const Icon(Icons.call, size: 18),
+                      label: Text('Call ${e.phone}'),
+                    ),
+                  if (e.url != null)
+                    OutlinedButton.icon(
+                      onPressed: () => _launch(context, openLink(e.url!), 'Could not open the link.'),
+                      icon: const Icon(Icons.open_in_new, size: 18),
+                      label: const Text('Website'),
+                    ),
+                ]),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  Future<void> _launch(BuildContext context, Future<bool> action, String onError) async {
+    try {
+      final ok = await action;
+      if (!ok && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(onError)));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(onError)));
+      }
+    }
   }
 }
