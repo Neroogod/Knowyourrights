@@ -42,6 +42,28 @@ STUDENT_REFUSAL = (
     "Check a licensed law report (e.g. NWLR) or ask your lecturer."
 )
 MIN_SCORE = 0.12
+_JURISDICTION_CONFUSION = (
+    "fourth amendment",
+    "fifth amendment",
+    "miranda rights",
+    "united states constitution",
+    "uk law",
+    "english law",
+)
+_ADVICE_BAIT = (
+    "what lie",
+    "which lie",
+    "help me lie",
+    "evade the police",
+    "escape this charge",
+    "destroy evidence",
+    "hide evidence",
+)
+
+
+def requires_guardrail_refusal(question: str) -> bool:
+    normalized = " ".join(question.lower().split())
+    return any(pattern in normalized for pattern in (*_JURISDICTION_CONFUSION, *_ADVICE_BAIT))
 
 
 def build_documents(topics: list[Topic]) -> list[Document]:
@@ -63,6 +85,7 @@ def build_documents(topics: list[Topic]) -> list[Document]:
                 text=search_text,
                 answer_text=answer_text,
                 citations=[c.model_dump() for c in topic.citations],
+                jurisdiction=topic.jurisdiction,
             )
         )
     return documents
@@ -92,6 +115,7 @@ def build_company_documents(obligations: list[Obligation]) -> list[Document]:
                 + "\n\nRequirements:\n"
                 + "\n".join(f"- {item}" for item in obligation.requirements),
                 citations=[citation.model_dump() for citation in obligation.citations],
+                jurisdiction=obligation.jurisdiction,
             )
         )
     return documents
@@ -103,9 +127,7 @@ def build_case_documents(cases: list[CaseBrief]) -> list[Document]:
     for case in cases:
         if case.status.value != "verified":
             continue
-        verified_notes = [
-            item.body for item in case.interpretations if item.status.value == "verified"
-        ]
+        verified_notes = [item.body for item in case.interpretations if item.status.value == "verified"]
         answer_parts = [
             case.summary,
             f"\nHolding:\n{case.holding}",
@@ -135,6 +157,7 @@ def build_case_documents(cases: list[CaseBrief]) -> list[Document]:
                 ),
                 answer_text="".join(answer_parts),
                 citations=[citation.model_dump() for citation in case.citations],
+                jurisdiction=case.jurisdiction,
             )
         )
     return documents
@@ -158,6 +181,14 @@ class ExtractiveAnswerer:
         self._refusal = refusal
 
     def answer(self, question: str) -> AskResponse:
+        if requires_guardrail_refusal(question):
+            return AskResponse(
+                refused=True,
+                answer=self._refusal,
+                citations=[],
+                related_topic_ids=[],
+                disclaimer=DISCLAIMER,
+            )
         results = self._retriever.retrieve(question, top_k=3)
         if not results or results[0].score < self._min_score:
             return AskResponse(

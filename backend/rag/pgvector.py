@@ -112,19 +112,48 @@ class PgVectorRetriever:
         repository: DatabaseContentRepository,
         embedder: EmbeddingProvider,
         parent_type: str,
+        jurisdiction: str = "NG-Federal",
+        min_similarity: float = 0.2,
     ) -> None:
         self.repository = repository
         self.embedder = embedder
         self.parent_type = parent_type
+        self.jurisdiction = jurisdiction
+        self.min_similarity = min_similarity
+        config = embedder.configuration
+        self.model_id = repository.register_embedding_model(
+            config.provider,
+            config.model,
+            config.model_version,
+            config.dimensions,
+        )
 
     def retrieve(self, query: str, top_k: int = 3) -> list[ScoredDocument]:
         rows = self.repository.search_chunks(
             self.embedder.embed(query),
+            query_text=query,
             parent_type=self.parent_type,
-            top_k=top_k,
+            jurisdiction=self.jurisdiction,
+            embedding_model_id=self.model_id,
+            top_k=max(top_k, 10),
+        )
+        query_terms = {term for term in query.lower().split() if len(term) > 2}
+        rows.sort(
+            key=lambda row: (
+                float(row.get("fused_score") or 0)
+                + 0.002 * len(query_terms & set(str(row["text"]).lower().split())),
+                float(row.get("vector_score") or 0),
+            ),
+            reverse=True,
         )
         results: list[ScoredDocument] = []
         for row in rows:
+            confidence = max(
+                float(row.get("vector_score") or 0),
+                min(float(row.get("text_score") or 0), 1.0),
+            )
+            if confidence < self.min_similarity:
+                continue
             payload = row.get("payload") or {}
             citations = payload.get("citations") or []
             document = Document(
@@ -138,9 +167,10 @@ class PgVectorRetriever:
                 or payload.get("ratio")
                 or row["text"],
                 citations=citations,
+                jurisdiction=self.jurisdiction,
             )
-            results.append(ScoredDocument(document=document, score=float(row["score"])))
-        return results
+            results.append(ScoredDocument(document=document, score=confidence))
+        return results[:top_k]
 
 
 def reembed_active_content(

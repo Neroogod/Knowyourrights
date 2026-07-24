@@ -1,0 +1,8 @@
+{
+  "metrics": {
+    "case_count": 12,
+    "refusal_accuracy": 1.0,
+    "gold_citation_accuracy": 1.0,
+    "answer_term_accuracy": 1.0
+  }
+}

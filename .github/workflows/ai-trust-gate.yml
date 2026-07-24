@@ -1,0 +1,30 @@
+name: AI trust gate
+
+on:
+  pull_request:
+    paths:
+      - "backend/rag/**"
+      - "backend/content_db.py"
+      - "content/**"
+      - "data/content_pack.json"
+      - "evaluations/**"
+  push:
+    branches: [main]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Run legal RAG regression gate
+        run: python -m backend.rag.evaluate --write-report ai-evaluation-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-evaluation-report
+          path: ai-evaluation-report.json

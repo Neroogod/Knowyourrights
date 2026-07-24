@@ -23,6 +23,7 @@ class Document:
     text: str
     answer_text: str = ""
     citations: list[dict] = field(default_factory=list)
+    jurisdiction: str = "NG-Federal"
 
 
 @dataclass
@@ -34,8 +35,15 @@ class ScoredDocument:
 class Retriever:
     """Hybrid retriever: TF-IDF cosine similarity plus a small keyword-overlap bonus."""
 
-    def __init__(self, documents: list[Document], keyword_weight: float = 0.15) -> None:
-        self._documents = documents
+    def __init__(
+        self,
+        documents: list[Document],
+        keyword_weight: float = 0.15,
+        jurisdiction: str = "NG-Federal",
+    ) -> None:
+        self._documents = [
+            document for document in documents if document.jurisdiction in {jurisdiction, "NG-Federal"}
+        ]
         self._keyword_weight = keyword_weight
         corpus = [d.text for d in documents] or [""]
         self._embedder = TfidfEmbedder(corpus)
@@ -67,17 +75,26 @@ if __name__ == "__main__":
     def _docs() -> list[Document]:
         return [
             Document(
-                "t:arrest", "topic", "Your rights when you are arrested", "rights-when-arrested",
+                "t:arrest",
+                "topic",
+                "Your rights when you are arrested",
+                "rights-when-arrested",
                 "arrested police remain silent lawyer informed in writing within 24 hours",
                 citations=[{"source_name": "1999 Constitution", "locator": "s.35(2)"}],
             ),
             Document(
-                "t:phone", "topic", "Can the police search your phone?", "privacy-and-phone-searches",
+                "t:phone",
+                "topic",
+                "Can the police search your phone?",
+                "privacy-and-phone-searches",
                 "police search phone privacy correspondence telephone conversations protected",
                 citations=[{"source_name": "1999 Constitution", "locator": "s.37"}],
             ),
             Document(
-                "t:detain", "topic", "How long can the police hold you?", "detention-and-time-limits",
+                "t:detain",
+                "topic",
+                "How long can the police hold you?",
+                "detention-and-time-limits",
                 "detained brought before court reasonable time one day two days released bail",
                 citations=[{"source_name": "1999 Constitution", "locator": "s.35(4)"}],
             ),

@@ -61,14 +61,28 @@ class ContentStore:
         self._cases: dict[str, CaseBrief] = {item.id: item for item in pack.cases}
 
         documents = build_documents(pack.topics)
+        production_ai = os.getenv("KYR_AI_PRODUCTION_ENABLED") == "1"
         embedding_provider = (
             embedding_provider_from_environment() if database_repository else None
         )
+        if production_ai and (database_repository is None or embedding_provider is None):
+            raise RuntimeError(
+                "production AI requires PostgreSQL content and a configured embedding provider"
+            )
         self._retriever = (
             PgVectorRetriever(database_repository, embedding_provider, "topic")
             if database_repository and embedding_provider
             else Retriever(documents)
         )
+        if production_ai and isinstance(self._retriever, PgVectorRetriever):
+            total, embedded = database_repository.embedding_coverage(
+                self._retriever.model_id
+            )
+            if total == 0 or embedded != total:
+                raise RuntimeError(
+                    "production AI is blocked until every verified active chunk is embedded "
+                    f"with the configured model ({embedded}/{total})"
+                )
         rights_fallback = ExtractiveAnswerer(self._retriever)
         self._answerer = generative_answerer_from_environment(
             self._retriever,
@@ -97,6 +111,7 @@ class ContentStore:
         )
         student_fallback = ExtractiveAnswerer(
             case_retriever,
+            min_score=0.2,
             refusal=STUDENT_REFUSAL,
         )
         self._student_answerer = generative_answerer_from_environment(

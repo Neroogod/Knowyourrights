@@ -10,6 +10,7 @@ import base64
 import hashlib
 import hmac
 import html
+import json
 import os
 import urllib.error
 import urllib.request
@@ -21,11 +22,20 @@ from urllib.parse import parse_qs
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    Response,
+    StreamingResponse,
+)
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 
 from backend.account_schemas import (
+    AIReviewResponse,
+    AIReviewSubmit,
     AlertCreate,
     AlertResponse,
     CheckInCreate,
@@ -55,6 +65,7 @@ from backend.accounts import (
     AccountError,
     AccountService,
 )
+from backend.ai_ops import AIProductionGate, AIRequestContext
 from backend.content_store import ContentStore
 from backend.content_sync import ContentSigner, signed_pack
 from backend.delivery import gateway_from_environment
@@ -116,6 +127,7 @@ def create_app(
     app.state.store = resolved_store
     app.state.accounts = accounts
     app.state.content_signer = ContentSigner.from_environment()
+    app.state.ai_gate = AIProductionGate(accounts, resolved_store.version)
 
     def request_ip(request: Request) -> str:
         forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
@@ -182,6 +194,66 @@ def create_app(
             )
         return user_id
 
+    def optional_user(
+        request: Request,
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
+    ) -> str | None:
+        if credentials is None:
+            return None
+        return current_user(request, credentials)
+
+    def ai_context(
+        request: Request,
+        user_id: str | None,
+        corpus: str,
+        jurisdiction: str,
+    ) -> AIRequestContext:
+        if jurisdiction != "NG-Federal":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This AI corpus currently supports NG-Federal law only.",
+            )
+        raw_identifier = (
+            f"user:{user_id}"
+            if user_id
+            else (
+                f"anonymous:{request_ip(request)}:" f"{request.headers.get('x-device-id', 'unknown')[:128]}"
+            )
+        )
+        return AIRequestContext(
+            corpus=corpus,
+            jurisdiction=jurisdiction,
+            privacy_id=app.state.ai_gate.privacy_id(raw_identifier),
+            user_id=user_id,
+        )
+
+    def gated_answer(
+        request: Request,
+        body: AskRequest,
+        user_id: str | None,
+        *,
+        corpus: str,
+        jurisdiction: str,
+    ) -> tuple[AskResponse, bool, str]:
+        limit_request(request, f"ai:{corpus}", 30, 3600)
+        answerers = {
+            "rights": resolved_store.ask,
+            "company": resolved_store.ask_company,
+            "students": resolved_store.ask_students,
+        }
+        try:
+            return app.state.ai_gate.answer(
+                body.question,
+                ai_context(request, user_id, corpus, jurisdiction),
+                answerers[corpus],
+            )
+        except PermissionError as error:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=str(error),
+                headers={"Retry-After": "86400"},
+            ) from error
+
     def account_error(error: AccountError) -> HTTPException:
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error))
 
@@ -227,9 +299,7 @@ def create_app(
         return RedirectResponse("/?verified=1", status_code=303)
 
     @app.post("/v1/auth/resend-verification", response_model=RegisterResponse)
-    def resend_verification(
-        request: ResendVerificationRequest, http_request: Request
-    ) -> RegisterResponse:
+    def resend_verification(request: ResendVerificationRequest, http_request: Request) -> RegisterResponse:
         limit_request(http_request, "resend", 4, 3600)
         token = accounts.resend_email_verification(str(request.email))
         return RegisterResponse(
@@ -256,9 +326,7 @@ def create_app(
         return TokenResponse(access_token=token)
 
     @app.post("/v1/auth/forgot-password", response_model=ForgotPasswordResponse)
-    def forgot_password(
-        request: ForgotPasswordRequest, http_request: Request
-    ) -> ForgotPasswordResponse:
+    def forgot_password(request: ForgotPasswordRequest, http_request: Request) -> ForgotPasswordResponse:
         limit_request(http_request, "forgot-password", 4, 3600)
         token = accounts.request_password_reset(str(request.email))
         return ForgotPasswordResponse(
@@ -457,9 +525,7 @@ def create_app(
         limit_request(request, "custody-alert", 6, 3600)
         if not accounts.check_rate_limit(f"custody-alert:user:{user_id}", 6, 3600):
             raise HTTPException(status_code=429, detail="User alert limit reached.")
-        if not accounts.check_rate_limit(
-            f"custody-alert:contact:{body.contact_id}", 4, 3600
-        ):
+        if not accounts.check_rate_limit(f"custody-alert:contact:{body.contact_id}", 4, 3600):
             raise HTTPException(status_code=429, detail="Contact alert limit reached.")
         try:
             accounts.purge_expired_locations()
@@ -498,8 +564,7 @@ def create_app(
         except AccountError:
             raise HTTPException(status_code=404, detail="Alert status not found") from None
         test_label = (
-            "<p style='padding:12px;background:#fff4d6'><strong>TEST ALERT — "
-            "NO EMERGENCY</strong></p>"
+            "<p style='padding:12px;background:#fff4d6'><strong>TEST ALERT — " "NO EMERGENCY</strong></p>"
             if alert["is_test"]
             else ""
         )
@@ -555,9 +620,7 @@ def create_app(
     ) -> CheckInResponse:
         limit_request(request, "check-in", 12, 3600)
         try:
-            return CheckInResponse(
-                **accounts.arm_check_in(user_id, body.minutes, body.station_name)
-            )
+            return CheckInResponse(**accounts.arm_check_in(user_id, body.minutes, body.station_name))
         except AccountError as error:
             raise account_error(error) from error
 
@@ -630,9 +693,7 @@ def create_app(
                 detail="invalid webhook signature",
             )
         try:
-            event_id = request.provider_event_id or (
-                f"{request.provider_message_id}:{request.status}"
-            )
+            event_id = request.provider_event_id or (f"{request.provider_message_id}:{request.status}")
             return AlertResponse(
                 **accounts.process_delivery_callback(
                     event_id,
@@ -744,8 +805,23 @@ def create_app(
         return resolved_store.list_company_checklists()
 
     @app.post("/v1/company/ask", response_model=AskResponse)
-    def ask_company(request: AskRequest) -> AskResponse:
-        return resolved_store.ask_company(request.question)
+    def ask_company(
+        body: AskRequest,
+        request: Request,
+        response: Response,
+        user_id: Annotated[str | None, Depends(optional_user)],
+        jurisdiction: str = Query(default="NG-Federal"),
+    ) -> AskResponse:
+        answer, cache_hit, event_id = gated_answer(
+            request,
+            body,
+            user_id,
+            corpus="company",
+            jurisdiction=jurisdiction,
+        )
+        response.headers["X-AI-Cache"] = "hit" if cache_hit else "miss"
+        response.headers["X-AI-Event-ID"] = event_id
+        return answer
 
     @app.get("/v1/students/cases", response_model=list[CaseBrief])
     def list_cases(
@@ -762,16 +838,101 @@ def create_app(
         return case
 
     @app.post("/v1/students/ask", response_model=AskResponse)
-    def ask_students(request: AskRequest) -> AskResponse:
-        return resolved_store.ask_students(request.question)
+    def ask_students(
+        body: AskRequest,
+        request: Request,
+        response: Response,
+        user_id: Annotated[str | None, Depends(optional_user)],
+        jurisdiction: str = Query(default="NG-Federal"),
+    ) -> AskResponse:
+        answer, cache_hit, event_id = gated_answer(
+            request,
+            body,
+            user_id,
+            corpus="students",
+            jurisdiction=jurisdiction,
+        )
+        response.headers["X-AI-Cache"] = "hit" if cache_hit else "miss"
+        response.headers["X-AI-Event-ID"] = event_id
+        return answer
 
     @app.get("/v1/search", response_model=list[Topic])
     def search(q: str = Query(min_length=1)) -> list[Topic]:
         return resolved_store.search_topics(q)
 
     @app.post("/v1/ask", response_model=AskResponse)
-    def ask(request: AskRequest) -> AskResponse:
-        return resolved_store.ask(request.question)
+    def ask(
+        body: AskRequest,
+        request: Request,
+        response: Response,
+        user_id: Annotated[str | None, Depends(optional_user)],
+        jurisdiction: str = Query(default="NG-Federal"),
+    ) -> AskResponse:
+        answer, cache_hit, event_id = gated_answer(
+            request,
+            body,
+            user_id,
+            corpus="rights",
+            jurisdiction=jurisdiction,
+        )
+        response.headers["X-AI-Cache"] = "hit" if cache_hit else "miss"
+        response.headers["X-AI-Event-ID"] = event_id
+        return answer
+
+    @app.post("/v1/ask/stream")
+    def ask_stream(
+        body: AskRequest,
+        request: Request,
+        user_id: Annotated[str | None, Depends(optional_user)],
+        jurisdiction: str = Query(default="NG-Federal"),
+    ) -> StreamingResponse:
+        answer, cache_hit, event_id = gated_answer(
+            request,
+            body,
+            user_id,
+            corpus="rights",
+            jurisdiction=jurisdiction,
+        )
+
+        def events():
+            yield f"event: metadata\ndata: {json.dumps({'event_id': event_id, 'cache_hit': cache_hit})}\n\n"
+            words = answer.answer.split()
+            for start in range(0, len(words), 18):
+                yield (
+                    "event: answer_delta\ndata: "
+                    + json.dumps({"text": " ".join(words[start : start + 18]) + " "})
+                    + "\n\n"
+                )
+            yield ("event: completed\ndata: " + answer.model_dump_json() + "\n\n")
+
+        return StreamingResponse(
+            events(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    @app.get("/v1/admin/ai-reviews", response_model=list[AIReviewResponse])
+    def pending_ai_reviews(
+        user_id: Annotated[str, Depends(current_user)],
+        limit: int = Query(default=50, ge=1, le=200),
+    ) -> list[dict]:
+        if accounts.role(user_id) not in {"reviewer", "administrator"}:
+            raise HTTPException(status_code=403, detail="reviewer role required")
+        return accounts.pending_ai_reviews(limit)
+
+    @app.post("/v1/admin/ai-reviews/{event_id}", status_code=204)
+    def submit_ai_review(
+        event_id: str,
+        body: AIReviewSubmit,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> Response:
+        if accounts.role(user_id) not in {"reviewer", "administrator"}:
+            raise HTTPException(status_code=403, detail="reviewer role required")
+        try:
+            accounts.review_ai_answer(event_id, user_id, body.verdict, body.notes)
+        except AccountError as error:
+            raise account_error(error) from error
+        return Response(status_code=204)
 
     @app.get("/v1/content-pack", response_model=ContentPack)
     def content_pack() -> ContentPack:

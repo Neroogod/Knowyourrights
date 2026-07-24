@@ -161,3 +161,16 @@ class UserSyncRequest(BaseModel):
 class UserSyncResponse(BaseModel):
     items: list[UserSyncItem]
     server_time: datetime
+
+
+class AIReviewResponse(BaseModel):
+    id: str
+    corpus: str
+    jurisdiction: str
+    response: dict
+    created_at: datetime
+
+
+class AIReviewSubmit(BaseModel):
+    verdict: str = Field(pattern=r"^(pass|citation_error|unsafe|incorrect|other)$")
+    notes: str | None = Field(default=None, max_length=4000)

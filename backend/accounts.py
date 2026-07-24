@@ -76,9 +76,7 @@ class ContactRecord(Base):
 class ContactChannelRecord(Base):
     __tablename__ = "contact_channels"
 
-    contact_id: Mapped[str] = mapped_column(
-        ForeignKey("emergency_contacts.id"), primary_key=True
-    )
+    contact_id: Mapped[str] = mapped_column(ForeignKey("emergency_contacts.id"), primary_key=True)
     email_encrypted: Mapped[str | None] = mapped_column(String(500))
     push_token_encrypted: Mapped[str | None] = mapped_column(String(1000))
     whatsapp_enabled: Mapped[bool] = mapped_column(default=False)
@@ -131,9 +129,7 @@ class AlertDeliveryRecord(Base):
 class AlertMetadataRecord(Base):
     __tablename__ = "alert_metadata"
 
-    alert_id: Mapped[str] = mapped_column(
-        ForeignKey("custody_alerts.id"), primary_key=True
-    )
+    alert_id: Mapped[str] = mapped_column(ForeignKey("custody_alerts.id"), primary_key=True)
     public_token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     public_token_encrypted: Mapped[str] = mapped_column(String(500))
     station_name_encrypted: Mapped[str | None] = mapped_column(String(500))
@@ -196,9 +192,47 @@ class UserSyncRecord(Base):
     payload_json: Mapped[str] = mapped_column(String(12000))
     deleted: Mapped[bool] = mapped_column(default=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
-    __table_args__ = (
-        UniqueConstraint("user_id", "kind", "item_id", name="uq_user_sync_item"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "kind", "item_id", name="uq_user_sync_item"),)
+
+
+class AIAnswerCacheRecord(Base):
+    __tablename__ = "ai_answer_cache"
+    cache_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    response_json: Mapped[str] = mapped_column(String(24000))
+    content_version: Mapped[int] = mapped_column(Integer)
+    model_key: Mapped[str] = mapped_column(String(255))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    hits: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AIUsageRecord(Base):
+    __tablename__ = "ai_usage_events"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    privacy_id: Mapped[str] = mapped_column(String(64), index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    corpus: Mapped[str] = mapped_column(String(24), index=True)
+    jurisdiction: Mapped[str] = mapped_column(String(80), index=True)
+    model_key: Mapped[str] = mapped_column(String(255))
+    latency_ms: Mapped[int] = mapped_column(Integer)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    estimated_cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    cache_hit: Mapped[bool] = mapped_column(default=False)
+    refused: Mapped[bool] = mapped_column(default=False)
+    sampled_for_review: Mapped[bool] = mapped_column(default=False, index=True)
+    response_json: Mapped[str | None] = mapped_column(String(24000))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class AIReviewRecord(Base):
+    __tablename__ = "ai_answer_reviews"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    usage_event_id: Mapped[str] = mapped_column(ForeignKey("ai_usage_events.id"), unique=True, index=True)
+    reviewer_user_id: Mapped[str] = mapped_column(String(36), index=True)
+    verdict: Mapped[str] = mapped_column(String(24), index=True)
+    notes: Mapped[str | None] = mapped_column(String(4000))
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class AccountError(ValueError):
@@ -220,9 +254,7 @@ class AccountService:
         self.secret = resolved_secret
         self.jwt_secret = hashlib.sha256(self.secret.encode()).digest()
         self.gateway = gateway or DevelopmentGateway()
-        self.public_base_url = os.getenv(
-            "KYR_PUBLIC_BASE_URL", "http://127.0.0.1:8000"
-        ).rstrip("/")
+        self.public_base_url = os.getenv("KYR_PUBLIC_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
         resolved_database = database_url or os.getenv("DATABASE_URL") or DEFAULT_DATABASE_URL
         connect_args = {"check_same_thread": False} if resolved_database.startswith("sqlite") else {}
         if resolved_database.endswith(":memory:"):
@@ -260,9 +292,7 @@ class AccountService:
                 created_at=self._now(),
             )
             session.add(user)
-            session.add(
-                UserRoleRecord(user_id=user.id, role="reader", updated_at=self._now())
-            )
+            session.add(UserRoleRecord(user_id=user.id, role="reader", updated_at=self._now()))
             token = self._new_verification(session, user.id, "email")
         self.gateway.send_email_verification(normalized, token)
         return token
@@ -332,9 +362,7 @@ class AccountService:
             user = session.get(UserRecord, user_id)
             if user is None:
                 normalized = email.strip().lower()
-                legacy = session.scalar(
-                    select(UserRecord).where(UserRecord.email == normalized)
-                )
+                legacy = session.scalar(select(UserRecord).where(UserRecord.email == normalized))
                 if legacy is not None:
                     old_id = legacy.id
                     for model in (
@@ -344,11 +372,7 @@ class AccountService:
                         UserRoleRecord,
                         DeviceSessionRecord,
                     ):
-                        session.execute(
-                            update(model)
-                            .where(model.user_id == old_id)
-                            .values(user_id=user_id)
-                        )
+                        session.execute(update(model).where(model.user_id == old_id).values(user_id=user_id))
                     session.delete(legacy)
                     session.flush()
                 session.add(
@@ -361,9 +385,7 @@ class AccountService:
                     )
                 )
                 if session.get(UserRoleRecord, user_id) is None:
-                    session.add(
-                        UserRoleRecord(user_id=user_id, role="reader", updated_at=self._now())
-                    )
+                    session.add(UserRoleRecord(user_id=user_id, role="reader", updated_at=self._now()))
             elif email and user.email != email.strip().lower():
                 user.email = email.strip().lower()
 
@@ -433,9 +455,7 @@ class AccountService:
     def session_allowed(self, user_id: str, session_id: str) -> bool:
         with self.sessions() as session:
             record = session.get(DeviceSessionRecord, session_id)
-            return record is None or (
-                record.user_id == user_id and record.revoked_at is None
-            )
+            return record is None or (record.user_id == user_id and record.revoked_at is None)
 
     def revoke_device_session(
         self,
@@ -476,6 +496,152 @@ class AccountService:
             )
             return True
 
+    def ai_cache_get(self, cache_key: str) -> dict | None:
+        now = self._now()
+        with self.sessions.begin() as session:
+            row = session.get(AIAnswerCacheRecord, cache_key)
+            expires_at = row.expires_at if row is not None else None
+            if expires_at is not None and expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=UTC)
+            if row is None or expires_at is None or expires_at <= now:
+                if row is not None:
+                    session.delete(row)
+                return None
+            row.hits += 1
+            return json.loads(row.response_json)
+
+    def ai_cache_put(
+        self,
+        cache_key: str,
+        response: dict,
+        *,
+        content_version: int,
+        model_key: str,
+        ttl_seconds: int,
+    ) -> None:
+        now = self._now()
+        with self.sessions.begin() as session:
+            row = session.get(AIAnswerCacheRecord, cache_key)
+            values = {
+                "response_json": json.dumps(response),
+                "content_version": content_version,
+                "model_key": model_key,
+                "expires_at": now + timedelta(seconds=ttl_seconds),
+                "created_at": now,
+            }
+            if row:
+                for key, value in values.items():
+                    setattr(row, key, value)
+            else:
+                session.add(AIAnswerCacheRecord(cache_key=cache_key, hits=0, **values))
+
+    def ai_daily_usage(self, privacy_id: str) -> int:
+        start = self._now().replace(hour=0, minute=0, second=0, microsecond=0)
+        with self.sessions() as session:
+            return int(
+                session.scalar(
+                    select(func.count()).where(
+                        AIUsageRecord.privacy_id == privacy_id,
+                        AIUsageRecord.created_at >= start,
+                        AIUsageRecord.cache_hit.is_(False),
+                    )
+                )
+                or 0
+            )
+
+    def record_ai_usage(
+        self,
+        *,
+        privacy_id: str,
+        user_id: str | None,
+        corpus: str,
+        jurisdiction: str,
+        model_key: str,
+        latency_ms: int,
+        input_tokens: int,
+        output_tokens: int,
+        estimated_cost_usd: float,
+        cache_hit: bool,
+        refused: bool,
+        response: dict,
+        sample_rate: float,
+    ) -> str:
+        event_id = str(uuid.uuid4())
+        sample_digest = hashlib.sha256(f"{event_id}:{privacy_id}".encode()).digest()
+        sampled = int.from_bytes(sample_digest[:4], "big") / 2**32 < sample_rate
+        with self.sessions.begin() as session:
+            session.add(
+                AIUsageRecord(
+                    id=event_id,
+                    privacy_id=privacy_id,
+                    user_id=user_id,
+                    corpus=corpus,
+                    jurisdiction=jurisdiction,
+                    model_key=model_key,
+                    latency_ms=latency_ms,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    estimated_cost_usd=estimated_cost_usd,
+                    cache_hit=cache_hit,
+                    refused=refused,
+                    sampled_for_review=sampled,
+                    response_json=json.dumps(response) if sampled else None,
+                    created_at=self._now(),
+                )
+            )
+        return event_id
+
+    def pending_ai_reviews(self, limit: int = 50) -> list[dict]:
+        with self.sessions() as session:
+            rows = session.scalars(
+                select(AIUsageRecord)
+                .outerjoin(AIReviewRecord, AIReviewRecord.usage_event_id == AIUsageRecord.id)
+                .where(
+                    AIUsageRecord.sampled_for_review.is_(True),
+                    AIReviewRecord.id.is_(None),
+                )
+                .order_by(AIUsageRecord.created_at)
+                .limit(limit)
+            ).all()
+            return [
+                {
+                    "id": row.id,
+                    "corpus": row.corpus,
+                    "jurisdiction": row.jurisdiction,
+                    "response": json.loads(row.response_json or "{}"),
+                    "created_at": row.created_at,
+                }
+                for row in rows
+            ]
+
+    def review_ai_answer(
+        self,
+        usage_event_id: str,
+        reviewer_user_id: str,
+        verdict: str,
+        notes: str | None,
+    ) -> None:
+        if verdict not in {"pass", "citation_error", "unsafe", "incorrect", "other"}:
+            raise AccountError("invalid review verdict")
+        with self.sessions.begin() as session:
+            if session.get(AIUsageRecord, usage_event_id) is None:
+                raise AccountError("AI answer sample not found")
+            existing = session.scalar(
+                select(AIReviewRecord).where(AIReviewRecord.usage_event_id == usage_event_id)
+            )
+            if existing:
+                raise AccountError("AI answer sample has already been reviewed")
+            session.add(
+                AIReviewRecord(
+                    id=str(uuid.uuid4()),
+                    usage_event_id=usage_event_id,
+                    reviewer_user_id=reviewer_user_id,
+                    verdict=verdict,
+                    notes=notes,
+                    reviewed_at=self._now(),
+                )
+            )
+
     def export_account(self, user_id: str) -> dict:
         profile = self.profile(user_id)
         contacts = self.contacts(user_id)
@@ -502,9 +668,7 @@ class AccountService:
                 ).all():
                     session.delete(delivery)
                 session.delete(alert)
-            contacts = session.scalars(
-                select(ContactRecord).where(ContactRecord.user_id == user_id)
-            ).all()
+            contacts = session.scalars(select(ContactRecord).where(ContactRecord.user_id == user_id)).all()
             contact_ids = {contact.id for contact in contacts}
             for token in session.scalars(select(VerificationRecord)).all():
                 if token.subject_id == user_id or token.subject_id in contact_ids:
@@ -650,18 +814,14 @@ class AccountService:
                 ContactChannelRecord(
                     contact_id=contact.id,
                     email_encrypted=self._encrypt(email.strip()) if email else None,
-                    push_token_encrypted=(
-                        self._encrypt(push_token.strip()) if push_token else None
-                    ),
+                    push_token_encrypted=(self._encrypt(push_token.strip()) if push_token else None),
                     whatsapp_enabled="whatsapp" in selected,
                     email_enabled="email" in selected and bool(email),
                     push_enabled="push" in selected and bool(push_token),
                 )
             )
             token = self._new_verification(session, contact.id, "contact")
-            decline_token = self._new_verification(
-                session, contact.id, "contact_decline"
-            )
+            decline_token = self._new_verification(session, contact.id, "contact_decline")
             withdrawal_token = self._new_verification(
                 session,
                 contact.id,
@@ -775,9 +935,7 @@ class AccountService:
                     public_token_hash=self._token_hash(public_token),
                     public_token_encrypted=self._encrypt(public_token),
                     station_name_encrypted=(
-                        self._encrypt(station_name.strip())
-                        if station_name and station_name.strip()
-                        else None
+                        self._encrypt(station_name.strip()) if station_name and station_name.strip() else None
                     ),
                     is_test=is_test,
                 )
@@ -874,9 +1032,7 @@ class AccountService:
                 due_at=self._now() + timedelta(minutes=minutes),
                 status="armed",
                 station_name_encrypted=(
-                    self._encrypt(station_name.strip())
-                    if station_name and station_name.strip()
-                    else None
+                    self._encrypt(station_name.strip()) if station_name and station_name.strip() else None
                 ),
                 created_at=self._now(),
                 completed_at=None,
@@ -1038,13 +1194,9 @@ class AccountService:
                     continue
                 message = self._alert_message(profile, alert, session)
                 if delivery.channel == "gateway_sms":
-                    self._attempt_delivery(
-                        session, alert, delivery, contact, message
-                    )
+                    self._attempt_delivery(session, alert, delivery, contact, message)
                 else:
-                    self._attempt_secondary_delivery(
-                        session, delivery, contact, message
-                    )
+                    self._attempt_secondary_delivery(session, delivery, contact, message)
                 retried += 1
         return retried
 
@@ -1171,9 +1323,7 @@ class AccountService:
                 updated_at=self._now(),
             )
             session.add(delivery)
-            self._attempt_secondary_delivery(
-                session, delivery, contact, message, preferences
-            )
+            self._attempt_secondary_delivery(session, delivery, contact, message, preferences)
 
     def _attempt_secondary_delivery(
         self,
@@ -1194,9 +1344,7 @@ class AccountService:
         delivery.attempts += 1
         delivery.updated_at = self._now()
         try:
-            if destination is None or not hasattr(
-                self.gateway, "send_custody_alert_channel"
-            ):
+            if destination is None or not hasattr(self.gateway, "send_custody_alert_channel"):
                 raise DeliveryError(f"{delivery.channel} delivery is not configured")
             delivery.provider_message_id = self.gateway.send_custody_alert_channel(
                 delivery.channel, destination, message
@@ -1260,9 +1408,7 @@ class AccountService:
         location = self._location_url(alert) or "unavailable"
         prefix = "TEST CUSTODY ALERT — NO EMERGENCY:" if is_test else "CUSTODY ALERT:"
         station_text = f" Station: {station}." if station else ""
-        tracking_text = (
-            f" Updates: {self.public_base_url}/alert-status/{token}." if token else ""
-        )
+        tracking_text = f" Updates: {self.public_base_url}/alert-status/{token}." if token else ""
         return (
             f"{prefix} {profile.full_name} says they are being arrested or held "
             f"in police custody and need help reaching a lawyer. Last known location: "
@@ -1378,11 +1524,7 @@ class AccountService:
         if channel.push_enabled:
             enabled.append("push")
         return {
-            "email": (
-                self._decrypt_or_none(channel.email_encrypted)
-                if channel.email_encrypted
-                else None
-            ),
+            "email": (self._decrypt_or_none(channel.email_encrypted) if channel.email_encrypted else None),
             "channels": enabled,
         }
 
@@ -1400,8 +1542,7 @@ class AccountService:
             else None
         )
         tracking_url = (
-            f"{self.public_base_url}/alert-status/"
-            f"{self._decrypt(metadata.public_token_encrypted)}"
+            f"{self.public_base_url}/alert-status/" f"{self._decrypt(metadata.public_token_encrypted)}"
             if metadata
             else None
         )

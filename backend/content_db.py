@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -19,6 +20,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     create_engine,
+    func,
     select,
     text,
 )
@@ -336,9 +338,7 @@ class DatabaseContentRepository:
             for item in pack.directory
         )
 
-    def _add_payload(
-        self, session: Any, model: type, item: Any, version_id: str, **extra: Any
-    ) -> None:
+    def _add_payload(self, session: Any, model: type, item: Any, version_id: str, **extra: Any) -> None:
         payload = item.model_dump(mode="json")
         body = payload.get("body_plain") or payload.get("summary") or payload.get("description", "")
         session.add(
@@ -404,12 +404,10 @@ class DatabaseContentRepository:
             )
             if not version:
                 return None
+
             def payloads(model: type) -> list[dict]:
-                return list(
-                    session.scalars(
-                        select(model.payload).where(model.version_id == version.id)
-                    )
-                )
+                return list(session.scalars(select(model.payload).where(model.version_id == version.id)))
+
             return ContentPack.model_validate(
                 {
                     "version": version.pack_version,
@@ -423,9 +421,7 @@ class DatabaseContentRepository:
                 }
             )
 
-    def register_embedding_model(
-        self, provider: str, model: str, model_version: str, dimensions: int
-    ) -> str:
+    def register_embedding_model(self, provider: str, model: str, model_version: str, dimensions: int) -> str:
         with self.sessions.begin() as session:
             record = session.scalar(
                 select(EmbeddingModelRecord).where(
@@ -435,6 +431,9 @@ class DatabaseContentRepository:
                 )
             )
             if record:
+                if not record.active:
+                    session.query(EmbeddingModelRecord).update({"active": False})
+                    record.active = True
                 return record.id
             session.query(EmbeddingModelRecord).update({"active": False})
             record = EmbeddingModelRecord(
@@ -451,9 +450,7 @@ class DatabaseContentRepository:
 
     def chunks_requiring_embedding(self, model_id: str, limit: int = 100) -> list[dict]:
         with self.sessions() as session:
-            active = session.scalar(
-                select(ContentVersionRecord).where(ContentVersionRecord.active.is_(True))
-            )
+            active = session.scalar(select(ContentVersionRecord).where(ContentVersionRecord.active.is_(True)))
             if not active:
                 return []
             rows = session.scalars(
@@ -461,8 +458,7 @@ class DatabaseContentRepository:
                 .where(
                     ChunkRecord.version_id == active.id,
                     ChunkRecord.status == "verified",
-                    (ChunkRecord.embedding_model_id != model_id)
-                    | ChunkRecord.embedding_model_id.is_(None),
+                    (ChunkRecord.embedding_model_id != model_id) | ChunkRecord.embedding_model_id.is_(None),
                 )
                 .order_by(ChunkRecord.parent_type, ChunkRecord.parent_content_id, ChunkRecord.ordinal)
                 .limit(limit)
@@ -478,12 +474,41 @@ class DatabaseContentRepository:
             chunk.embedding = embedding
             chunk.embedded_at = datetime.now(UTC)
 
+    def embedding_coverage(self, model_id: str) -> tuple[int, int]:
+        """Return verified active chunks and those embedded with this model."""
+        with self.sessions() as session:
+            active = session.scalar(
+                select(ContentVersionRecord).where(ContentVersionRecord.active.is_(True))
+            )
+            if active is None:
+                return 0, 0
+            filters = (
+                ChunkRecord.version_id == active.id,
+                ChunkRecord.status == "verified",
+            )
+            total = int(
+                session.scalar(select(func.count()).where(*filters)) or 0
+            )
+            embedded = int(
+                session.scalar(
+                    select(func.count()).where(
+                        *filters,
+                        ChunkRecord.embedding_model_id == model_id,
+                        ChunkRecord.embedding.is_not(None),
+                    )
+                )
+                or 0
+            )
+            return total, embedded
+
     def search_chunks(
         self,
         embedding: list[float],
         *,
+        query_text: str,
         parent_type: str,
         jurisdiction: str = "NG-Federal",
+        embedding_model_id: str | None = None,
         top_k: int = 5,
     ) -> list[dict]:
         if self.engine.dialect.name != "postgresql":
@@ -497,20 +522,45 @@ class DatabaseContentRepository:
         if not parent_table:
             raise ValueError("unsupported vector-retrieval corpus")
         vector = "[" + ",".join(f"{value:.10g}" for value in embedding) + "]"
+        lexical_terms = re.findall(r"[A-Za-z0-9]{2,}", query_text)[:12]
+        lexical_query = " OR ".join(lexical_terms) or query_text
         statement = text(
             f"""
-            SELECT c.content_id, c.parent_type, c.parent_content_id, c.text,
-                   1 - (c.embedding <=> CAST(:embedding AS vector)) AS score,
-                   p.payload
-            FROM content_chunks c
-            JOIN content_versions v ON v.id = c.version_id AND v.active = true
-            LEFT JOIN {parent_table} p
-              ON p.content_id = c.parent_content_id AND p.version_id = c.version_id
-            WHERE c.status = 'verified'
-              AND c.parent_type = :parent_type
-              AND c.jurisdiction IN (:jurisdiction, 'NG-Federal')
-              AND c.embedding IS NOT NULL
-            ORDER BY c.embedding <=> CAST(:embedding AS vector)
+            WITH eligible AS (
+                SELECT c.*, p.payload,
+                       1 - (c.embedding <=> CAST(:embedding AS vector)) AS vector_score,
+                       ts_rank_cd(
+                           to_tsvector('english', c.text),
+                           websearch_to_tsquery('english', :lexical_query)
+                       ) AS text_score
+                FROM content_chunks c
+                JOIN content_versions v ON v.id = c.version_id AND v.active = true
+                LEFT JOIN {parent_table} p
+                  ON p.content_id = c.parent_content_id AND p.version_id = c.version_id
+                WHERE c.status = 'verified'
+                  AND c.parent_type = :parent_type
+                  AND c.jurisdiction IN (:jurisdiction, 'NG-Federal')
+                  AND c.embedding IS NOT NULL
+                  AND (CAST(:embedding_model_id AS varchar) IS NULL
+                       OR c.embedding_model_id = :embedding_model_id)
+            ),
+            vector_ranked AS (
+                SELECT id, row_number() OVER (ORDER BY vector_score DESC) AS rank
+                FROM eligible ORDER BY vector_score DESC LIMIT 30
+            ),
+            text_ranked AS (
+                SELECT id, row_number() OVER (ORDER BY text_score DESC) AS rank
+                FROM eligible WHERE text_score > 0 ORDER BY text_score DESC LIMIT 30
+            )
+            SELECT e.content_id, e.parent_type, e.parent_content_id, e.text, e.payload,
+                   e.vector_score, e.text_score,
+                   COALESCE(1.0 / (60 + vr.rank), 0) +
+                   COALESCE(1.0 / (60 + tr.rank), 0) AS fused_score
+            FROM eligible e
+            LEFT JOIN vector_ranked vr ON vr.id = e.id
+            LEFT JOIN text_ranked tr ON tr.id = e.id
+            WHERE vr.id IS NOT NULL OR tr.id IS NOT NULL
+            ORDER BY fused_score DESC, vector_score DESC
             LIMIT :top_k
             """
         )
@@ -519,9 +569,11 @@ class DatabaseContentRepository:
                 statement,
                 {
                     "embedding": vector,
+                    "lexical_query": lexical_query,
                     "parent_type": parent_type,
                     "jurisdiction": jurisdiction,
-                    "top_k": top_k,
+                    "embedding_model_id": embedding_model_id,
+                    "top_k": max(top_k * 4, 12),
                 },
             ).mappings()
             return [dict(row) for row in rows]

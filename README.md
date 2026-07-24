@@ -161,6 +161,32 @@ embedding provider is preferred. Enable database-backed API content with
 uses pgvector; otherwise it retains the offline TF-IDF fallback. `KYR_CONTENT_AUTO_IMPORT=1` is
 intended only for a brand-new environment. Production imports are explicit release steps.
 
+### AI production trust gate
+
+Production retrieval combines pgvector cosine candidates with PostgreSQL full-text candidates,
+fuses their ranks, applies a lightweight rerank, and filters every query to verified content in
+the requested Nigerian jurisdiction and active embedding model/version. Unsupported
+jurisdictions are refused rather than silently mixed with Nigerian authorities.
+
+AI requests use persistent IP/device rate limits and a daily privacy-ID quota. The identifier is
+a daily rotating HMAC, so raw IP addresses and device identifiers are not stored in AI
+telemetry. Frequent answers are cached by normalized question, corpus, jurisdiction, content
+version, and model. Usage records capture latency, estimated tokens/cost, cache status, and
+refusal status. A configurable sample is retained for human review through
+`GET /v1/admin/ai-reviews` and `POST /v1/admin/ai-reviews/{event_id}`.
+
+`POST /v1/ask/stream` emits server-sent `metadata`, `answer_delta`, and `completed` events.
+Run the Nigerian legal gold-citation, refusal, and red-team regression gate with:
+
+```bash
+python -m backend.rag.evaluate --write-report ai-evaluation-report.json
+```
+
+CI fails when a minimum score is missed or a tracked metric regresses by more than one
+percentage point. Set `KYR_AI_PRODUCTION_ENABLED=1` only after that gate passes; in this mode
+startup fails closed unless PostgreSQL, the embedding runtime, and complete embeddings for
+every verified chunk in the active content version are available.
+
 Migration policy:
 
 - Generate revisions with `alembic revision --autogenerate`, then review SQL in CI.
@@ -349,11 +375,8 @@ failures, so run the app on a device or simulator before trusting a UI change.
 - Seed content is transcribed and cited from the 1999 Constitution but is marked
   "pending independent lawyer review"; it must be reviewed by a qualified Nigerian lawyer
   before any real launch.
-- The offline retrieval uses a dependency-free TF-IDF embedder so the MVP runs without API
-  keys. Swap in a hosted embedding/LLM provider via the `Embedder`/`Answerer` interfaces for
-  higher answer quality, keeping the cite-or-refuse guardrails.
-- The Postgres/pgvector backing store described in `../MVP.md` is not built: the MVP serves
-  the content pack from the built JSON and retrieves with a dependency-free TF-IDF index.
+- Local zero-setup retrieval uses a dependency-free TF-IDF index. Production uses
+  PostgreSQL/pgvector hybrid retrieval after migrations, content import, and re-embedding.
 - **Custody Alert** includes verified email onboarding, password reset, an encrypted personal
   profile, affirmative emergency-contact verification, foreground location capture, idempotent
   server relay, Resend/Twilio production delivery, provider-failure status, and the device SMS
