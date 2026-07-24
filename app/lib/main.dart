@@ -12,10 +12,9 @@ import 'account_client.dart';
 import 'actions.dart';
 import 'api_client.dart';
 import 'models.dart';
+import 'settings.dart';
 import 'theme.dart';
 import 'widgets.dart';
-
-final ValueNotifier<ThemeMode> kyrThemeMode = ValueNotifier(ThemeMode.light);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,9 +33,12 @@ Future<void> main() async {
       Supabase.instance.client.auth.currentSession != null) {
     await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
   }
-  kyrThemeMode.value = preferences.getBool('kyr_dark_mode') == true
-      ? ThemeMode.dark
-      : ThemeMode.light;
+  // Migrate the old boolean theme flag into the settings model once.
+  if (preferences.getString('kyr_theme_mode') == null &&
+      preferences.getBool('kyr_dark_mode') == true) {
+    await preferences.setString('kyr_theme_mode', 'dark');
+  }
+  await appSettings.load();
   runApp(const KnowYourRightsApp());
 }
 
@@ -45,25 +47,42 @@ class KnowYourRightsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: kyrThemeMode,
-      builder: (_, mode, _) => MaterialApp(
+    return AnimatedBuilder(
+      animation: appSettings,
+      builder: (context, _) => MaterialApp(
         title: 'Know Your Rights',
         debugShowCheckedModeBanner: false,
-        theme: buildKyrTheme(Brightness.light),
-        darkTheme: buildKyrTheme(Brightness.dark),
-        themeMode: mode,
+        theme: buildKyrTheme(Brightness.light, highContrast: appSettings.highContrast),
+        darkTheme: buildKyrTheme(Brightness.dark, highContrast: appSettings.highContrast),
+        themeMode: appSettings.themeMode,
+        // Honour the in-app text-size control, layered on the OS setting.
+        builder: (context, child) {
+          final os = MediaQuery.textScalerOf(context);
+          return MediaQuery.withClampedTextScaling(
+            minScaleFactor: appSettings.textScale,
+            maxScaleFactor: appSettings.textScale * 1.4,
+            child: MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: os.clamp(
+                  minScaleFactor: appSettings.textScale,
+                  maxScaleFactor: appSettings.textScale * 1.4,
+                ),
+              ),
+              child: child!,
+            ),
+          );
+        },
         home: const AccountGate(),
       ),
     );
   }
 }
 
-Future<void> toggleKyrTheme() async {
-  final dark = kyrThemeMode.value != ThemeMode.dark;
-  kyrThemeMode.value = dark ? ThemeMode.dark : ThemeMode.light;
-  final preferences = await SharedPreferences.getInstance();
-  await preferences.setBool('kyr_dark_mode', dark);
+/// Flip between light and dark, respecting that "system" resolves to the
+/// opposite of whatever is currently shown.
+void toggleKyrTheme() {
+  final showingDark = appSettings.themeMode == ThemeMode.dark;
+  appSettings.setThemeMode(showingDark ? ThemeMode.light : ThemeMode.dark);
 }
 
 class ThemeToggleButton extends StatelessWidget {
@@ -276,6 +295,13 @@ class _HomeShellState extends State<HomeShell> {
         ),
         actions: [
           const ThemeToggleButton(),
+          IconButton(
+            tooltip: 'Settings',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            icon: const Icon(Icons.settings_outlined),
+          ),
           IconButton(
             tooltip: 'Profile',
             onPressed: () => Navigator.of(context).push(
@@ -3042,6 +3068,7 @@ class TopicDetailScreen extends StatelessWidget {
               ),
             ],
           ),
+          ReportErrorButton(targetType: 'topic', targetId: topic.id),
         ],
       ),
     );
@@ -3630,6 +3657,7 @@ class _CompanyAskScreenState extends State<CompanyAskScreen> {
                       height: 1.35,
                     ),
                   ),
+                  const ReportErrorButton(targetType: 'answer', targetId: 'ai-answer'),
                 ],
               ),
             ),
@@ -3716,6 +3744,7 @@ class ObligationDetailScreen extends StatelessWidget {
               style: TextStyle(fontSize: 12.5, color: p.faint, height: 1.4),
             ),
           ],
+          ReportErrorButton(targetType: 'obligation', targetId: obligation.id),
         ],
       ),
     );
@@ -4352,6 +4381,7 @@ class _StudentAskScreenState extends State<StudentAskScreen> {
                       height: 1.35,
                     ),
                   ),
+                  const ReportErrorButton(targetType: 'answer', targetId: 'ai-answer'),
                 ],
               ),
             ),
@@ -4497,6 +4527,7 @@ class CaseDetailScreen extends StatelessWidget {
           _RelatedCases(caseId: caseBrief.id, repo: repo),
           const SizedBox(height: 18),
           _ContributeInterpretation(caseBrief: caseBrief),
+          ReportErrorButton(targetType: 'case', targetId: caseBrief.id),
         ],
       ),
     );
@@ -4954,6 +4985,7 @@ class ScenarioDetailScreen extends StatelessWidget {
               color: p.faint,
             ),
           ),
+          ReportErrorButton(targetType: 'scenario', targetId: scenario.id),
         ],
       ),
     );
@@ -5122,6 +5154,7 @@ class _AnswerCard extends StatelessWidget {
               ),
             ),
           ),
+          const ReportErrorButton(targetType: 'answer', targetId: 'ai-answer'),
         ],
       ),
     );
@@ -5583,6 +5616,147 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------- Settings
+
+/// Appearance, accessibility, and privacy. Mirrors the web Settings surface.
+/// Accessibility and appearance are device-local; the incognito and
+/// notification choices are the user's privacy preferences, persisted locally.
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.kyr;
+    return AnimatedBuilder(
+      animation: appSettings,
+      builder: (context, _) => Scaffold(
+        appBar: AppBar(title: Text('Settings', style: serifStyle(size: 20, color: p.ink))),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          children: [
+            _SettingsSection(
+              title: 'Appearance',
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Theme'),
+                  trailing: DropdownButton<ThemeMode>(
+                    value: appSettings.themeMode,
+                    underline: const SizedBox.shrink(),
+                    onChanged: (mode) {
+                      if (mode != null) appSettings.setThemeMode(mode);
+                    },
+                    items: const [
+                      DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
+                      DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
+                      DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                    ],
+                  ),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Language'),
+                  subtitle: appSettings.language == 'en'
+                      ? null
+                      : const Text('Interface translation in progress'),
+                  trailing: DropdownButton<String>(
+                    value: appSettings.language,
+                    underline: const SizedBox.shrink(),
+                    onChanged: (code) {
+                      if (code != null) appSettings.setLanguage(code);
+                    },
+                    items: [
+                      for (final l in AppSettings.languages)
+                        DropdownMenuItem(
+                          value: l.code,
+                          child: Text(l.ready ? l.name : '${l.name} (soon)'),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: 'Accessibility',
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Text size', style: TextStyle(color: p.ink)),
+                      Slider(
+                        value: appSettings.textScale,
+                        min: 1.0,
+                        max: 1.6,
+                        divisions: 6,
+                        label: '${(appSettings.textScale * 100).round()}%',
+                        onChanged: appSettings.setTextScale,
+                      ),
+                    ],
+                  ),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('High contrast'),
+                  subtitle: Text('Stronger text and edges',
+                      style: TextStyle(fontSize: 12, color: p.muted)),
+                  value: appSettings.highContrast,
+                  onChanged: appSettings.setHighContrast,
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: 'Privacy',
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Incognito Ask'),
+                  subtitle: Text('Questions are not cached or logged',
+                      style: TextStyle(fontSize: 12, color: p.muted)),
+                  value: appSettings.incognito,
+                  onChanged: appSettings.setIncognito,
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: 'Notifications',
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Tell me when the law changes'),
+                  subtitle: Text('Alerts when content you viewed is updated',
+                      style: TextStyle(fontSize: 12, color: p.muted)),
+                  value: appSettings.legalChangeAlerts,
+                  onChanged: appSettings.setLegalChangeAlerts,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+  const _SettingsSection({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        SectionLabel(title),
+        ...children,
+      ],
     );
   }
 }

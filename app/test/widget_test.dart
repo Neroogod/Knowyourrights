@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:knowyourrights_app/actions.dart';
 import 'package:knowyourrights_app/api_client.dart';
 import 'package:knowyourrights_app/models.dart';
+import 'package:knowyourrights_app/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   test('callTargetFor maps the emergency line to a concrete number', () {
@@ -388,6 +391,38 @@ void main() {
     final community = DirectoryEntry.fromJson(
         {'id': 'x', 'name': 'X', 'entry_type': 'legal_aid', 'status': 'community'});
     expect(community.status, 'community');
+  });
+
+
+  group('AppSettings', () {
+    test('defaults are sensible and persist across a reload', () async {
+      SharedPreferences.setMockInitialValues({});
+      final s = AppSettings();
+      await s.load();
+      expect(s.themeMode, ThemeMode.system);
+      expect(s.textScale, 1.0);
+      expect(s.highContrast, isFalse);
+      expect(s.incognito, isFalse);
+
+      s.setIncognito(true);
+      s.setHighContrast(true);
+      s.setTextScale(1.3);
+      s.setThemeMode(ThemeMode.dark);
+
+      final reloaded = AppSettings();
+      await reloaded.load();
+      expect(reloaded.incognito, isTrue);
+      expect(reloaded.highContrast, isTrue);
+      expect(reloaded.textScale, 1.3);
+      expect(reloaded.themeMode, ThemeMode.dark);
+    });
+
+    test('all five Nigerian-plan languages are registered, English ready', () {
+      final codes = AppSettings.languages.map((l) => l.code).toList();
+      expect(codes, containsAll(['en', 'pcm', 'ha', 'yo', 'ig']));
+      final english = AppSettings.languages.firstWhere((l) => l.code == 'en');
+      expect(english.ready, isTrue);
+    });
   });
 
 }

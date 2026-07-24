@@ -148,9 +148,38 @@ TextStyle monoStyle({double? size, Color? color, FontWeight? weight}) =>
       color: color,
     );
 
-ThemeData buildKyrTheme(Brightness brightness) {
+/// A higher-contrast variant of a palette: near-pure ink/ground and darker
+/// hairlines, for readability. Semantic colours (green/gold/red) keep their
+/// meaning; only the neutrals are pushed apart.
+KyrPalette _highContrast(KyrPalette p, bool isDark) {
+  if (isDark) {
+    return KyrPalette(
+      paper: const Color(0xFF000000), canvas: const Color(0xFF000000),
+      card: const Color(0xFF0C110E), card2: const Color(0xFF121814),
+      ink: const Color(0xFFFFFFFF), muted: const Color(0xFFE4EDE7),
+      faint: const Color(0xFFB9C6BD), line: const Color(0xFF8A978D),
+      green: p.green, greenDeep: p.greenDeep, greenTint: p.greenTint, onGreen: p.onGreen,
+      gold: p.gold, goldTint: p.goldTint, goldInk: const Color(0xFFF0D890),
+      sos: const Color(0xFFFF7A6B), sosDeep: p.sosDeep, sosTint: p.sosTint,
+      sosInk: const Color(0xFFFFB3A8), onSos: p.onSos,
+    );
+  }
+  return KyrPalette(
+    paper: const Color(0xFFFFFFFF), canvas: const Color(0xFFFFFFFF),
+    card: const Color(0xFFFFFFFF), card2: const Color(0xFFF3F1E9),
+    ink: const Color(0xFF000000), muted: const Color(0xFF1C241F),
+    faint: const Color(0xFF414A44), line: const Color(0xFF6E7A72),
+    green: const Color(0xFF0B3D28), greenDeep: p.greenDeep, greenTint: p.greenTint, onGreen: p.onGreen,
+    gold: p.gold, goldTint: p.goldTint, goldInk: const Color(0xFF5C3D12),
+    sos: const Color(0xFF9E2C21), sosDeep: p.sosDeep, sosTint: p.sosTint,
+    sosInk: p.sosInk, onSos: p.onSos,
+  );
+}
+
+ThemeData buildKyrTheme(Brightness brightness, {bool highContrast = false}) {
   final bool isDark = brightness == Brightness.dark;
-  final KyrPalette p = isDark ? KyrPalette.dark : KyrPalette.light;
+  final KyrPalette base = isDark ? KyrPalette.dark : KyrPalette.light;
+  final KyrPalette p = highContrast ? _highContrast(base, isDark) : base;
 
   return ThemeData(
     useMaterial3: true,

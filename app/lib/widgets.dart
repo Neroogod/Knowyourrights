@@ -6,6 +6,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import 'api_client.dart';
 import 'models.dart';
 import 'theme.dart';
 
@@ -285,5 +286,83 @@ class KyrCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AccentSurface(accent: accent, onTap: onTap, child: child);
+  }
+}
+
+/// A quiet "report an error" affordance for any content or answer surface. Report-
+/// an-error is on every content screen and is never gated behind an account.
+class ReportErrorButton extends StatelessWidget {
+  final String targetType;
+  final String targetId;
+  const ReportErrorButton({
+    required this.targetType,
+    required this.targetId,
+    super.key,
+  });
+
+  Future<void> _open(BuildContext context) async {
+    final controller = TextEditingController();
+    final message = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Report an error'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'What looks wrong? Quote the part that seems incorrect if you can. '
+              'A reviewer will look at it.',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLines: 4,
+              maxLength: 4000,
+              decoration: const InputDecoration(hintText: 'Describe the problem'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+    if (message == null || message.length < 3 || !context.mounted) return;
+    final ok = await ContentRepository().reportError(targetType, targetId, message);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ok ? 'Thank you — a reviewer will look at this.' : 'Could not send the report. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.kyr;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: () => _open(context),
+        icon: Icon(Icons.flag_outlined, size: 16, color: p.faint),
+        label: Text(
+          'Report an error on this page',
+          style: TextStyle(fontSize: 12.5, color: p.faint),
+        ),
+      ),
+    );
   }
 }

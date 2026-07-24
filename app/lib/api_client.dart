@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'content_sync_client.dart';
 import 'models.dart';
+import 'settings.dart';
 import 'offline_database.dart';
 
 const String kBaseUrl = String.fromEnvironment(
@@ -250,12 +251,37 @@ class ContentRepository {
   }
 
   /// Ask the backend; if offline, answer from cached verified topics or refuse.
+  /// Report an error on any content or answer. Never gated behind an account:
+  /// the reader who spots wrong law is often the least likely to have signed up.
+  Future<bool> reportError(String targetType, String targetId, String message) async {
+    try {
+      final resp = await _client
+          .post(
+            Uri.parse('$kBaseUrl/v1/error-reports'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'target_type': targetType,
+              'target_id': targetId,
+              'message': message,
+            }),
+          )
+          .timeout(const Duration(seconds: 8));
+      return resp.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Incognito Ask: when on, the server neither caches nor logs the question.
+  Map<String, String> _incognitoHeader() =>
+      appSettings.incognito ? const {'X-KYR-Incognito': '1'} : const {};
+
   Future<AskResponse> ask(String question) async {
     try {
       final resp = await _client
           .post(
             Uri.parse('$kBaseUrl/v1/ask'),
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', ..._incognitoHeader()},
             body: jsonEncode({'question': question}),
           )
           .timeout(const Duration(seconds: 8));
@@ -275,7 +301,7 @@ class ContentRepository {
       final resp = await _client
           .post(
             Uri.parse('$kBaseUrl/v1/company/ask'),
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', ..._incognitoHeader()},
             body: jsonEncode({'question': question}),
           )
           .timeout(const Duration(seconds: 8));
@@ -303,7 +329,7 @@ class ContentRepository {
       final resp = await _client
           .post(
             Uri.parse('$kBaseUrl/v1/students/ask'),
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', ..._incognitoHeader()},
             body: jsonEncode({'question': question}),
           )
           .timeout(const Duration(seconds: 8));
