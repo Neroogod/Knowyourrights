@@ -259,6 +259,76 @@ class CaseInterpretation {
       );
 }
 
+/// How one case relates to another in the citator graph.
+///
+/// Saying that a case overrules or distinguishes another is a legal claim, so a
+/// relation carries a review status like any other content and is shown as
+/// pending until a lawyer verifies it.
+class CaseRelation {
+  final String relation;
+  final String caseId;
+  final String name;
+  final String court;
+  final int year;
+  final String? note;
+  final String status;
+
+  const CaseRelation({
+    required this.relation,
+    required this.caseId,
+    required this.name,
+    required this.court,
+    required this.year,
+    required this.status,
+    this.note,
+  });
+
+  factory CaseRelation.fromJson(Map<String, dynamic> json) => CaseRelation(
+    relation: json['relation'] as String,
+    caseId: json['case_id'] as String,
+    name: json['name'] as String? ?? json['case_id'] as String,
+    court: json['court'] as String? ?? '',
+    year: json['year'] as int? ?? 0,
+    note: json['note'] as String?,
+    status: json['status'] as String? ?? 'draft',
+  );
+
+  bool get isVerified => status == 'verified';
+}
+
+/// A named list of cases a student is working through.
+class ReadingList {
+  final String id;
+  final String name;
+  final List<String> caseIds;
+
+  const ReadingList({required this.id, required this.name, required this.caseIds});
+
+  factory ReadingList.fromSyncItem(Map<String, dynamic> item) {
+    final payload = (item['payload'] as Map?)?.cast<String, dynamic>() ?? {};
+    return ReadingList(
+      id: item['item_id'] as String,
+      name: payload['name'] as String? ?? 'Untitled list',
+      caseIds: ((payload['case_ids'] as List?) ?? const []).cast<String>(),
+    );
+  }
+}
+
+/// The filter values actually present in the case library.
+class CaseFilters {
+  final List<String> areasOfLaw;
+  final List<String> courts;
+  final List<int> years;
+
+  const CaseFilters({this.areasOfLaw = const [], this.courts = const [], this.years = const []});
+
+  factory CaseFilters.fromJson(Map<String, dynamic> json) => CaseFilters(
+    areasOfLaw: ((json['areas_of_law'] as List?) ?? const []).cast<String>(),
+    courts: ((json['courts'] as List?) ?? const []).cast<String>(),
+    years: ((json['years'] as List?) ?? const []).cast<int>(),
+  );
+}
+
 class CaseBrief {
   final String id;
   final String name;

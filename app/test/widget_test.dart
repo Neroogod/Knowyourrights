@@ -291,4 +291,61 @@ void main() {
     ];
     expect(repo.searchTopics('bitcoin price lottery'), isEmpty);
   });
+
+  group('student study models', () {
+    test('CaseRelation parses the citator payload', () {
+      final relation = CaseRelation.fromJson({
+        'relation': 'overrules',
+        'case_id': 'older-case',
+        'name': 'Older v Case',
+        'court': 'Supreme Court of Nigeria',
+        'year': 1985,
+        'note': 'Departed from on the fair-hearing point.',
+        'status': 'draft',
+      });
+      expect(relation.relation, 'overrules');
+      expect(relation.year, 1985);
+      // An unverified relation is an unproven legal claim and must read as one.
+      expect(relation.isVerified, isFalse);
+    });
+
+    test('CaseRelation falls back when optional fields are absent', () {
+      final relation = CaseRelation.fromJson({'relation': 'cites', 'case_id': 'x'});
+      expect(relation.name, 'x');
+      expect(relation.status, 'draft');
+    });
+
+    test('ReadingList reads a sync item', () {
+      final list = ReadingList.fromSyncItem({
+        'item_id': 'con-law',
+        'payload': {'name': 'Constitutional law', 'case_ids': ['a', 'b']},
+      });
+      expect(list.id, 'con-law');
+      expect(list.name, 'Constitutional law');
+      expect(list.caseIds, ['a', 'b']);
+    });
+
+    test('ReadingList survives an empty payload', () {
+      final list = ReadingList.fromSyncItem({'item_id': 'empty', 'payload': {}});
+      expect(list.name, 'Untitled list');
+      expect(list.caseIds, isEmpty);
+    });
+
+    test('CaseFilters parses available filter values', () {
+      final filters = CaseFilters.fromJson({
+        'areas_of_law': ['fair-hearing'],
+        'courts': ['Supreme Court of Nigeria'],
+        'years': [1999, 1986],
+      });
+      expect(filters.courts.single, 'Supreme Court of Nigeria');
+      expect(filters.years, [1999, 1986]);
+    });
+
+    test('CaseFilters defaults to empty when the API returns nothing', () {
+      final filters = CaseFilters.fromJson({});
+      expect(filters.courts, isEmpty);
+      expect(filters.years, isEmpty);
+    });
+  });
+
 }

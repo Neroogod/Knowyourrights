@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'models.dart';
+
 import 'api_client.dart';
 import 'offline_database.dart';
 
@@ -369,6 +371,74 @@ class AccountClient {
           mode: InsertMode.insertOrReplace,
         );
   }
+
+
+  // ------------------------------------------------------------ student desk
+  //
+  // Study tools live server-side so a saved case or reading list survives a
+  // reinstall and follows the student between devices.
+
+  Future<CaseFilters> caseFilters() async =>
+      CaseFilters.fromJson(await _request('GET', '/v1/students/filters', authenticated: false));
+
+  Future<List<CaseRelation>> relatedCases(String caseId) async {
+    final rows = await _requestList('GET', '/v1/students/cases/$caseId/related');
+    return rows
+        .map((row) => CaseRelation.fromJson((row as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<Set<String>> savedCaseIds() async {
+    final rows = await _requestList('GET', '/v1/students/saved');
+    return rows
+        .map((row) => (row as Map)['item_id'] as String)
+        .toSet();
+  }
+
+  Future<void> saveCase(String caseId) =>
+      _request('PUT', '/v1/students/saved/$caseId');
+
+  Future<void> unsaveCase(String caseId) =>
+      _request('DELETE', '/v1/students/saved/$caseId');
+
+  Future<List<ReadingList>> readingLists() async {
+    final rows = await _requestList('GET', '/v1/students/reading-lists');
+    return rows
+        .map((row) => ReadingList.fromSyncItem((row as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<void> saveReadingList(String id, String name, List<String> caseIds) =>
+      _request('PUT', '/v1/students/reading-lists/$id',
+          body: {'id': id, 'name': name, 'case_ids': caseIds});
+
+  Future<void> deleteReadingList(String id) =>
+      _request('DELETE', '/v1/students/reading-lists/$id');
+
+  Future<bool> lawStudentMode() async {
+    final json = await _request('GET', '/v1/students/preferences');
+    return json['law_student_mode'] as bool? ?? false;
+  }
+
+  Future<void> setLawStudentMode(bool enabled) =>
+      _request('PUT', '/v1/students/preferences', body: {'law_student_mode': enabled});
+
+  /// Submit commentary on a case. It enters review and is never published directly.
+  Future<String> contributeInterpretation(
+    String caseId,
+    String kind,
+    String body,
+  ) async {
+    final json = await _request(
+      'POST',
+      '/v1/students/cases/$caseId/interpretations',
+      body: {'kind': kind, 'body': body},
+    );
+    return json['status'] as String? ?? 'draft';
+  }
+
+  Future<Map<String, dynamic>> myContributions() =>
+      _request('GET', '/v1/students/me/contributions');
 
   Future<void> syncUserData() async {
     final saved = await (_database.select(

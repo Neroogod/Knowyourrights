@@ -3582,8 +3582,110 @@ class StudentsScreen extends StatefulWidget {
 }
 
 class _StudentsScreenState extends State<StudentsScreen> {
+  final AccountClient _accounts = AccountClient();
   String _query = '';
   String? _area;
+  String? _court;
+  int? _year;
+  bool _savedOnly = false;
+  bool _studentMode = false;
+  Set<String> _saved = {};
+  List<ReadingList> _lists = [];
+  bool _deskLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDesk();
+  }
+
+  /// Study-desk state lives server-side, so it is unavailable when signed out.
+  /// Failing quietly here keeps the library readable either way.
+  Future<void> _loadDesk() async {
+    try {
+      final saved = await _accounts.savedCaseIds();
+      final lists = await _accounts.readingLists();
+      final mode = await _accounts.lawStudentMode();
+      if (!mounted) return;
+      setState(() {
+        _saved = saved;
+        _lists = lists;
+        _studentMode = mode;
+        _deskLoaded = true;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _deskLoaded = false);
+    }
+  }
+
+  Future<void> _toggleSaved(CaseBrief item) async {
+    final wasSaved = _saved.contains(item.id);
+    try {
+      if (wasSaved) {
+        await _accounts.unsaveCase(item.id);
+      } else {
+        await _accounts.saveCase(item.id);
+      }
+      if (!mounted) return;
+      setState(() => wasSaved ? _saved.remove(item.id) : _saved.add(item.id));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign in to save cases to your study desk.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _createList() async {
+    if (_saved.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Save some cases first - a list is built from them.')),
+      );
+      return;
+    }
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('New reading list'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'e.g. Constitutional law week 3'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+    if (name == null || name.isEmpty) return;
+    final id = name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    try {
+      await _accounts.saveReadingList(id, name, _saved.toList());
+      await _loadDesk();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
+  }
+
+  List<CaseBrief> _applyFilters(List<CaseBrief> source) {
+    var result = source;
+    if (_area != null) result = result.where((i) => i.areaOfLaw == _area).toList();
+    if (_court != null) result = result.where((i) => i.court == _court).toList();
+    if (_year != null) result = result.where((i) => i.year == _year).toList();
+    if (_savedOnly) result = result.where((i) => _saved.contains(i.id)).toList();
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -3596,9 +3698,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
         .toSet()
         .take(4)
         .toList();
-    final cases = _area == null
-        ? searched
-        : searched.where((item) => item.areaOfLaw == _area).toList();
+    final courts = widget.repo.cases.map((item) => item.court).toSet().toList()..sort();
+    final years = widget.repo.cases.map((item) => item.year).toSet().toList()
+      ..sort((a, b) => b.compareTo(a));
+    final cases = _applyFilters(searched);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -3737,7 +3840,110 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: _court,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Court'),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('All courts')),
+                      for (final court in courts)
+                        DropdownMenuItem(value: court, child: Text(court, overflow: TextOverflow.ellipsis)),
+                    ],
+                    onChanged: (value) => setState(() => _court = value),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: DropdownButtonFormField<int?>(
+                    initialValue: _year,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Year'),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('All years')),
+                      for (final year in years)
+                        DropdownMenuItem(value: year, child: Text('\$year')),
+                    ],
+                    onChanged: (value) => setState(() => _year = value),
+                  ),
+                ),
+              ],
+            ),
+            if (_deskLoaded) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Switch(
+                    value: _savedOnly,
+                    onChanged: (value) => setState(() => _savedOnly = value),
+                  ),
+                  Text('Saved only', style: TextStyle(fontSize: 13, color: p.ink)),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: _createList,
+                    icon: const Icon(Icons.playlist_add_rounded, size: 18),
+                    label: const Text('New list'),
+                  ),
+                ],
+              ),
+              if (_lists.isNotEmpty) ...[
+                const SectionLabel('Reading lists'),
+                const SizedBox(height: 6),
+                ..._lists.map(
+                  (list) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: KyrCard(
+                      onTap: () => setState(() {
+                        _savedOnly = false;
+                        _query = '';
+                        _area = null;
+                        _court = null;
+                        _year = null;
+                      }),
+                      child: Row(
+                        children: [
+                          Icon(Icons.bookmarks_outlined, color: p.gold, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(list.name,
+                                style: TextStyle(fontWeight: FontWeight.w700, color: p.ink)),
+                          ),
+                          Text('\${list.caseIds.length} cases',
+                              style: TextStyle(fontSize: 12, color: p.faint)),
+                          IconButton(
+                            icon: Icon(Icons.close_rounded, size: 17, color: p.faint),
+                            onPressed: () async {
+                              await _accounts.deleteReadingList(list.id);
+                              await _loadDesk();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _studentMode,
+                title: Text('Law-student mode',
+                    style: TextStyle(fontSize: 14, color: p.ink, fontWeight: FontWeight.w600)),
+                subtitle: Text('Keep the case library front and centre',
+                    style: TextStyle(fontSize: 12, color: p.muted)),
+                onChanged: (value) async {
+                  setState(() => _studentMode = value);
+                  try {
+                    await _accounts.setLawStudentMode(value);
+                  } catch (_) {
+                    if (mounted) setState(() => _studentMode = !value);
+                  }
+                },
+              ),
+            ],
+            const SizedBox(height: 10),
             Row(
               children: [
                 const Expanded(child: SectionLabel('Case digests')),
@@ -3817,10 +4023,27 @@ class _StudentsScreenState extends State<StudentsScreen> {
                               Wrap(
                                 spacing: 7,
                                 runSpacing: 5,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   CategoryTag(item.areaOfLaw),
                                   if (item.status == 'verified')
                                     const VerifiedBadge(),
+                                  if (_deskLoaded)
+                                    InkWell(
+                                      onTap: () => _toggleSaved(item),
+                                      borderRadius: BorderRadius.circular(999),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4, vertical: 2),
+                                        child: Icon(
+                                          _saved.contains(item.id)
+                                              ? Icons.star_rounded
+                                              : Icons.star_border_rounded,
+                                          size: 19,
+                                          color: _saved.contains(item.id) ? p.gold : p.faint,
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -4118,6 +4341,232 @@ class CaseDetailScreen extends StatelessWidget {
               'This app does not copy proprietary report text.',
               style: TextStyle(fontSize: 12.5, color: p.faint, height: 1.4),
             ),
+          ],
+          const SizedBox(height: 18),
+          _RelatedCases(caseId: caseBrief.id, repo: repo),
+          const SizedBox(height: 18),
+          _ContributeInterpretation(caseBrief: caseBrief),
+        ],
+      ),
+    );
+  }
+}
+
+/// The citator graph for one case: what it cites, follows, distinguishes, or
+/// overrules. Relations are legal claims, so unverified ones say so.
+class _RelatedCases extends StatefulWidget {
+  final String caseId;
+  final ContentRepository repo;
+  const _RelatedCases({required this.caseId, required this.repo});
+
+  @override
+  State<_RelatedCases> createState() => _RelatedCasesState();
+}
+
+class _RelatedCasesState extends State<_RelatedCases> {
+  final AccountClient _accounts = AccountClient();
+  List<CaseRelation> _relations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final relations = await _accounts.relatedCases(widget.caseId);
+      if (mounted) setState(() => _relations = relations);
+    } catch (_) {
+      // The library is still readable without the graph.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_relations.isEmpty) return const SizedBox.shrink();
+    final p = context.kyr;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionLabel('Related cases'),
+        const SizedBox(height: 8),
+        ..._relations.map((relation) {
+          final Color accent = switch (relation.relation) {
+            'overrules' => p.sos,
+            'distinguishes' => p.gold,
+            _ => p.green,
+          };
+          final target = widget.repo.caseById(relation.caseId);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: KyrCard(
+              accent: accent,
+              onTap: target == null
+                  ? null
+                  : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              CaseDetailScreen(caseBrief: target, repo: widget.repo),
+                        ),
+                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        relation.relation.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w800,
+                          color: accent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (!relation.isVerified)
+                      Text('pending review',
+                          style: TextStyle(fontSize: 11, color: p.faint)),
+                  ]),
+                  const SizedBox(height: 7),
+                  Text(relation.name, style: serifStyle(size: 16, color: p.ink)),
+                  Text('${relation.court} · ${relation.year}',
+                      style: TextStyle(fontSize: 12, color: p.faint)),
+                  if (relation.note != null) ...[
+                    const SizedBox(height: 5),
+                    Text(relation.note!,
+                        style: TextStyle(fontSize: 13, color: p.muted)),
+                  ],
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+/// Contribute commentary on a case. It enters review and is never published
+/// directly, which the copy states plainly so nobody expects otherwise.
+class _ContributeInterpretation extends StatefulWidget {
+  final CaseBrief caseBrief;
+  const _ContributeInterpretation({required this.caseBrief});
+
+  @override
+  State<_ContributeInterpretation> createState() => _ContributeInterpretationState();
+}
+
+class _ContributeInterpretationState extends State<_ContributeInterpretation> {
+  final AccountClient _accounts = AccountClient();
+  final TextEditingController _controller = TextEditingController();
+  String _kind = 'significance';
+  bool _open = false;
+  bool _sending = false;
+  String? _message;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final body = _controller.text.trim();
+    if (body.length < 40) {
+      setState(() => _message = 'Please write at least 40 characters.');
+      return;
+    }
+    setState(() {
+      _sending = true;
+      _message = null;
+    });
+    try {
+      final status = await _accounts.contributeInterpretation(
+        widget.caseBrief.id,
+        _kind,
+        body,
+      );
+      if (!mounted) return;
+      _controller.clear();
+      setState(() {
+        _sending = false;
+        _message = status == 'community'
+            ? 'Submitted - awaiting lawyer review.'
+            : 'Held for checks before review.';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _sending = false;
+        _message = '$error';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.kyr;
+    if (!_open) {
+      return OutlinedButton.icon(
+        onPressed: () => setState(() => _open = true),
+        icon: const Icon(Icons.edit_note_rounded, size: 18),
+        label: const Text('Contribute an interpretation'),
+      );
+    }
+    return KyrCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Contribute an interpretation',
+              style: TextStyle(fontWeight: FontWeight.w700, color: p.ink)),
+          const SizedBox(height: 4),
+          Text(
+            'Your own words only. A lawyer reviews it before it appears, and it is '
+            'never used to answer questions until verified.',
+            style: TextStyle(fontSize: 12.5, color: p.muted, height: 1.4),
+          ),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            initialValue: _kind,
+            decoration: const InputDecoration(labelText: 'Kind'),
+            items: const [
+              DropdownMenuItem(value: 'significance', child: Text('Significance')),
+              DropdownMenuItem(value: 'ratio', child: Text('Ratio')),
+              DropdownMenuItem(value: 'commentary', child: Text('Commentary')),
+            ],
+            onChanged: (value) => setState(() => _kind = value ?? 'significance'),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _controller,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              hintText: 'At least 40 characters, in your own words…',
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(children: [
+            FilledButton(
+              onPressed: _sending ? null : _submit,
+              child: Text(_sending ? 'Submitting…' : 'Submit for review'),
+            ),
+            const SizedBox(width: 10),
+            TextButton(
+              onPressed: () => setState(() => _open = false),
+              child: const Text('Cancel'),
+            ),
+          ]),
+          if (_message != null) ...[
+            const SizedBox(height: 8),
+            Text(_message!, style: TextStyle(fontSize: 12.5, color: p.muted)),
           ],
         ],
       ),
