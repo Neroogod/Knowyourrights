@@ -2,6 +2,8 @@
 // Verified seal and the citation chip are the two objects that carry the
 // product's core promise, so they are designed once and reused everywhere.
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import 'models.dart';
@@ -21,12 +23,21 @@ class VerifiedBadge extends StatelessWidget {
         border: Border.all(color: p.gold.withValues(alpha: 0.45)),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(Icons.check_rounded, size: 13, color: p.goldInk),
-        const SizedBox(width: 4),
-        Text('Verified',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: p.goldInk)),
-      ]),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_rounded, size: 13, color: p.goldInk),
+          const SizedBox(width: 4),
+          Text(
+            'Verified',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: p.goldInk,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -76,8 +87,9 @@ class CitationChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.kyr;
-    final label =
-        withSource ? '${shortSource(citation.sourceName)} · ${citation.locator}' : citation.locator;
+    final label = withSource
+        ? '${shortSource(citation.sourceName)} · ${citation.locator}'
+        : citation.locator;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
@@ -142,31 +154,50 @@ class AccentSurface extends StatelessWidget {
       padding.bottom,
     );
 
-    final Widget content = Stack(children: [
-      Padding(padding: pad, child: child),
-      if (accent != null)
-        Positioned(
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: _ruleWidth,
-          child: ColoredBox(color: accent!),
-        ),
-    ]);
+    final Widget content = Stack(
+      children: [
+        Padding(padding: pad, child: child),
+        if (accent != null)
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: _ruleWidth,
+            child: ColoredBox(color: accent!),
+          ),
+      ],
+    );
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: p.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: p.line),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: p.ink.withValues(alpha: 0.07),
+            blurRadius: 30,
+            offset: const Offset(0, 13),
+          ),
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: onTap == null
-          ? content
-          : Material(
-              color: Colors.transparent,
-              child: InkWell(onTap: onTap, child: content),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            decoration: BoxDecoration(
+              color: p.card.withValues(alpha: 0.76),
+              border: Border.all(color: p.line.withValues(alpha: 0.76)),
+              borderRadius: BorderRadius.circular(18),
             ),
+            child: onTap == null
+                ? content
+                : Material(
+                    color: Colors.transparent,
+                    child: InkWell(onTap: onTap, child: content),
+                  ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -180,7 +211,12 @@ class InfoBlock extends StatelessWidget {
   final String title;
   final List<String> items;
   final BlockKind kind;
-  const InfoBlock({required this.title, required this.items, required this.kind, super.key});
+  const InfoBlock({
+    required this.title,
+    required this.items,
+    required this.kind,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -195,23 +231,46 @@ class InfoBlock extends StatelessWidget {
 
     return AccentSurface(
       accent: accent,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title.toUpperCase(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
             style: TextStyle(
-                fontSize: 11, letterSpacing: 1.4, fontWeight: FontWeight.w800, color: p.faint)),
-        const SizedBox(height: 10),
-        ...items.map((t) => Padding(
+              fontSize: 11,
+              letterSpacing: 1.4,
+              fontWeight: FontWeight.w800,
+              color: p.faint,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...items.map(
+            (t) => Padding(
               padding: const EdgeInsets.only(bottom: 9),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(icon, size: 15, color: iconColor),
-                ),
-                const SizedBox(width: 9),
-                Expanded(child: Text(t, style: TextStyle(fontSize: 14.5, color: p.ink, height: 1.4))),
-              ]),
-            )),
-      ]),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(icon, size: 15, color: iconColor),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      t,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        color: p.ink,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

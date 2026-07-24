@@ -16,6 +16,7 @@ from backend.rag.answerer import (  # noqa: E402
     build_case_documents,
     build_company_documents,
     build_documents,
+    generative_answerer_from_environment,
 )
 from backend.rag.index import Retriever  # noqa: E402
 from backend.schemas import (  # noqa: E402
@@ -48,15 +49,31 @@ class ContentStore:
 
         documents = build_documents(pack.topics)
         self._retriever = Retriever(documents)
-        self._answerer = ExtractiveAnswerer(self._retriever)
+        rights_fallback = ExtractiveAnswerer(self._retriever)
+        self._answerer = generative_answerer_from_environment(
+            self._retriever,
+            rights_fallback,
+        )
         company_documents = build_company_documents(pack.obligations)
-        self._company_answerer = ExtractiveAnswerer(
-            Retriever(company_documents),
+        company_retriever = Retriever(company_documents)
+        company_fallback = ExtractiveAnswerer(
+            company_retriever,
+            refusal=COMPANY_REFUSAL,
+        )
+        self._company_answerer = generative_answerer_from_environment(
+            company_retriever,
+            company_fallback,
             refusal=COMPANY_REFUSAL,
         )
         case_documents = build_case_documents(pack.cases)
-        self._student_answerer = ExtractiveAnswerer(
-            Retriever(case_documents),
+        case_retriever = Retriever(case_documents)
+        student_fallback = ExtractiveAnswerer(
+            case_retriever,
+            refusal=STUDENT_REFUSAL,
+        )
+        self._student_answerer = generative_answerer_from_environment(
+            case_retriever,
+            student_fallback,
             refusal=STUDENT_REFUSAL,
         )
 

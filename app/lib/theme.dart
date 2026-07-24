@@ -14,10 +14,20 @@ import 'package:flutter/material.dart';
 /// that exists on the device wins, ending in a generic family that always does.
 const String kSerifFamily = 'Iowan Old Style';
 const List<String> kSerifFallback = <String>[
-  'Palatino', 'Palatino Linotype', 'Book Antiqua', 'Georgia', 'Times New Roman', 'serif',
+  'Palatino',
+  'Palatino Linotype',
+  'Book Antiqua',
+  'Georgia',
+  'Times New Roman',
+  'serif',
 ];
 const String kMonoFamily = 'Menlo';
-const List<String> kMonoFallback = <String>['SF Mono', 'Consolas', 'Roboto Mono', 'monospace'];
+const List<String> kMonoFallback = <String>[
+  'SF Mono',
+  'Consolas',
+  'Roboto Mono',
+  'monospace',
+];
 
 /// Every colour in the system, themed light and dark.
 @immutable
@@ -29,36 +39,72 @@ class KyrPalette extends ThemeExtension<KyrPalette> {
   final Color sos, sosDeep, sosTint, sosInk, onSos;
 
   const KyrPalette({
-    required this.paper, required this.canvas, required this.card, required this.card2,
-    required this.ink, required this.muted, required this.faint, required this.line,
-    required this.green, required this.greenDeep, required this.greenTint, required this.onGreen,
-    required this.gold, required this.goldTint, required this.goldInk,
-    required this.sos, required this.sosDeep, required this.sosTint, required this.sosInk,
+    required this.paper,
+    required this.canvas,
+    required this.card,
+    required this.card2,
+    required this.ink,
+    required this.muted,
+    required this.faint,
+    required this.line,
+    required this.green,
+    required this.greenDeep,
+    required this.greenTint,
+    required this.onGreen,
+    required this.gold,
+    required this.goldTint,
+    required this.goldInk,
+    required this.sos,
+    required this.sosDeep,
+    required this.sosTint,
+    required this.sosInk,
     required this.onSos,
   });
 
   static const KyrPalette light = KyrPalette(
-    paper: Color(0xFFF3EFE6), canvas: Color(0xFFEBE6D9),
-    card: Color(0xFFFFFFFF), card2: Color(0xFFFBF8F1),
-    ink: Color(0xFF17211B), muted: Color(0xFF5E6A61),
-    faint: Color(0xFF8A938B), line: Color(0xFFE5DFD1),
-    green: Color(0xFF124A34), greenDeep: Color(0xFF0E3B2A),
-    greenTint: Color(0xFFE7F0EA), onGreen: Color(0xFFF6F3EA),
-    gold: Color(0xFFA9792F), goldTint: Color(0xFFF2E8CF), goldInk: Color(0xFF7C561E),
-    sos: Color(0xFFC23B2E), sosDeep: Color(0xFF9E2C21), sosTint: Color(0xFFFBEAE6),
-    sosInk: Color(0xFF8E271D), onSos: Color(0xFFFDF3F0),
+    paper: Color(0xFFF3EFE6),
+    canvas: Color(0xFFEBE6D9),
+    card: Color(0xFFFFFFFF),
+    card2: Color(0xFFFBF8F1),
+    ink: Color(0xFF17211B),
+    muted: Color(0xFF5E6A61),
+    faint: Color(0xFF8A938B),
+    line: Color(0xFFE5DFD1),
+    green: Color(0xFF124A34),
+    greenDeep: Color(0xFF0E3B2A),
+    greenTint: Color(0xFFE7F0EA),
+    onGreen: Color(0xFFF6F3EA),
+    gold: Color(0xFFA9792F),
+    goldTint: Color(0xFFF2E8CF),
+    goldInk: Color(0xFF7C561E),
+    sos: Color(0xFFC23B2E),
+    sosDeep: Color(0xFF9E2C21),
+    sosTint: Color(0xFFFBEAE6),
+    sosInk: Color(0xFF8E271D),
+    onSos: Color(0xFFFDF3F0),
   );
 
   static const KyrPalette dark = KyrPalette(
-    paper: Color(0xFF1B231E), canvas: Color(0xFF161D19),
-    card: Color(0xFF242E28), card2: Color(0xFF2B352E),
-    ink: Color(0xFFEEE9DD), muted: Color(0xFFA6B2A8),
-    faint: Color(0xFF849388), line: Color(0xFF37423A),
-    green: Color(0xFF4FA97B), greenDeep: Color(0xFF3D8A63),
-    greenTint: Color(0xFF16241D), onGreen: Color(0xFF08110C),
-    gold: Color(0xFFD8B65E), goldTint: Color(0xFF241E10), goldInk: Color(0xFFE6C979),
-    sos: Color(0xFFE5695A), sosDeep: Color(0xFFC6483A), sosTint: Color(0xFF2A1613),
-    sosInk: Color(0xFFF0A99E), onSos: Color(0xFF1A0C09),
+    paper: Color(0xFF1B231E),
+    canvas: Color(0xFF161D19),
+    card: Color(0xFF242E28),
+    card2: Color(0xFF2B352E),
+    ink: Color(0xFFEEE9DD),
+    muted: Color(0xFFA6B2A8),
+    faint: Color(0xFF849388),
+    line: Color(0xFF37423A),
+    green: Color(0xFF4FA97B),
+    greenDeep: Color(0xFF3D8A63),
+    greenTint: Color(0xFF16241D),
+    onGreen: Color(0xFF08110C),
+    gold: Color(0xFFD8B65E),
+    goldTint: Color(0xFF241E10),
+    goldInk: Color(0xFFE6C979),
+    sos: Color(0xFFE5695A),
+    sosDeep: Color(0xFFC6483A),
+    sosTint: Color(0xFF2A1613),
+    sosInk: Color(0xFFF0A99E),
+    onSos: Color(0xFF1A0C09),
   );
 
   @override
@@ -78,17 +124,23 @@ extension KyrTheme on BuildContext {
   KyrPalette get kyr => Theme.of(this).extension<KyrPalette>()!;
 }
 
-TextStyle serifStyle({double? size, FontWeight? weight, Color? color, double? height}) => TextStyle(
-      fontFamily: kSerifFamily,
-      fontFamilyFallback: kSerifFallback,
-      fontSize: size,
-      fontWeight: weight ?? FontWeight.w600,
-      color: color,
-      height: height,
-      letterSpacing: -0.2,
-    );
+TextStyle serifStyle({
+  double? size,
+  FontWeight? weight,
+  Color? color,
+  double? height,
+}) => TextStyle(
+  fontFamily: kSerifFamily,
+  fontFamilyFallback: kSerifFallback,
+  fontSize: size,
+  fontWeight: weight ?? FontWeight.w600,
+  color: color,
+  height: height,
+  letterSpacing: -0.2,
+);
 
-TextStyle monoStyle({double? size, Color? color, FontWeight? weight}) => TextStyle(
+TextStyle monoStyle({double? size, Color? color, FontWeight? weight}) =>
+    TextStyle(
       fontFamily: kMonoFamily,
       fontFamilyFallback: kMonoFallback,
       fontSize: size ?? 12,
@@ -115,11 +167,11 @@ ThemeData buildKyrTheme(Brightness brightness) {
       onError: p.onSos,
     ),
     extensions: <ThemeExtension<dynamic>>[p],
-    textTheme: Typography.material2021(platform: TargetPlatform.iOS)
-        .black
-        .apply(bodyColor: p.ink, displayColor: p.ink),
+    textTheme: Typography.material2021(
+      platform: TargetPlatform.iOS,
+    ).black.apply(bodyColor: p.ink, displayColor: p.ink),
     appBarTheme: AppBarTheme(
-      backgroundColor: p.paper,
+      backgroundColor: p.paper.withValues(alpha: 0.88),
       foregroundColor: p.ink,
       elevation: 0,
       scrolledUnderElevation: 0.5,
@@ -135,7 +187,7 @@ ThemeData buildKyrTheme(Brightness brightness) {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: p.card,
+      backgroundColor: p.card.withValues(alpha: 0.9),
       indicatorColor: p.greenTint,
       surfaceTintColor: Colors.transparent,
       elevation: 0,

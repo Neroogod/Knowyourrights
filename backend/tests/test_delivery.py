@@ -39,6 +39,9 @@ def test_production_gateway_builds_email_and_sms_requests() -> None:
     assert b"reset_token" in requests[1].content
     assert b"contact-verification" in requests[2].content
     assert b"Custody+alert" in requests[3].content
+    assert b"StatusCallback=https%3A%2F%2Frights.example%2Fv1%2Fcustody-alerts%2Ftwilio-callback" in (
+        requests[3].content
+    )
 
 
 def test_production_gateway_reports_provider_failure() -> None:

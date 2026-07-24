@@ -105,6 +105,31 @@
   .profile-row{border-top:1px solid var(--line);padding:12px 0;}
   .profile-row small{display:block;color:var(--faint);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;}
   .profile-row strong{font-size:.95rem;}
+  .profile-section{border-top:1px solid var(--line);padding:16px 0;}
+  .profile-section h3{margin:0 0 4px;font-size:1rem;}
+  .profile-section>p{margin:0 0 12px;color:var(--muted);font-size:.8rem;}
+  .contact-card,.history-card,.alert-result{border:1px solid var(--line);background:var(--card-2);border-radius:14px;padding:12px;margin-top:9px;}
+  .contact-top,.history-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .contact-top strong,.history-top strong{font-size:.92rem;}
+  .contact-meta{color:var(--muted);font-size:.78rem;margin-top:3px;overflow-wrap:anywhere;}
+  .status-pill,.channel-pill{display:inline-block;border-radius:99px;padding:3px 8px;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+  .status-pill{color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);}
+  .status-pill.pending,.status-pill.failed{color:var(--sos);background:var(--sos-tint);}
+  .channel-pill{color:var(--muted);border:1px solid var(--line);margin:7px 4px 0 0;}
+  .profile-form{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px;}
+  .profile-form .wide{grid-column:1/-1;}
+  .channel-options{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:.78rem;}
+  .channel-options label{display:flex;align-items:center;gap:5px;}
+  .profile-action,.mini-action{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;font-weight:750;cursor:pointer;}
+  .profile-action{min-height:42px;padding:9px 12px;}
+  .mini-action{padding:6px 9px;font-size:.72rem;margin:8px 5px 0 0;}
+  .mini-action.danger{color:var(--sos);border-color:color-mix(in srgb,var(--sos) 45%,var(--line));}
+  .profile-message{min-height:18px;color:var(--muted);font-size:.76rem;margin-top:8px;}
+  .delivery-row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:7px;margin-top:7px;font-size:.75rem;}
+  .history-list{max-height:390px;overflow:auto;padding-right:2px;}
+  .alert-results{grid-column:1/-1;width:100%;}
+  .alert-result{font-size:.78rem;}
+  @media(max-width:520px){.profile-form{grid-template-columns:1fr}.profile-form .wide,.channel-options{grid-column:auto}}
   .signout{width:100%;padding:11px;border:1px solid var(--sos);border-radius:11px;background:transparent;color:var(--sos);
     font:inherit;font-weight:750;cursor:pointer;}
   .confirm-dialog{width:min(calc(100% - 32px),460px);border:1px solid var(--line);border-radius:22px;padding:0;background:var(--card);color:var(--ink);box-shadow:var(--shadow-lg);}
@@ -383,10 +408,14 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a7 7 0 00-7 7c0 5-3 6-3 6h20s-3-1-3-6a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20a2 2 0 004 0" stroke-linecap="round"/></svg>
         </span>
         <div><h4>Custody Alert</h4><p id="custodyStatus">Alert your verified emergency contact and share your location when available.</p></div>
+        <input class="field" id="custodyStation" placeholder="Station name (optional)" />
         <div class="alert-actions">
           <button class="go primary" id="custodyAlert" type="button">Send alert</button>
           <button class="go" id="custodySms" type="button">Send SMS</button>
+          <button class="go" id="custodyTest" type="button">Test alert</button>
+          <button class="go" id="safeWalk" type="button">Safe Walk</button>
         </div>
+        <div class="alert-results" id="custodyResults" aria-live="polite"></div>
       </div>
 
       <button class="askbar" onclick="go('ask')">
@@ -480,12 +509,15 @@
     </div>
   </dialog>
 
-<script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
   const API = "/v1";
   let TOPICS = [], SCENARIOS = [], OBLIGATIONS = [], COMPANY_CHECKLISTS = [];
   let ACCOUNT_PROFILE = null, EMERGENCY_CONTACTS = [], AUTH_MODE = "register", RESET_TOKEN = "", SIGNUP_STEP = 1;
+  let ALERT_COUNTDOWN = null;
   const REMEMBERED_EMAIL = localStorage.getItem("kyr_email") || "";
   let AUTH_TOKEN = localStorage.getItem("kyr_access_token") || sessionStorage.getItem("kyr_access_token") || "";
+  let SUPABASE_AUTH = null;
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const HOME_TRIGGERS = [
     {id:"police-want-to-search-phone", label:"Police want my phone"},
@@ -561,6 +593,13 @@
     setAccountStatus("");
   }
   async function login(email,password){
+    if(SUPABASE_AUTH){
+      const {data,error}=await SUPABASE_AUTH.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      AUTH_TOKEN=data.session.access_token;
+      localStorage.setItem("kyr_email",email);
+      return;
+    }
     const token=await apiJson("/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
     AUTH_TOKEN=token.access_token;
     const remember=document.getElementById("rememberLogin").checked;
@@ -576,15 +615,27 @@
   async function loadAccount(){
     ACCOUNT_PROFILE=await apiJson("/profile",{headers:authHeaders()});
     EMERGENCY_CONTACTS=await apiJson("/emergency-contacts",{headers:authHeaders()});
-    return ACCOUNT_PROFILE.onboarding_complete&&EMERGENCY_CONTACTS.some(contact=>contact.status==="verified");
+    await restoreSafeWalk();
+    return ACCOUNT_PROFILE.onboarding_complete;
+  }
+  async function restoreSafeWalk(){
+    try{
+      const active=await apiJson("/check-ins/active",{headers:authHeaders()});
+      const button=document.getElementById("safeWalk");
+      button.dataset.checkInId=active?.id||"";
+      button.textContent=active?"I'm safe — stop timer":"Safe Walk";
+      if(active) document.getElementById("custodyStatus").textContent=`Safe Walk is active until ${new Date(active.due_at).toLocaleString()}.`;
+    }catch(_error){}
   }
   function showApp(){
     document.getElementById("accountGate").hidden=true;
     document.getElementById("profileButton").hidden=false;
     const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
     if(contact) document.getElementById("custodyStatus").textContent=`Ready to alert ${contact.name}.`;
+    else document.getElementById("custodyStatus").textContent="Your profile is ready. Add or verify an emergency contact to enable alerts.";
   }
-  function signOut(){
+  async function signOut(){
+    if(SUPABASE_AUTH) await SUPABASE_AUTH.auth.signOut({scope:"local"});
     AUTH_TOKEN="";
     ACCOUNT_PROFILE=null;
     EMERGENCY_CONTACTS=[];
@@ -598,16 +649,125 @@
     document.getElementById("accountEmail").value=localStorage.getItem("kyr_email")||"";
     document.getElementById("rememberLogin").checked=true;
   }
-  function openProfile(){
-    const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
+  function contactCard(contact){
+    const channels=(contact.channels||["sms"]).map(channel=>`<span class="channel-pill">${esc(channel)}</span>`).join("");
+    return `<div class="contact-card">
+      <div class="contact-top"><div><strong>${esc(contact.name)}</strong><div class="contact-meta">${esc(contact.phone)}${contact.email?" · "+esc(contact.email):""}</div></div>
+      <span class="status-pill ${contact.status==="verified"?"":"pending"}">${esc(contact.status)}</span></div>
+      <div>${channels}</div>
+      <button class="mini-action danger" type="button" onclick="removeWebContact('${esc(contact.id)}')">Remove</button>
+    </div>`;
+  }
+  function renderProfile(){
+    const remaining=3-EMERGENCY_CONTACTS.length;
     document.getElementById("profileDetails").innerHTML=`
       <div class="profile-row"><small>Name</small><strong>${esc(ACCOUNT_PROFILE.full_name)}</strong></div>
       <div class="profile-row"><small>Email</small><strong>${esc(ACCOUNT_PROFILE.email)}</strong></div>
       <div class="profile-row"><small>Phone</small><strong>${esc(ACCOUNT_PROFILE.phone)}</strong></div>
-      <div class="profile-row"><small>Verified emergency contact</small><strong>${contact?esc(contact.name)+" · "+esc(contact.phone):"Not configured"}</strong></div>`;
+      <section class="profile-section"><h3>Emergency contacts</h3><p>Add up to three people and choose how each should be contacted.</p>
+        ${EMERGENCY_CONTACTS.length?EMERGENCY_CONTACTS.map(contactCard).join(""):'<div class="contact-meta">No emergency contacts yet.</div>'}
+        ${remaining>0?`<form class="profile-form" id="contactForm">
+          <label class="field-label">Name<input id="newContactName" minlength="2" required></label>
+          <label class="field-label">Phone<input id="newContactPhone" type="tel" pattern="\\+?[0-9]{8,15}" placeholder="+234…" required></label>
+          <label class="field-label wide">Email (for email alerts)<input id="newContactEmail" type="email"></label>
+          <div class="channel-options">
+            <label><input type="checkbox" name="contactChannel" value="sms" checked>SMS</label>
+            <label><input type="checkbox" name="contactChannel" value="whatsapp">WhatsApp</label>
+            <label><input type="checkbox" name="contactChannel" value="email">Email</label>
+          </div>
+          <button class="profile-action wide" type="submit">Add contact (${remaining} remaining)</button>
+        </form>`:"<p>You have reached the three-contact limit.</p>"}
+        <div class="profile-message" id="profileMessage" role="status"></div>
+      </section>
+      <section class="profile-section"><div class="contact-top"><div><h3>Alert history</h3><p class="contact-meta">Delivery status for every contact and channel.</p></div>
+        <button class="profile-action" type="button" onclick="loadAlertHistory()">Refresh</button></div>
+        <div class="history-list" id="alertHistory"><div class="contact-meta">Loading…</div></div>
+      </section>`;
+    document.getElementById("contactForm")?.addEventListener("submit",addWebContact);
+    loadAlertHistory();
+  }
+  function openProfile(){
+    renderProfile();
     document.getElementById("profilePanel").hidden=false;
   }
+  async function addWebContact(event){
+    event.preventDefault();
+    const message=document.getElementById("profileMessage");
+    const channels=[...document.querySelectorAll('input[name="contactChannel"]:checked')].map(input=>input.value);
+    if(!channels.length){message.textContent="Choose at least one alert channel.";return;}
+    const email=document.getElementById("newContactEmail").value.trim()||null;
+    if(channels.includes("email")&&!email){message.textContent="Add an email address to enable email alerts.";return;}
+    message.textContent="Sending the contact invitation…";
+    try{
+      const contact=await apiJson("/emergency-contacts",{method:"POST",headers:authHeaders(),body:JSON.stringify({
+        name:document.getElementById("newContactName").value.trim(),
+        phone:document.getElementById("newContactPhone").value.trim(),email,channels
+      })});
+      if(contact.development_verification_token){
+        await apiJson("/emergency-contacts/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:contact.development_verification_token})});
+      }
+      EMERGENCY_CONTACTS=await apiJson("/emergency-contacts",{headers:authHeaders()});
+      renderProfile();
+      document.getElementById("profileMessage").textContent=contact.development_verification_token
+        ?"Contact added and verified in local development mode."
+        :"Invitation sent. Alerts remain disabled until the contact confirms.";
+    }catch(error){message.textContent=error.message;}
+  }
+  async function removeWebContact(id){
+    if(!confirm("Remove this emergency contact?"))return;
+    try{
+      await apiJson(`/emergency-contacts/${id}`,{method:"DELETE",headers:authHeaders()});
+      EMERGENCY_CONTACTS=await apiJson("/emergency-contacts",{headers:authHeaders()});
+      renderProfile();
+    }catch(error){document.getElementById("profileMessage").textContent=error.message;}
+  }
+  function historyCard(alert){
+    const closed=["cancelled","resolved"].includes(alert.status);
+    const failed=(alert.deliveries||[]).some(delivery=>delivery.status==="failed");
+    const deliveries=(alert.deliveries||[]).map(delivery=>`<div class="delivery-row"><span>${esc(delivery.channel)}</span><strong>${esc(delivery.status)} · ${delivery.attempts} attempt(s)</strong></div>`).join("");
+    return `<article class="history-card">
+      <div class="history-top"><div><strong>${alert.is_test?"Test · ":""}${esc(alert.contact_name||"Emergency contact")}</strong>
+      <div class="contact-meta">${new Date(alert.triggered_at).toLocaleString()}${alert.station_name?" · "+esc(alert.station_name):""}</div></div>
+      <span class="status-pill ${alert.status==="failed"?"failed":""}">${esc(alert.status)}</span></div>
+      ${deliveries||'<div class="contact-meta">No delivery events yet.</div>'}
+      <button class="mini-action" onclick="refreshWebAlert('${esc(alert.id)}')">Refresh</button>
+      ${failed&&!closed?`<button class="mini-action" onclick="updateWebAlert('${esc(alert.id)}','retry')">Retry</button>`:""}
+      ${!closed?`<button class="mini-action danger" onclick="updateWebAlert('${esc(alert.id)}','cancel')">False alarm</button>
+      <button class="mini-action" onclick="updateWebAlert('${esc(alert.id)}','resolve')">I'm safe</button>`:""}
+      ${alert.tracking_url?`<a class="mini-action" href="${esc(alert.tracking_url)}" target="_blank" rel="noopener">Status page</a>`:""}
+    </article>`;
+  }
+  async function loadAlertHistory(){
+    const list=document.getElementById("alertHistory"); if(!list)return;
+    try{
+      const alerts=await apiJson("/custody-alerts?limit=30",{headers:authHeaders()});
+      list.innerHTML=alerts.length?alerts.map(historyCard).join(""):'<div class="contact-meta">No alerts have been sent.</div>';
+    }catch(error){list.innerHTML=`<div class="contact-meta">${esc(error.message)}</div>`;}
+  }
+  async function refreshWebAlert(id){
+    try{await apiJson(`/custody-alerts/${id}`,{headers:authHeaders()});await loadAlertHistory();}
+    catch(error){document.getElementById("profileMessage").textContent=error.message;}
+  }
+  async function updateWebAlert(id,action){
+    try{await apiJson(`/custody-alerts/${id}/${action}`,{method:"POST",headers:authHeaders()});await loadAlertHistory();}
+    catch(error){document.getElementById("profileMessage").textContent=error.message;}
+  }
   async function registerAccount(email,password){
+    if(SUPABASE_AUTH){
+      localStorage.setItem("kyr_pending_profile",JSON.stringify({
+        full_name:document.getElementById("profileName").value.trim(),
+        phone:document.getElementById("profilePhone").value.trim(),
+        contact_name:document.getElementById("contactName").value.trim(),
+        contact_phone:document.getElementById("contactPhone").value.trim()
+      }));
+      const {error}=await SUPABASE_AUTH.auth.signUp({
+        email,password,
+        options:{emailRedirectTo:window.location.origin+"/"}
+      });
+      if(error) throw error;
+      setAuthMode("login");
+      throw new Error("Check your email for the verification link, then sign in to finish your profile.");
+    }
     const registered=await apiJson("/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
     if(registered.account_exists){
       const resent=await apiJson("/auth/resend-verification",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
@@ -649,13 +809,30 @@
     setAccountStatus(AUTH_MODE==="register"?"Creating and verifying your profile…":AUTH_MODE==="reset"?"Resetting password…":"Signing in…");
     try{
       if(AUTH_MODE==="reset"){
-        await apiJson("/auth/reset-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:RESET_TOKEN,password})});
+        if(SUPABASE_AUTH){
+          const {error}=await SUPABASE_AUTH.auth.updateUser({password});
+          if(error) throw error;
+        }else{
+          await apiJson("/auth/reset-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:RESET_TOKEN,password})});
+        }
         RESET_TOKEN="";
         setAuthMode("login");
         setAccountStatus("Password reset. Sign in with your new password.");
         return;
       }
       if(AUTH_MODE==="register") await registerAccount(email,password); else await login(email,password);
+      if(SUPABASE_AUTH&&AUTH_MODE==="login"){
+        const pending=JSON.parse(localStorage.getItem("kyr_pending_profile")||"null");
+        if(pending){
+          await apiJson("/profile",{method:"PUT",headers:authHeaders(),body:JSON.stringify({
+            full_name:pending.full_name,phone:pending.phone
+          })});
+          await apiJson("/emergency-contacts",{method:"POST",headers:authHeaders(),body:JSON.stringify({
+            name:pending.contact_name,phone:pending.contact_phone
+          })});
+          localStorage.removeItem("kyr_pending_profile");
+        }
+      }
       const ready=await loadAccount();
       if(!ready) throw new Error("Finish your profile and verify an emergency contact before continuing.");
       showApp();
@@ -672,6 +849,14 @@
     if(!email){ setAccountStatus("Enter your email address first.",true); return; }
     setAccountStatus("Preparing your password reset…");
     try{
+      if(SUPABASE_AUTH){
+        const {error}=await SUPABASE_AUTH.auth.resetPasswordForEmail(email,{
+          redirectTo:window.location.origin+"/"
+        });
+        if(error) throw error;
+        setAccountStatus("If an account exists, a password reset link has been sent.");
+        return;
+      }
       const result=await apiJson("/auth/forgot-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
       if(result.development_reset_token){
         RESET_TOKEN=result.development_reset_token;
@@ -683,6 +868,10 @@
     }catch(error){ setAccountStatus(error.message,true); }
   }
   async function restoreAccount(){
+    if(SUPABASE_AUTH){
+      const {data}=await SUPABASE_AUTH.auth.getSession();
+      AUTH_TOKEN=data.session?.access_token||"";
+    }
     if(!AUTH_TOKEN) return;
     try{
       if(await loadAccount()) showApp();
@@ -701,34 +890,86 @@
     });
   }
   function confirmCustodyAlert(){
-    const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
-    if(!contact){
+    const contacts=EMERGENCY_CONTACTS.filter(item=>item.status==="verified").slice(0,3);
+    if(!contacts.length){
       document.getElementById("custodyStatus").textContent="Add and verify an emergency contact in your profile first.";
       return;
     }
-    document.getElementById("alertRecipient").textContent=contact.name;
+    document.getElementById("alertRecipient").textContent=contacts.map(item=>item.name).join(", ");
     document.getElementById("alertConfirm").showModal();
+    const send=document.getElementById("alertSendNow");
+    let seconds=5;
+    send.disabled=true;
+    send.textContent=`Send in ${seconds}s`;
+    clearInterval(ALERT_COUNTDOWN);
+    ALERT_COUNTDOWN=setInterval(()=>{
+      seconds-=1;
+      send.textContent=seconds>0?`Send in ${seconds}s`:"Send alert now";
+      if(seconds<=0){clearInterval(ALERT_COUNTDOWN);ALERT_COUNTDOWN=null;send.disabled=false;}
+    },1000);
   }
-  async function sendCustodyAlert(){
+  async function sendCustodyAlert(isTest=false){
+    clearInterval(ALERT_COUNTDOWN);
+    ALERT_COUNTDOWN=null;
     document.getElementById("alertConfirm").close();
     const button=document.getElementById("custodyAlert");
     const status=document.getElementById("custodyStatus");
-    const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
-    if(!contact){ status.textContent="Add and verify an emergency contact in your profile first."; return; }
+    const contacts=EMERGENCY_CONTACTS.filter(item=>item.status==="verified").slice(0,3);
+    if(!contacts.length){ status.textContent="Add and verify an emergency contact in your profile first."; return; }
     button.disabled=true;
-    status.textContent="Getting your location and alerting "+contact.name+"…";
+    status.textContent="Getting your location and alerting "+contacts.length+" contact(s)…";
     try{
       const location=await currentLocation();
       const idempotency=(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()).toString();
-      const result=await apiJson("/custody-alerts",{method:"POST",headers:authHeaders(),body:JSON.stringify({
-        contact_id:contact.id,idempotency_key:idempotency,...(location||{})
-      })});
-      if(result.status!=="sent") throw new Error("Alert delivery failed");
-      status.textContent=`Alert ${result.status} for ${contact.name}${result.location_shared?" with your location":" without location"}.`;
+      const station=document.getElementById("custodyStation").value.trim()||null;
+      const results=await Promise.all(contacts.map((contact,index)=>apiJson("/custody-alerts",{
+        method:"POST",headers:authHeaders(),body:JSON.stringify({
+          contact_id:contact.id,idempotency_key:idempotency+"-"+index,
+          station_name:station,is_test:isTest,...(location||{})
+        })
+      })));
+      status.textContent=isTest
+        ?`Test alert sent to ${contacts.length} contact(s).`
+        :`Alerts accepted for ${contacts.length} contact(s)${results[0].location_shared?" with your location":" without location"}.`;
+      document.getElementById("custodyResults").innerHTML=results.map(result=>`
+        <div class="alert-result"><strong>${esc(result.contact_name||"Emergency contact")}</strong> · ${esc(result.status)}
+        ${(result.deliveries||[]).map(delivery=>`<span class="channel-pill">${esc(delivery.channel)}: ${esc(delivery.status)}</span>`).join("")}
+        ${result.tracking_url?`<a class="mini-action" href="${esc(result.tracking_url)}" target="_blank" rel="noopener">Open status</a>`:""}
+        <button class="mini-action danger" onclick="updateHomeAlert('${esc(result.id)}','cancel')">False alarm</button>
+        <button class="mini-action" onclick="updateHomeAlert('${esc(result.id)}','resolve')">I'm safe</button></div>`).join("");
     }catch(error){
       status.textContent="The alert service could not be reached. Opening an SMS fallback…";
-      window.location.href="sms:"+encodeURIComponent(contact.phone)+"?body="+encodeURIComponent(CUSTODY_ALERT);
+      window.location.href="sms:"+encodeURIComponent(contacts[0].phone)+"?body="+encodeURIComponent(CUSTODY_ALERT);
     }finally{ button.disabled=false; }
+  }
+  async function updateHomeAlert(id,action){
+    try{
+      const result=await apiJson(`/custody-alerts/${id}/${action}`,{method:"POST",headers:authHeaders()});
+      document.getElementById("custodyStatus").textContent=action==="resolve"?"You are marked safe.":"The alert was cancelled as a false alarm.";
+      document.getElementById("custodyResults").innerHTML=historyCard(result);
+    }catch(error){document.getElementById("custodyStatus").textContent=error.message;}
+  }
+  async function startSafeWalk(){
+    const minutes=Number(prompt("Alert your contacts if you do not check in after how many minutes?","15"));
+    if(!minutes||minutes<1||minutes>1440)return;
+    const station=document.getElementById("custodyStation").value.trim()||null;
+    try{
+      const result=await apiJson("/check-ins",{method:"POST",headers:authHeaders(),body:JSON.stringify({
+        minutes,station_name:station
+      })});
+      document.getElementById("custodyStatus").textContent=`Safe Walk armed until ${result.due_at}.`;
+      document.getElementById("safeWalk").textContent="I'm safe — stop timer";
+      document.getElementById("safeWalk").dataset.checkInId=result.id;
+    }catch(error){document.getElementById("custodyStatus").textContent=error.message;}
+  }
+  async function toggleSafeWalk(){
+    const button=document.getElementById("safeWalk");
+    if(button.dataset.checkInId){
+      await apiJson(`/check-ins/${button.dataset.checkInId}/safe`,{method:"POST",headers:authHeaders()});
+      button.dataset.checkInId="";
+      button.textContent="Safe Walk";
+      document.getElementById("custodyStatus").textContent="Safe Walk stopped. You are marked safe.";
+    }else await startSafeWalk();
   }
   async function openCustodySms(){
     const button=document.getElementById("custodySms");
@@ -931,8 +1172,14 @@
   document.getElementById("signOut").onclick=signOut;
   document.getElementById("custodyAlert").onclick=confirmCustodyAlert;
   document.getElementById("custodySms").onclick=openCustodySms;
-  document.getElementById("alertCancel").onclick=()=>document.getElementById("alertConfirm").close();
-  document.getElementById("alertSendNow").onclick=sendCustodyAlert;
+  document.getElementById("custodyTest").onclick=()=>sendCustodyAlert(true);
+  document.getElementById("safeWalk").onclick=toggleSafeWalk;
+  document.getElementById("alertCancel").onclick=()=>{
+    clearInterval(ALERT_COUNTDOWN);
+    ALERT_COUNTDOWN=null;
+    document.getElementById("alertConfirm").close();
+  };
+  document.getElementById("alertSendNow").onclick=()=>sendCustodyAlert(false);
   setAuthMode("register");
   if(REMEMBERED_EMAIL){
     document.getElementById("accountEmail").value=REMEMBERED_EMAIL;
@@ -980,7 +1227,39 @@
       document.getElementById("homeTopics").innerHTML = `<p class="muted-note">Couldn't load content. Check your connection and refresh.</p>`;
     }
   }
-  restoreAccount();
+  async function initializeAuth(){
+    try{
+      const config=await fetch(API+"/auth/config").then(response=>response.json());
+      if(config.provider==="supabase"){
+        const storage={
+          getItem:key=>localStorage.getItem(key)||sessionStorage.getItem(key),
+          setItem:(key,value)=>{
+            const remember=document.getElementById("rememberLogin").checked;
+            (remember?localStorage:sessionStorage).setItem(key,value);
+            (remember?sessionStorage:localStorage).removeItem(key);
+          },
+          removeItem:key=>{localStorage.removeItem(key);sessionStorage.removeItem(key);}
+        };
+        SUPABASE_AUTH=window.supabase.createClient(
+          config.supabase_url,
+          config.supabase_publishable_key,
+          {auth:{flowType:"pkce",detectSessionInUrl:true,persistSession:true,storage}}
+        );
+        SUPABASE_AUTH.auth.onAuthStateChange((event,session)=>{
+          AUTH_TOKEN=session?.access_token||"";
+          if(event==="PASSWORD_RECOVERY"){
+            RESET_TOKEN="supabase";
+            setAuthMode("reset");
+            setAccountStatus("Reset link verified. Enter your new password.");
+          }
+        });
+      }
+    }catch(error){
+      setAccountStatus("Authentication configuration could not be loaded.",true);
+    }
+    await restoreAccount();
+  }
+  initializeAuth();
   boot();
 </script>
 </body>

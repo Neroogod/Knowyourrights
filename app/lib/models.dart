@@ -313,7 +313,9 @@ class CaseBrief {
     sourceUrl: json['source_url'] as String?,
     linkedTopicIds: (json['linked_topic_ids'] as List? ?? []).cast<String>(),
     interpretations: (json['interpretations'] as List? ?? [])
-        .map((item) => CaseInterpretation.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) => CaseInterpretation.fromJson(item as Map<String, dynamic>),
+        )
         .toList(),
     citations: (json['citations'] as List? ?? [])
         .map((c) => Citation.fromJson(c as Map<String, dynamic>))

@@ -14,6 +14,12 @@ const String kBaseUrl = String.fromEnvironment(
   // flutter run --dart-define=KYR_BASE_URL=http://127.0.0.1:8000
   defaultValue: 'https://knowyourrights-api.onrender.com',
 );
+const String kSupabaseUrl = String.fromEnvironment('SUPABASE_URL');
+const String kSupabasePublishableKey = String.fromEnvironment(
+  'SUPABASE_PUBLISHABLE_KEY',
+);
+const bool kSupabaseConfigured =
+    kSupabaseUrl != '' && kSupabasePublishableKey != '';
 const String _cacheKey = 'kyr_content_pack_v1';
 const String _disclaimer =
     'This is legal information, not legal advice. For advice on your specific '
@@ -293,7 +299,9 @@ class ContentRepository {
       );
     }
     final best = results.first;
-    final buffer = StringBuffer('${best.name}\n\n${best.summary}\n\nRatio:\n${best.ratio}');
+    final buffer = StringBuffer(
+      '${best.name}\n\n${best.summary}\n\nRatio:\n${best.ratio}',
+    );
     return AskResponse(
       refused: false,
       answer: buffer.toString(),

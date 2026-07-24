@@ -16,9 +16,20 @@ class DeliveryGateway(Protocol):
 
     def send_password_reset(self, email: str, token: str) -> None: ...
 
-    def send_contact_verification(self, phone: str, name: str, token: str) -> None: ...
+    def send_contact_verification(
+        self,
+        phone: str,
+        name: str,
+        token: str,
+        decline_token: str | None = None,
+        withdrawal_token: str | None = None,
+    ) -> None: ...
 
     def send_custody_alert(self, phone: str, message: str) -> str: ...
+
+    def send_custody_alert_channel(
+        self, channel: str, destination: str, message: str
+    ) -> str: ...
 
 
 class DevelopmentGateway:
@@ -28,6 +39,8 @@ class DevelopmentGateway:
         self.email_tokens: dict[str, str] = {}
         self.reset_tokens: dict[str, str] = {}
         self.contact_tokens: dict[str, str] = {}
+        self.contact_decline_tokens: dict[str, str] = {}
+        self.contact_withdrawal_tokens: dict[str, str] = {}
         self.alerts: list[tuple[str, str]] = []
 
     def send_email_verification(self, email: str, token: str) -> None:
@@ -36,12 +49,29 @@ class DevelopmentGateway:
     def send_password_reset(self, email: str, token: str) -> None:
         self.reset_tokens[email] = token
 
-    def send_contact_verification(self, phone: str, name: str, token: str) -> None:
+    def send_contact_verification(
+        self,
+        phone: str,
+        name: str,
+        token: str,
+        decline_token: str | None = None,
+        withdrawal_token: str | None = None,
+    ) -> None:
         self.contact_tokens[phone] = token
+        if decline_token:
+            self.contact_decline_tokens[phone] = decline_token
+        if withdrawal_token:
+            self.contact_withdrawal_tokens[phone] = withdrawal_token
 
     def send_custody_alert(self, phone: str, message: str) -> str:
         self.alerts.append((phone, message))
         return f"dev-{len(self.alerts)}"
+
+    def send_custody_alert_channel(
+        self, channel: str, destination: str, message: str
+    ) -> str:
+        self.alerts.append((f"{channel}:{destination}", message))
+        return f"dev-{channel}-{len(self.alerts)}"
 
 
 class ProductionGateway:
@@ -98,18 +128,75 @@ class ProductionGateway:
         link = f"{self.public_base_url}/?{query}"
         self._send_email(email, "Reset your Know Your Rights password", f"Reset your password: {link}")
 
-    def send_contact_verification(self, phone: str, name: str, token: str) -> None:
-        link = f"{self.public_base_url}/contact-verification?{urlencode({'token': token})}"
+    def send_contact_verification(
+        self,
+        phone: str,
+        name: str,
+        token: str,
+        decline_token: str | None = None,
+        withdrawal_token: str | None = None,
+    ) -> None:
+        confirm = f"{self.public_base_url}/contact-verification?{urlencode({'token': token})}"
+        decline = (
+            f"{self.public_base_url}/contact-decline?{urlencode({'token': decline_token})}"
+            if decline_token
+            else ""
+        )
+        withdraw = (
+            f"{self.public_base_url}/contact-withdraw?{urlencode({'token': withdrawal_token})}"
+            if withdrawal_token
+            else ""
+        )
         self._send_sms(
             phone,
             f"{name}, you were added as a Know Your Rights emergency contact. "
-            f"Confirm that you consent to receive custody alerts: {link}",
+            f"Confirm consent: {confirm}. Decline: {decline}. "
+            f"You can withdraw later: {withdraw}",
         )
 
     def send_custody_alert(self, phone: str, message: str) -> str:
-        return self._send_sms(phone, message)
+        return self._send_sms(
+            phone,
+            message,
+            status_callback=f"{self.public_base_url}/v1/custody-alerts/twilio-callback",
+        )
 
-    def _send_email(self, email: str, subject: str, text: str) -> None:
+    def send_custody_alert_channel(
+        self, channel: str, destination: str, message: str
+    ) -> str:
+        if channel == "email":
+            return self._send_email(
+                destination,
+                "Custody Alert from Know Your Rights",
+                message,
+            )
+        if channel == "whatsapp":
+            whatsapp_from = os.getenv("TWILIO_WHATSAPP_FROM")
+            if not whatsapp_from:
+                raise DeliveryError("WhatsApp delivery is not configured")
+            return self._send_sms(
+                f"whatsapp:{destination.removeprefix('whatsapp:')}",
+                message,
+                sender=f"whatsapp:{whatsapp_from.removeprefix('whatsapp:')}",
+            )
+        if channel == "push":
+            webhook = os.getenv("KYR_PUSH_WEBHOOK_URL")
+            secret = os.getenv("KYR_PUSH_WEBHOOK_SECRET")
+            if not webhook or not secret:
+                raise DeliveryError("push delivery is not configured")
+            try:
+                response = self.client.post(
+                    webhook,
+                    headers={"Authorization": f"Bearer {secret}"},
+                    json={"token": destination, "title": "Custody Alert", "body": message},
+                )
+                response.raise_for_status()
+                return str(response.json().get("id") or f"push-{destination[:12]}")
+            except httpx.HTTPError as error:
+                raise DeliveryError("push provider did not accept the message") from error
+        raise DeliveryError("unsupported delivery channel")
+
+    def _send_email(self, email: str, subject: str, text: str) -> str:
         try:
             response = self.client.post(
                 "https://api.resend.com/emails",
@@ -120,19 +207,27 @@ class ProductionGateway:
                 json={"from": self.email_from, "to": [email], "subject": subject, "text": text},
             )
             response.raise_for_status()
+            return str(response.json().get("id") or f"email-{email}")
         except httpx.HTTPError as error:
             raise DeliveryError("email provider did not accept the message") from error
 
-    def _send_sms(self, phone: str, body: str) -> str:
-        url = (
-            "https://api.twilio.com/2010-04-01/Accounts/"
-            f"{self.twilio_account_sid}/Messages.json"
-        )
+    def _send_sms(
+        self,
+        phone: str,
+        body: str,
+        *,
+        status_callback: str | None = None,
+        sender: str | None = None,
+    ) -> str:
+        url = "https://api.twilio.com/2010-04-01/Accounts/" f"{self.twilio_account_sid}/Messages.json"
         try:
+            data = {"To": phone, "From": sender or self.twilio_from, "Body": body}
+            if status_callback:
+                data["StatusCallback"] = status_callback
             response = self.client.post(
                 url,
                 auth=(self.twilio_account_sid, self.twilio_auth_token),
-                data={"To": phone, "From": self.twilio_from, "Body": body},
+                data=data,
             )
             response.raise_for_status()
             message_id = response.json().get("sid")

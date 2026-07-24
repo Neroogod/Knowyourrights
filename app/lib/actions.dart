@@ -5,6 +5,8 @@
 // MVP, so they open the phone dialer for the user to place the call.
 
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import 'models.dart';
 
@@ -148,4 +150,24 @@ Future<bool> prepareCustodyAlert({
     buildCustodyAlertUri(phone: phone, message: message),
     mode: LaunchMode.externalApplication,
   );
+}
+
+/// Send the intentionally triggered alert directly on Android when permitted.
+/// iOS does not allow silent SMS and always returns false for composer fallback.
+Future<bool> sendCustodyAlertDirect({
+  required String phone,
+  String message = custodyAlertMessage,
+}) async {
+  if (defaultTargetPlatform != TargetPlatform.android) return false;
+  try {
+    return await const MethodChannel(
+          'ng.knowyourrights/safety',
+        ).invokeMethod<bool>('sendDirectSms', {
+          'phone': phone,
+          'message': message,
+        }) ??
+        false;
+  } on PlatformException {
+    return false;
+  }
 }

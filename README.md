@@ -12,11 +12,11 @@ MVP slice described in `../MVP.md`.
   every one carrying citations to specific constitutional provisions.
 - **Backend API** (`backend/`) - FastAPI service for reference, scenarios, directory, search,
   and a gated Q&A endpoint.
-- **Grounded Q&A** (`backend/rag/`) - retrieval over **verified content only** with a hard
-  **cite-or-refuse** guarantee: an answer is either backed by a citation or it refuses. The
-  default answerer is extractive (no free-text generation), so hallucinated legal advice is
-  structurally impossible. The `Answerer`/`Embedder` interfaces let a hosted LLM be swapped in
-  later without changing callers.
+- **Grounded AI Q&A** (`backend/rag/`) - retrieval over **verified content only** with a hard
+  **cite-or-refuse** guarantee. With `OPENAI_API_KEY` configured, the backend uses the Responses
+  API to explain retrieved evidence in clearer language. The model may select only stored source
+  IDs; the backend resolves those IDs to citations and rejects invented or missing sources. With
+  no key—or whenever generation or validation fails—the deterministic extractive answerer is used.
 - **Mobile app** (`app/`) - the Flutter client (iOS + Android). Loads the content pack, caches
   it for offline use, and falls back to an offline cite-or-refuse answer when there is no
   network. First launch is account-gated: verified email, personal profile, and a verified
@@ -34,6 +34,9 @@ MVP slice described in `../MVP.md`.
 
 - Only `verified` content is indexed for Q&A; unverified/community content can never reach it.
 - A non-refusal answer must include at least one citation (enforced in code and tested).
+- Generated answers can cite only source IDs present in the retrieved verified evidence.
+- AI generation is server-side only; credentials and personal safety/profile data never enter
+  the Flutter or web clients' prompts.
 - A persistent "information, not advice" disclaimer is attached to every answer.
 - Content is validated on build: a `verified` topic without a citation fails the build.
 
@@ -89,6 +92,18 @@ unaffected: they are hand-authored and lawyer-checked, not parsed.
 uvicorn backend.api:create_app --factory --host 127.0.0.1 --port 8000
 ```
 
+To enable grounded AI answers, supply the API key only to the backend:
+
+```bash
+OPENAI_API_KEY=your-server-side-key \
+KYR_OPENAI_MODEL=gpt-5.6-terra \
+uvicorn backend.api:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+`KYR_OPENAI_MODEL` is optional. Without `OPENAI_API_KEY`, all Ask screens continue to use the
+local extractive cite-or-refuse implementation. Custody Alert, SMS, location sharing, account
+profiles, and emergency contacts never use the AI answerer.
+
 For local account/onboarding testing, enable the non-sending delivery adapter. Verification
 tokens are returned only in this mode, allowing the Flutter setup flow to complete without
 contacting real email addresses or phone numbers:
@@ -113,13 +128,76 @@ KYR_EMAIL_FROM='Know Your Rights <safety@your-verified-domain.example>' \
 TWILIO_ACCOUNT_SID=AC... \
 TWILIO_AUTH_TOKEN=... \
 TWILIO_FROM=+1... \
+KYR_DELIVERY_WEBHOOK_SECRET=replace-with-a-separate-random-secret \
 DATABASE_URL=postgresql+psycopg://... \
 uvicorn backend.api:create_app --factory --host 0.0.0.0 --port 8000
 ```
 
 Use restricted production credentials and deployment secrets; never commit them. `TWILIO_FROM`
 must be a sender capable of reaching the contact's country. Provider acceptance marks an alert
-`sent`; rejection marks it `failed`, allowing the client to open its device-SMS fallback.
+`sent`; it becomes `delivered` only after a signature-verified Twilio callback. Rejection marks it
+`failed`, allowing the client to open its device-SMS fallback. Failed relay attempts retry in the
+background with bounded exponential backoff. Users can cancel false alarms or mark an incident
+resolved, and precise coordinates are purged after 24 hours by the retention worker.
+
+### Managed authentication decision: Supabase Auth
+
+Supabase Auth is the production identity provider. It was selected over Auth0 because this product
+also needs PostgreSQL-backed profiles, emergency contacts, roles, and row-level authorization.
+FastAPI remains the resource server and verifies Supabase access tokens against the project's JWKS.
+The legacy FastAPI password endpoints remain available only when `SUPABASE_URL` is absent, so local
+tests and a controlled migration of existing development accounts remain possible.
+
+Apply [the Supabase migration](supabase/migrations/202607230001_managed_auth.sql), then:
+
+1. Enable email/password authentication, email confirmation, Secure Email Change, refresh-token
+   reuse detection, and leaked-password protection in Supabase Auth.
+2. Add `knowyourrights://auth/callback`, `knowyourrights://auth/reset`, and the production web URL
+   to Auth redirect URLs.
+3. Enable `public.custom_access_token_hook` as the Custom Access Token Hook.
+4. Configure an asymmetric JWT signing key and keep access-token lifetime at 5–60 minutes.
+5. Store `SUPABASE_SECRET_KEY` only on the FastAPI server.
+
+Run the API with `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SECRET_KEY`. Build mobile
+with public values only:
+
+```bash
+flutter run \
+  --dart-define=KYR_BASE_URL=http://127.0.0.1:8000 \
+  --dart-define=SUPABASE_URL=https://PROJECT.supabase.co \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_REPLACE_ME
+```
+
+Supabase owns PKCE sessions, one-time refresh-token rotation, verification, recovery, secure email
+change, and scoped sign-out. The application adds a device inventory and resource-server session
+revocation, recent-password confirmation for email change/export/deletion, account export and
+deletion, roles (`reader`, `contributor`, `reviewer`, `administrator`), and IP/device/user/contact
+abuse limits persisted in the shared application database.
+
+### Custody Alert reliability
+
+Custody Alert supports one to three verified contacts and fans an intentional alert out to all of
+them. Each contact invitation contains independent Confirm, Decline, and one-year withdrawal
+capability links. A test-alert action uses the explicit `TEST CUSTODY ALERT — NO EMERGENCY` prefix.
+Optional station names, location, timestamp, and an unguessable tracking URL are included in the
+message. The public tracking page shows current status and verified next steps without requiring an
+account; the capability token is hashed for lookup and encrypted at rest.
+
+Delivery is recorded independently for gateway SMS, WhatsApp, email, and push. SMS uses Twilio,
+email uses Resend, WhatsApp uses `TWILIO_WHATSAPP_FROM`, and push uses a server-to-server worker
+configured by `KYR_PUSH_WEBHOOK_URL` and `KYR_PUSH_WEBHOOK_SECRET`. Provider callbacks require
+signatures and are replay-deduplicated. Failed deliveries use bounded exponential retry and the
+mobile client keeps a durable idempotent queue when it cannot reach the API.
+
+Android can request `SEND_SMS` at the moment an intentionally triggered alert needs its offline
+fallback and send directly after permission is granted. This sensitive permission must be declared
+and justified during Play review. iOS cannot send silently and therefore opens a pre-addressed
+Messages composer. Both platforms expose Custody Alert and Safe Walk through app-icon quick
+actions.
+
+Safe Walk is a server-owned dead-man timer. The user chooses a check-in period and taps “I'm safe”
+to stop it. If the deadline passes, the backend worker creates idempotent alerts for every verified
+contact even if the initiating phone is subsequently offline or seized.
 
 Then open http://127.0.0.1:8000/ for the demo, or call the API:
 
