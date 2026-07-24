@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cac",
+    "name": "Corporate Affairs Commission (CAC)",
+    "entry_type": "regulator",
+    "state": "Federal",
+    "url": "https://www.cac.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "firs",
+    "name": "Federal Inland Revenue Service (FIRS)",
+    "entry_type": "regulator",
+    "state": "Federal",
+    "url": "https://www.firs.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "ndpc",
+    "name": "Nigeria Data Protection Commission (NDPC)",
+    "entry_type": "regulator",
+    "state": "Federal",
+    "url": "https://ndpc.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "pencom",
+    "name": "National Pension Commission (PenCom)",
+    "entry_type": "regulator",
+    "state": "Federal",
+    "url": "https://www.pencom.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "nsitf",
+    "name": "Nigeria Social Insurance Trust Fund (NSITF)",
+    "entry_type": "regulator",
+    "state": "Federal",
+    "url": "https://nsitf.gov.ng/",
+    "cached_offline": true
+  },
+  {
+    "id": "itf",
+    "name": "Industrial Training Fund (ITF)",
+    "entry_type": "regulator",
+    "state": "Federal",
+    "url": "https://itf.gov.ng/",
+    "cached_offline": true
+  }
+]

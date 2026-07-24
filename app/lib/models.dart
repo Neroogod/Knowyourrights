@@ -161,6 +161,9 @@ class Obligation {
   final String category;
   final String summary;
   final List<String> appliesTo;
+  final String? frequency;
+  final String? deadlineRule;
+  final String? consequence;
   final List<String> requirements;
   final List<Citation> citations;
   final String status;
@@ -174,6 +177,9 @@ class Obligation {
     required this.requirements,
     required this.citations,
     required this.status,
+    this.frequency,
+    this.deadlineRule,
+    this.consequence,
   });
 
   factory Obligation.fromJson(Map<String, dynamic> json) => Obligation(
@@ -182,6 +188,9 @@ class Obligation {
     category: json['category'] as String,
     summary: json['summary'] as String,
     appliesTo: (json['applies_to'] as List? ?? []).cast<String>(),
+    frequency: json['frequency'] as String?,
+    deadlineRule: json['deadline_rule'] as String?,
+    consequence: json['consequence'] as String?,
     requirements: (json['requirements'] as List? ?? []).cast<String>(),
     citations: (json['citations'] as List? ?? [])
         .map((c) => Citation.fromJson(c as Map<String, dynamic>))

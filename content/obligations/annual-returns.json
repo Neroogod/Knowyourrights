@@ -4,7 +4,19 @@
   "category": "annual-compliance",
   "jurisdiction": "NG-Federal",
   "summary": "A company generally makes and delivers an annual return to the Corporate Affairs Commission, subject to CAMA's stated exceptions.",
-  "applies_to": ["registered companies"],
+  "applies_to": [
+    "registered companies"
+  ],
+  "applicability": {
+    "entity_types": [
+      "ltd",
+      "plc",
+      "ngo"
+    ]
+  },
+  "frequency": "annual",
+  "deadline_rule": "Deliver the annual return within the period CAMA prescribes after the return date.",
+  "consequence": "Persistent failure to file can attract penalties under CAMA and expose the company to being struck off the register.",
   "requirements": [
     "Use the return form and information required for the company's type.",
     "Have the return completed and signed as CAMA requires.",

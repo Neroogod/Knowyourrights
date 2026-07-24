@@ -4,7 +4,20 @@
   "category": "formation",
   "jurisdiction": "NG-Federal",
   "summary": "A private company may be formed by one person, but it must satisfy CAMA's registration requirements and cannot be formed for an unlawful purpose.",
-  "applies_to": ["founders", "private companies"],
+  "applies_to": [
+    "founders",
+    "private companies"
+  ],
+  "applicability": {
+    "entity_types": [
+      "ltd",
+      "plc",
+      "business_name",
+      "ngo"
+    ]
+  },
+  "frequency": "once",
+  "deadline_rule": "Register with the Corporate Affairs Commission before operating as an incorporated company.",
   "requirements": [
     "Choose a lawful purpose for the company.",
     "Prepare the registration information and documents required under CAMA.",

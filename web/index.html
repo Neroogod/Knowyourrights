@@ -586,10 +586,47 @@
       </div>
       <div id="companyAnswer"></div>
 
+      <h2 class="section">Show what applies to my business</h2>
+      <div class="block do" id="entityProfile">
+        <div class="filter-row">
+          <label class="field-label">Entity type
+            <select id="entType">
+              <option value="">Any</option>
+              <option value="business_name">Business name</option>
+              <option value="ltd">Private company (Ltd)</option>
+              <option value="plc">Public company (Plc)</option>
+              <option value="ngo">Incorporated trustees (NGO)</option>
+            </select>
+          </label>
+          <label class="field-label">Staff
+            <input id="entStaff" type="number" min="0" placeholder="e.g. 12" style="width:90px">
+          </label>
+          <label class="field-label">State
+            <input id="entState" placeholder="e.g. Lagos" style="width:120px">
+          </label>
+          <label class="field-label">Turnover
+            <select id="entTurnover">
+              <option value="">Any</option>
+              <option value="micro">Micro</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+        </div>
+        <div class="row" style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn-primary" onclick="applyEntityProfile()">Show what applies</button>
+          <button class="btn-web" onclick="clearEntityProfile()">Clear</button>
+          <span class="report-status" id="entityStatus"></span>
+        </div>
+      </div>
+
       <h2 class="section">Key obligations</h2>
       <div id="obligations"></div>
       <h2 class="section">Practical checklists</h2>
       <div id="companyChecklists"></div>
+      <h2 class="section">Who you report to</h2>
+      <div id="regulators"></div>
     </section>
     <section class="view" id="obligationDetail"></section>
 
@@ -1532,7 +1569,12 @@
       <h1 class="lead-h">${esc(item.title)}</h1>
       <p class="detail-lead">${esc(item.summary)}</p>
       <p class="muted-note">Applies to: ${esc((item.applies_to||[]).join(", "))}</p>
+      <div class="chips" style="margin:4px 0 8px">
+        ${item.frequency?`<span class="cat">${esc(item.frequency)}</span>`:""}
+      </div>
+      ${item.deadline_rule?`<div class="block rights"><h5>Deadline</h5><p>${esc(item.deadline_rule)}</p></div>`:""}
       ${bulletBlock("do","What the company must do",item.requirements,"✓","g")}
+      ${item.consequence?`<div class="block dont"><h5>If you don't</h5><p>${esc(item.consequence)}</p></div>`:""}
       <h2 class="section">Sources</h2>
       <div class="cites">${(item.citations||[]).map(c=>citeChip(c,true)).join("")}</div>
       ${item.status!=="verified"?'<p class="muted-note">General legal information only. This entry is excluded from company answers until lawyer review.</p>':""}
@@ -1547,6 +1589,53 @@
         <h4 style="margin:0;flex:1">${esc(item.title)}</h4>
         <span class="cat">${steps} step${steps===1?"":"s"}</span></div>
       <p class="muted-note">${esc(item.description)}</p><ul>${rows}</ul></div>`;
+  }
+
+  let COMPANY_FILTER=null;  // null = show all; otherwise the applicable ids
+
+  async function applyEntityProfile(){
+    const profile={
+      entity_type:document.getElementById("entType").value||null,
+      staff_count:document.getElementById("entStaff").value?Number(document.getElementById("entStaff").value):null,
+      state:document.getElementById("entState").value.trim()||null,
+      turnover_band:document.getElementById("entTurnover").value||null,
+    };
+    const statusEl=document.getElementById("entityStatus");
+    statusEl.textContent="Filtering…";
+    try{
+      const data=await apiJson("/business/applicable",{method:"POST",
+        headers:{"Content-Type":"application/json"},body:JSON.stringify(profile)});
+      COMPANY_FILTER={
+        obligations:new Set(data.obligations.map(o=>o.id)),
+        checklists:new Set(data.checklists.map(c=>c.id)),
+      };
+      renderCompany();
+      statusEl.textContent=`Showing ${data.obligations.length} of ${OBLIGATIONS.length} obligations that apply to you.`;
+    }catch(error){ statusEl.textContent=error.message; }
+  }
+
+  function clearEntityProfile(){
+    COMPANY_FILTER=null;
+    document.getElementById("entType").value="";
+    document.getElementById("entStaff").value="";
+    document.getElementById("entState").value="";
+    document.getElementById("entTurnover").value="";
+    document.getElementById("entityStatus").textContent="";
+    renderCompany();
+  }
+
+  function renderCompany(){
+    const obs=COMPANY_FILTER?OBLIGATIONS.filter(o=>COMPANY_FILTER.obligations.has(o.id)):OBLIGATIONS;
+    const cls=COMPANY_FILTER?COMPANY_CHECKLISTS.filter(c=>COMPANY_FILTER.checklists.has(c.id)):COMPANY_CHECKLISTS;
+    document.getElementById("obligations").innerHTML=obs.length?obs.map(obligationCard).join(""):'<p class="muted-note">No obligations match this profile.</p>';
+    document.getElementById("companyChecklists").innerHTML=cls.map(checklistCard).join("");
+  }
+
+  function renderRegulators(list){
+    document.getElementById("regulators").innerHTML=list.map(e=>
+      `<div class="dir"><h4>${esc(e.name)}</h4>
+        <div class="meta">Regulator${e.state?" · "+esc(e.state):""}</div>
+        <div class="btns">${e.url?`<a class="btn-web" href="${esc(e.url)}" target="_blank" rel="noopener">Website ↗</a>`:""}</div></div>`).join("");
   }
 
   /* Hero counters, plus an honest notice about what the assistant can answer.
@@ -1761,13 +1850,13 @@
       renderTopics(TOPICS, "topics");
       document.getElementById("scenarioList").innerHTML = SCENARIOS.map(scenarioCard).join("");
       document.getElementById("dir").innerHTML = dr.map(dirCard).join("");
-      document.getElementById("obligations").innerHTML = OBLIGATIONS.map(obligationCard).join("");
-      document.getElementById("companyChecklists").innerHTML = COMPANY_CHECKLISTS.map(checklistCard).join("");
+      renderCompany();
       renderCompanyDesk();
       renderCaseHero();
       renderCaseAreas();
       renderCases();
       loadStudentDesk();
+      try{ renderRegulators(await apiJson("/company/regulators")); }catch(_e){}
     }catch(e){
       document.getElementById("homeTopics").innerHTML = `<p class="muted-note">Couldn't load content. Check your connection and refresh.</p>`;
     }

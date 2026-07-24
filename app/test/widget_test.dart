@@ -348,4 +348,24 @@ void main() {
     });
   });
 
+
+  test('Obligation parses applicability depth fields', () {
+    final o = Obligation.fromJson({
+      'id': 'annual-returns',
+      'title': 'File annual returns',
+      'category': 'annual-compliance',
+      'summary': 'File the return.',
+      'applies_to': ['registered companies'],
+      'frequency': 'annual',
+      'deadline_rule': 'Within the CAMA period.',
+      'consequence': 'Penalties and possible strike-off.',
+      'requirements': ['Prepare the return.'],
+      'citations': [{'source_name': 'CAMA 2020', 'locator': 'ss.417-423'}],
+      'status': 'draft',
+    });
+    expect(o.frequency, 'annual');
+    expect(o.deadlineRule, contains('CAMA'));
+    expect(o.consequence, contains('strike-off'));
+  });
+
 }

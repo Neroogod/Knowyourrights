@@ -34,9 +34,11 @@ from backend.schemas import (  # noqa: E402
     CompanyChecklist,
     ContentPack,
     DirectoryEntry,
+    EntityProfile,
     Obligation,
     Scenario,
     Topic,
+    obligation_applies,
 )
 
 DEFAULT_PACK_PATH = Path(__file__).resolve().parents[1] / "data" / "content_pack.json"
@@ -172,6 +174,27 @@ class ContentStore:
 
     def list_company_checklists(self) -> list[CompanyChecklist]:
         return list(self._company_checklists.values())
+
+    def applicable_for(self, profile: EntityProfile) -> dict:
+        """Obligations and checklists that bind a given business profile.
+
+        A checklist is included when any obligation it links is applicable, so a
+        starter checklist does not vanish just because one of its steps does not
+        apply to this particular business.
+        """
+        obligations = [
+            item for item in self._obligations.values()
+            if obligation_applies(item.applicability, profile)
+        ]
+        applicable_ids = {item.id for item in obligations}
+        checklists = [
+            checklist for checklist in self._company_checklists.values()
+            if not checklist.items
+            or any(step.obligation_id in applicable_ids for step in checklist.items
+                   if step.obligation_id)
+            or all(step.obligation_id is None for step in checklist.items)
+        ]
+        return {"obligations": obligations, "checklists": checklists}
 
     def list_cases(
         self,

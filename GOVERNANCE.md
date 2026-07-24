@@ -136,3 +136,33 @@ apply, with two additions specific to this layer:
 Accepted contributions are attributed to their author, and a contributor's
 record is visible to them at `/v1/students/me/contributions`. Contribution is a
 route into reviewer training, not free labour.
+
+## 11. Company layer — status and what gates the rest
+
+The company **engine** is built: an entity profile (type, staff, sector, state,
+turnover) filters obligations via `POST /v1/business/applicable`, obligations
+carry structured applicability plus frequency, deadline, and consequence fields,
+and the regulator directory (CAC, FIRS, NDPC, PenCom, NSITF, ITF) links to
+official `.gov.ng` sites. This works in both the web and Flutter clients.
+
+What it is **not** yet, and why:
+
+- **Only three CAMA obligations exist, all `draft`.** Deadlines, thresholds, and
+  penalty figures are the highest-risk facts in the product, so they are written
+  conservatively and cited to a section, never invented. Nothing here is
+  answerable by the AI until a reviewer verifies it (section 6).
+- **NDPA, Labour Act, tax (CITA/PITA/VAT/FIRS), pension, ITF and NSITF content
+  do not exist.** Authoring them needs the statutes ingested and a lawyer — and,
+  for tax and accounting duties, an accountant's sign-off. The NDPA copy on file
+  parses at only 25% (see the source report), so even data-protection
+  obligations wait on a clean document.
+- **Mandatory review-due dates** are supported (`review_due_at` drops stale
+  content from retrieval, section 6) but must be set per obligation during
+  review, using the cadence in section 6.
+
+Deliberately **deferred** (a business decision, not a missing feature):
+organization accounts, member and seat management, subscriptions, team AI limits,
+and the compliance export/audit dashboard. Consistent with section 4c of the
+build plan, the compliance content ships free and anonymous first; accounts and
+billing follow once the content has proven its worth. Building seats before the
+content is verified would sell access to material no lawyer has checked.

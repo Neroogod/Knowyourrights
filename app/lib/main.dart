@@ -3050,9 +3050,66 @@ class TopicDetailScreen extends StatelessWidget {
 
 // ---------------------------------------------------------------- Companies
 
-class CompaniesScreen extends StatelessWidget {
+class CompaniesScreen extends StatefulWidget {
   final ContentRepository repo;
   const CompaniesScreen({required this.repo, super.key});
+
+  @override
+  State<CompaniesScreen> createState() => _CompaniesScreenState();
+}
+
+class _CompaniesScreenState extends State<CompaniesScreen> {
+  final AccountClient _accounts = AccountClient();
+  Set<String>? _applicable; // null = show all obligations
+  String? _entityType;
+  String? _turnover;
+  final TextEditingController _staff = TextEditingController();
+  final TextEditingController _state = TextEditingController();
+  String _filterNote = '';
+
+  ContentRepository get repo => widget.repo;
+
+  @override
+  void dispose() {
+    _staff.dispose();
+    _state.dispose();
+    super.dispose();
+  }
+
+  List<Obligation> get _visibleObligations => _applicable == null
+      ? repo.obligations
+      : repo.obligations.where((o) => _applicable!.contains(o.id)).toList();
+
+  Future<void> _applyProfile() async {
+    final profile = <String, dynamic>{
+      if (_entityType != null) 'entity_type': _entityType,
+      if (_turnover != null) 'turnover_band': _turnover,
+      if (_staff.text.trim().isNotEmpty) 'staff_count': int.tryParse(_staff.text.trim()),
+      if (_state.text.trim().isNotEmpty) 'state': _state.text.trim(),
+    };
+    try {
+      final ids = await _accounts.applicableObligationIds(profile);
+      if (!mounted) return;
+      setState(() {
+        _applicable = ids;
+        _filterNote = 'Showing ${ids.length} of ${repo.obligations.length} '
+            'obligations that apply to you.';
+      });
+    } catch (error) {
+      if (mounted) setState(() => _filterNote = '$error');
+    }
+  }
+
+  void _clearProfile() {
+    setState(() {
+      _applicable = null;
+      _entityType = null;
+      _turnover = null;
+      _staff.clear();
+      _state.clear();
+      _filterNote = '';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -3179,25 +3236,98 @@ class CompaniesScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
+            const SectionLabel('Show what applies to my business'),
+            const SizedBox(height: 8),
+            KyrCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: _entityType,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Entity type'),
+                        items: const [
+                          DropdownMenuItem(value: null, child: Text('Any')),
+                          DropdownMenuItem(value: 'business_name', child: Text('Business name')),
+                          DropdownMenuItem(value: 'ltd', child: Text('Private (Ltd)')),
+                          DropdownMenuItem(value: 'plc', child: Text('Public (Plc)')),
+                          DropdownMenuItem(value: 'ngo', child: Text('NGO / trustees')),
+                        ],
+                        onChanged: (value) => setState(() => _entityType = value),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 90,
+                      child: TextField(
+                        controller: _staff,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Staff'),
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _state,
+                        decoration: const InputDecoration(labelText: 'State (e.g. Lagos)'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        initialValue: _turnover,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Turnover'),
+                        items: const [
+                          DropdownMenuItem(value: null, child: Text('Any')),
+                          DropdownMenuItem(value: 'micro', child: Text('Micro')),
+                          DropdownMenuItem(value: 'small', child: Text('Small')),
+                          DropdownMenuItem(value: 'medium', child: Text('Medium')),
+                          DropdownMenuItem(value: 'large', child: Text('Large')),
+                        ],
+                        onChanged: (value) => setState(() => _turnover = value),
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    FilledButton(onPressed: _applyProfile, child: const Text('Show what applies')),
+                    const SizedBox(width: 10),
+                    TextButton(onPressed: _clearProfile, child: const Text('Clear')),
+                  ]),
+                  if (_filterNote.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(_filterNote, style: TextStyle(fontSize: 12.5, color: p.muted)),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
             Row(
               children: [
                 const Expanded(child: SectionLabel('Key obligations')),
                 Text(
-                  '${repo.obligations.length} items',
+                  '${_visibleObligations.length} items',
                   style: TextStyle(fontSize: 12, color: p.faint),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            if (repo.obligations.isEmpty)
+            if (_visibleObligations.isEmpty)
               KyrCard(
                 child: Text(
-                  'No company obligations are available in this content pack.',
+                  _applicable == null
+                      ? 'No company obligations are available in this content pack.'
+                      : 'No obligations match this profile.',
                   style: TextStyle(color: p.muted),
                 ),
               )
             else
-              ...repo.obligations.map(
+              ..._visibleObligations.map(
                 (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: KyrCard(
@@ -3540,16 +3670,37 @@ class ObligationDetailScreen extends StatelessWidget {
             style: TextStyle(fontSize: 15, color: p.muted, height: 1.5),
           ),
           const SizedBox(height: 14),
-          Text(
-            'Applies to: ${obligation.appliesTo.join(', ')}',
-            style: TextStyle(fontSize: 13, color: p.faint),
-          ),
+          Row(children: [
+            Expanded(
+              child: Text(
+                'Applies to: ${obligation.appliesTo.join(', ')}',
+                style: TextStyle(fontSize: 13, color: p.faint),
+              ),
+            ),
+            if (obligation.frequency != null) CategoryTag(obligation.frequency!),
+          ]),
+          if (obligation.deadlineRule != null) ...[
+            const SizedBox(height: 14),
+            InfoBlock(
+              title: 'Deadline',
+              items: [obligation.deadlineRule!],
+              kind: BlockKind.rights,
+            ),
+          ],
           const SizedBox(height: 16),
           InfoBlock(
             title: 'What the company must do',
             items: obligation.requirements,
             kind: BlockKind.dos,
           ),
+          if (obligation.consequence != null) ...[
+            const SizedBox(height: 10),
+            InfoBlock(
+              title: "If you don't",
+              items: [obligation.consequence!],
+              kind: BlockKind.donts,
+            ),
+          ],
           const SizedBox(height: 18),
           const SectionLabel('Sources'),
           const SizedBox(height: 8),

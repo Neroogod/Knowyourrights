@@ -101,11 +101,67 @@ class Scenario(BaseModel):
 class DirectoryEntry(BaseModel):
     id: str = Field(min_length=1)
     name: str = Field(min_length=1)
-    entry_type: str = Field(description="legal_aid | emergency | ngo")
+    entry_type: str = Field(description="legal_aid | emergency | ngo | regulator")
     state: str | None = None
     phone: str | None = None
     url: str | None = None
     cached_offline: bool = True
+
+
+class Applicability(BaseModel):
+    """Which businesses an obligation binds. An unset field means "all".
+
+    Kept separate from the human-readable ``applies_to`` list so a machine can
+    filter (does this bind a 10-person Lagos retailer?) while the list still reads
+    plainly on screen. Every bound is inclusive; omit a field to place no limit.
+    """
+
+    entity_types: list[str] = Field(default_factory=list)  # business_name|ltd|plc|ngo
+    sectors: list[str] = Field(default_factory=list)
+    states: list[str] = Field(default_factory=list)
+    staff_min: int | None = None
+    staff_max: int | None = None
+    turnover_bands: list[str] = Field(default_factory=list)  # micro|small|medium|large
+
+
+class EntityProfile(BaseModel):
+    """A business describing itself, so it sees only the obligations that bind it.
+
+    This is a filter, not an account: the applicable endpoint takes it in the
+    request and does not persist it server-side.
+    """
+
+    entity_type: str | None = Field(default=None, description="business_name|ltd|plc|ngo")
+    sector: str | None = None
+    state: str | None = None
+    staff_count: int | None = Field(default=None, ge=0)
+    turnover_band: str | None = Field(default=None, description="micro|small|medium|large")
+
+
+def obligation_applies(applicability: "Applicability | None", profile: EntityProfile) -> bool:
+    """Whether an obligation binds a given business.
+
+    Unknown fields on the profile never exclude an obligation: a business that
+    has not said how many staff it has still sees staff-scoped duties, because
+    hiding a real obligation is the more dangerous error.
+    """
+    if applicability is None:
+        return True
+    a, e = applicability, profile
+    if a.entity_types and e.entity_type is not None and e.entity_type not in a.entity_types:
+        return False
+    if a.sectors and e.sector is not None and e.sector not in a.sectors:
+        return False
+    if a.states and e.state is not None and e.state not in a.states:
+        return False
+    if a.turnover_bands and e.turnover_band is not None and e.turnover_band not in a.turnover_bands:
+        return False
+    if e.staff_count is not None:
+        if a.staff_min is not None and e.staff_count < a.staff_min:
+            return False
+        if a.staff_max is not None and e.staff_count > a.staff_max:
+            return False
+    return True
 
 
 class Obligation(BaseModel):
@@ -115,6 +171,10 @@ class Obligation(BaseModel):
     jurisdiction: str = Field(min_length=1)
     summary: str = Field(min_length=1)
     applies_to: list[str] = Field(min_length=1)
+    applicability: Applicability | None = None  # structured filter; None = all businesses
+    frequency: str | None = None  # once | annual | monthly | ongoing | on_event
+    deadline_rule: str | None = None  # plain-language deadline, cited in requirements
+    consequence: str | None = None  # cited penalty/exposure for non-compliance
     requirements: list[str] = Field(min_length=1)
     citations: list[Citation] = Field(min_length=1)
     status: Status = Status.draft

@@ -440,6 +440,26 @@ class AccountClient {
   Future<Map<String, dynamic>> myContributions() =>
       _request('GET', '/v1/students/me/contributions');
 
+
+  // ---------------------------------------------------------- company desk
+
+  /// Obligations that bind a given business. The profile is a filter sent with
+  /// the request, not stored server-side.
+  Future<Set<String>> applicableObligationIds(Map<String, dynamic> profile) async {
+    final json = await _request('POST', '/v1/business/applicable',
+        body: profile, authenticated: false);
+    return ((json['obligations'] as List?) ?? const [])
+        .map((o) => (o as Map)['id'] as String)
+        .toSet();
+  }
+
+  Future<List<DirectoryEntry>> companyRegulators() async {
+    final rows = await _requestList('GET', '/v1/company/regulators');
+    return rows
+        .map((row) => DirectoryEntry.fromJson((row as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
   Future<void> syncUserData() async {
     final saved = await (_database.select(
       _database.savedContentRows,

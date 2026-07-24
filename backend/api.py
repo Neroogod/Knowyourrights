@@ -86,6 +86,7 @@ from backend.schemas import (
     CompanyChecklist,
     ContentPack,
     DirectoryEntry,
+    EntityProfile,
     Obligation,
     Scenario,
     Topic,
@@ -814,6 +815,24 @@ def create_app(
     @app.get("/v1/company/checklists", response_model=list[CompanyChecklist])
     def list_company_checklists() -> list[CompanyChecklist]:
         return resolved_store.list_company_checklists()
+
+    @app.get("/v1/company/regulators", response_model=list[DirectoryEntry])
+    def company_regulators() -> list[DirectoryEntry]:
+        """The bodies a business reports to: CAC, FIRS, NDPC, PenCom, NSITF, ITF."""
+        return [e for e in resolved_store.list_directory() if e.entry_type == "regulator"]
+
+    @app.post("/v1/business/applicable")
+    def business_applicable(profile: EntityProfile) -> dict:
+        """Given a business profile, return only the obligations that bind it.
+
+        The profile is a filter, not an account: it is used to answer this request
+        and is not stored server-side.
+        """
+        result = resolved_store.applicable_for(profile)
+        return {
+            "obligations": [o.model_dump() for o in result["obligations"]],
+            "checklists": [c.model_dump() for c in result["checklists"]],
+        }
 
     @app.post("/v1/company/ask", response_model=AskResponse)
     def ask_company(

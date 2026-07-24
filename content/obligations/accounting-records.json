@@ -4,7 +4,18 @@
   "category": "records",
   "jurisdiction": "NG-Federal",
   "summary": "Every company must keep records that explain its transactions and allow its financial position to be determined with reasonable accuracy.",
-  "applies_to": ["all companies"],
+  "applies_to": [
+    "all companies"
+  ],
+  "applicability": {
+    "entity_types": [
+      "ltd",
+      "plc"
+    ]
+  },
+  "frequency": "ongoing",
+  "deadline_rule": "Keep records current and preserve them for the period CAMA requires.",
+  "consequence": "Failing to keep adequate accounting records is an offence under CAMA that can expose the company's officers to penalties.",
   "requirements": [
     "Record money received and spent, including the reason for each receipt or payment.",
     "Record the company's assets and liabilities.",
