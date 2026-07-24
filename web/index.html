@@ -170,6 +170,35 @@
   .sos-panel::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 120% -20%,rgba(255,255,255,.16),transparent 60%);pointer-events:none;}
   .sos-panel .k{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800;opacity:.9;}
   .sos-panel h3{font-family:var(--serif);font-weight:600;font-size:1.6rem;margin:4px 0 14px;letter-spacing:-.01em;}
+  /* Study desk: the students hero. Green because it carries authority, not danger. */
+  .study-panel{background:linear-gradient(150deg,var(--green) 0%,var(--green-deep) 100%);color:var(--on-green);
+    border-radius:22px;padding:20px;box-shadow:0 12px 26px color-mix(in srgb,var(--green-deep) 30%,transparent);position:relative;overflow:hidden;}
+  .study-panel::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 120% -20%,rgba(255,255,255,.14),transparent 60%);pointer-events:none;}
+  .study-panel .k{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800;opacity:.85;}
+  .study-panel h3{font-family:var(--serif);font-weight:600;font-size:1.6rem;margin:6px 0 10px;letter-spacing:-.01em;line-height:1.12;}
+  .study-panel p{margin:0;opacity:.82;font-size:.9rem;line-height:1.45;}
+  .panel-metrics{display:flex;gap:9px;margin-top:14px;}
+  .panel-metrics div{flex:1;text-align:center;padding:10px 6px;border-radius:12px;
+    background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);}
+  .panel-metrics b{display:block;font-family:var(--serif);font-size:1.2rem;font-weight:600;}
+  .panel-metrics small{font-size:.66rem;opacity:.78;}
+  .report-link{background:none;border:none;color:var(--faint);font:inherit;font-size:.78rem;
+    text-decoration:underline;cursor:pointer;padding:6px 0;display:inline-flex;gap:6px;align-items:center;}
+  .report-link:hover{color:var(--sos);}
+  .report-box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card-2);
+    margin-top:8px;display:flex;flex-direction:column;gap:8px;}
+  .report-box textarea{width:100%;min-height:74px;border:1px solid var(--line);border-radius:10px;
+    padding:10px;font:inherit;font-size:.88rem;background:var(--card);color:var(--ink);resize:vertical;}
+  .report-box .row{display:flex;gap:8px;align-items:center;}
+  .report-status{font-size:.8rem;color:var(--muted);}
+  .pending-note{background:var(--gold-tint);border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);
+    border-radius:12px;padding:12px 14px;font-size:.85rem;color:var(--ink);line-height:1.5;}
+  .pending-note b{color:var(--gold-ink);}
+  .chip.on{background:var(--green);color:var(--on-green);border-color:var(--green);}
+  .note-card{background:var(--card-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+  .note-card .kind{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--gold-ink);}
+  .note-card p{margin:5px 0 0;font-size:.9rem;line-height:1.5;}
+  .licence-note{font-size:.78rem;color:var(--faint);border-left:2px solid var(--line);padding-left:11px;line-height:1.5;}
   .sos-cta{display:flex;align-items:center;gap:12px;width:100%;background:var(--on-sos);color:var(--sos-deep);
     border:none;border-radius:14px;padding:15px 16px;font:inherit;font-weight:800;font-size:1.05rem;cursor:pointer;text-align:left;box-shadow:0 4px 10px rgba(0,0,0,.14);}
   .sos-cta .ar{margin-left:auto;font-size:1.2rem;}
@@ -490,31 +519,50 @@
 
     <!-- STUDENTS -->
     <section class="view" id="students">
-      <h1 class="lead-h">Law students</h1>
-      <p class="detail-body">Reviewed educational case digests with facts, issues, holdings, ratios, and source links.</p>
+      <div class="study-panel">
+        <div class="k">Case-law study desk</div>
+        <h3>Understand the case,<br />not just the citation.</h3>
+        <p id="studyCount">Educational digests with facts, issues, holdings, ratios and study notes.</p>
+      </div>
+
+      <h2 class="section">Ask the case-law assistant</h2>
+      <p class="detail-body">Answers are grounded in the verified digests and always cited. If it cannot
+        verify an answer it refuses rather than guessing.</p>
       <div class="askrow">
         <input class="field" id="studentQ" placeholder="Ask about a case or legal principle…" onkeydown="if(event.key==='Enter')askStudents()" />
         <button class="btn-primary" onclick="askStudents()">Ask</button>
       </div>
       <div id="studentAnswer"></div>
+      <div class="chips" id="studentSuggestions"></div>
+
       <h2 class="section">Case library</h2>
-      <input class="field" id="caseSearch" placeholder="Search cases, courts, or legal areas…" oninput="renderCases(this.value)" />
+      <input class="field" id="caseSearch" placeholder="Search cases, courts, or legal areas…" oninput="renderCases()" />
+      <div class="chips" id="caseAreas"></div>
       <div id="caseList"></div>
     </section>
     <section class="view" id="caseDetail"></section>
 
     <!-- COMPANIES -->
     <section class="view" id="companies">
-      <h1 class="lead-h">Company compliance</h1>
-      <p class="detail-body">CAMA-grounded obligations and checklists. Draft entries are clearly marked and excluded from answers until lawyer review.</p>
+      <div class="study-panel">
+        <div class="k">Company compliance desk</div>
+        <h3>Know what your business<br />actually has to do.</h3>
+        <p>Practical guidance grounded in the Companies and Allied Matters Act 2020, with every
+          requirement traced to the section it comes from.</p>
+        <div class="panel-metrics" id="companyMetrics"></div>
+      </div>
+
+      <h2 class="section">Ask the compliance assistant</h2>
+      <div id="companyPending"></div>
       <div class="askrow">
         <input class="field" id="companyQ" placeholder="e.g. When must my company file an annual return?" onkeydown="if(event.key==='Enter')askCompany()" />
         <button class="btn-primary" onclick="askCompany()">Ask</button>
       </div>
       <div id="companyAnswer"></div>
-      <h2 class="section">Obligations</h2>
+
+      <h2 class="section">Key obligations</h2>
       <div id="obligations"></div>
-      <h2 class="section">Checklists</h2>
+      <h2 class="section">Practical checklists</h2>
       <div id="companyChecklists"></div>
     </section>
     <section class="view" id="obligationDetail"></section>
@@ -734,9 +782,14 @@
   function renderProfile(){
     const remaining=3-EMERGENCY_CONTACTS.length;
     document.getElementById("profileDetails").innerHTML=`
-      <div class="profile-row"><small>Name</small><strong>${esc(ACCOUNT_PROFILE.full_name)}</strong></div>
       <div class="profile-row"><small>Email</small><strong>${esc(ACCOUNT_PROFILE.email)}</strong></div>
-      <div class="profile-row"><small>Phone</small><strong>${esc(ACCOUNT_PROFILE.phone)}</strong></div>
+      <form class="profile-form" id="detailsForm">
+        <label class="field-label">Name<input id="profileNameEdit" minlength="2" required
+          value="${esc(ACCOUNT_PROFILE.full_name||"")}"></label>
+        <label class="field-label">Phone<input id="profilePhoneEdit" type="tel" required
+          pattern="\\+?[0-9]{8,15}" placeholder="+234…" value="${esc(ACCOUNT_PROFILE.phone||"")}"></label>
+        <button class="profile-action wide" type="submit">Save my details</button>
+      </form>
       <section class="profile-section"><h3>Emergency contacts</h3><p>Add up to three people and choose how each should be contacted.</p>
         ${EMERGENCY_CONTACTS.length?EMERGENCY_CONTACTS.map(contactCard).join(""):'<div class="contact-meta">No emergency contacts yet.</div>'}
         ${remaining>0?`<form class="profile-form" id="contactForm">
@@ -760,10 +813,34 @@
         </div>
       </details>`;
     document.getElementById("contactForm")?.addEventListener("submit",addWebContact);
+    document.getElementById("detailsForm")?.addEventListener("submit",saveProfileDetails);
     document.getElementById("alertHistoryDisclosure").addEventListener("toggle",event=>{
       if(event.currentTarget.open) loadAlertHistory();
     });
   }
+  /* Lets a signed-in user supply or correct the name and phone that onboarding
+     requires. Without this the profile panel could only display them, so an
+     account missing either field had no route to completion. */
+  async function saveProfileDetails(event){
+    event.preventDefault();
+    const full_name=document.getElementById("profileNameEdit").value.trim();
+    const phone=document.getElementById("profilePhoneEdit").value.trim();
+    const setMessage=text=>{
+      const el=document.getElementById("profileMessage");
+      if(el) el.textContent=text;
+    };
+    setMessage("Saving your details…");
+    try{
+      await apiJson("/profile",{method:"PUT",headers:authHeaders(),
+        body:JSON.stringify({full_name,phone})});
+      await loadAccount();
+      renderProfile();
+      setMessage(ACCOUNT_PROFILE.onboarding_complete
+        ? "Your details are saved. Add an emergency contact to enable alerts."
+        : "Saved, but your account still needs a name and phone number.");
+    }catch(error){ setMessage(error.message); }
+  }
+
   function openProfile(){
     renderProfile();
     document.getElementById("profilePanel").hidden=false;
@@ -912,8 +989,16 @@
         }
       }
       const ready=await loadAccount();
-      if(!ready) throw new Error("Your account is signed in, but your profile details are incomplete.");
+      // A signed-in account with missing details is not a failed sign-in. Throwing
+      // here used to discard the token in the catch below, which left the user
+      // stranded on the gate with no way to supply the details being asked for.
       showApp();
+      if(!ready){
+        openProfile();
+        const message=document.getElementById("profileMessage");
+        if(message) message.textContent=
+          "Almost there - add your name and phone number below to finish setting up your account.";
+      }
     }catch(error){
       if(AUTH_MODE==="login"){
         sessionStorage.removeItem("kyr_access_token");
@@ -1094,14 +1179,86 @@
   function goMore(id){closeMore();go(id);}
 
   /* ---------- Students ---------- */
+  /* Report an error. Present on every content and answer surface, and never
+     gated behind an account: the reader who spots wrong law is often the least
+     likely to have signed up. */
+  function reportControl(targetType,targetId){
+    const key=`${targetType}:${targetId}`.replace(/[^a-zA-Z0-9:_-]/g,"");
+    return `<div data-report="${esc(key)}">
+      <button class="report-link" onclick="toggleReport('${esc(key)}')">⚑ Report an error on this page</button>
+      <div class="report-box" id="reportBox-${esc(key)}" hidden>
+        <label class="field-label" for="reportText-${esc(key)}">What is wrong? Quote the part that looks incorrect if you can.</label>
+        <textarea id="reportText-${esc(key)}" maxlength="4000"></textarea>
+        <div class="row">
+          <button class="btn-primary" onclick="sendReport('${esc(targetType)}','${esc(targetId)}','${esc(key)}')">Send report</button>
+          <button class="btn-web" onclick="toggleReport('${esc(key)}')">Cancel</button>
+          <span class="report-status" id="reportStatus-${esc(key)}"></span>
+        </div>
+      </div></div>`;
+  }
+
+  function toggleReport(key){
+    const box=document.getElementById(`reportBox-${key}`);
+    if(box) box.hidden=!box.hidden;
+  }
+
+  async function sendReport(targetType,targetId,key){
+    const text=document.getElementById(`reportText-${key}`);
+    const statusEl=document.getElementById(`reportStatus-${key}`);
+    const message=(text?.value||"").trim();
+    if(message.length<3){ if(statusEl) statusEl.textContent="Tell us what looks wrong."; return; }
+    if(statusEl) statusEl.textContent="Sending…";
+    try{
+      const result=await apiJson("/error-reports",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({target_type:targetType,target_id:targetId,message})});
+      text.value="";
+      if(statusEl) statusEl.textContent=result.flagged_for_review
+        ? "Thank you — this page is now flagged for re-review."
+        : "Thank you. A reviewer will look at this.";
+    }catch(error){ if(statusEl) statusEl.textContent=error.message; }
+  }
+
+  let CASE_AREA=null;
+
   function caseCard(item){
     return `<div class="rcard" onclick="openCase('${esc(item.id)}')">
-      <div class="top"><span class="cat">${esc(item.area_of_law)}</span><span class="muted-note">${esc(String(item.year))} · ${esc(item.court)}</span></div>
-      <h4>${esc(item.name)}</h4><p>${esc(item.summary)}</p></div>`;
+      <div class="top"><span class="cat">${esc(prettyCat(item.area_of_law))}</span>${item.status==="verified"?verifiedBadge():"<span class='muted-note'>Pending review</span>"}</div>
+      <h4>${esc(item.name)}</h4>
+      <p class="muted-note" style="margin:2px 0 4px">${esc(item.court)} · ${esc(String(item.year))}</p>
+      <p>${esc(item.summary)}</p></div>`;
   }
-  function renderCases(query=""){
-    const needle=query.trim().toLowerCase();
-    const cases=needle?CASES.filter(item=>[item.name,item.court,item.area_of_law,item.summary].join(" ").toLowerCase().includes(needle)):CASES;
+
+  function renderCaseAreas(){
+    const areas=[...new Set(CASES.map(item=>item.area_of_law))];
+    const el=document.getElementById("caseAreas");
+    if(!el) return;
+    el.innerHTML=[`<button class="chip ${CASE_AREA===null?"on":""}" onclick="filterCaseArea(null)">All ${CASES.length}</button>`]
+      .concat(areas.map(a=>`<button class="chip ${CASE_AREA===a?"on":""}" onclick="filterCaseArea('${esc(a)}')">${esc(prettyCat(a))}</button>`)).join("");
+  }
+
+  function filterCaseArea(area){ CASE_AREA=area; renderCaseAreas(); renderCases(); }
+
+  /* Hero copy and starter questions, sized from the digests actually loaded. */
+  function renderStudyDesk(){
+    const count=document.getElementById("studyCount");
+    if(count) count.textContent=`${CASES.length} educational digests with facts, issues, holdings, `
+      +`ratios and study notes, each cross-linked to the rights it establishes.`;
+    const el=document.getElementById("studentSuggestions");
+    if(!el) return;
+    // Retrieval is keyword-based over the digests, so starters are phrased by
+    // subject rather than case name - each of these is verified to answer.
+    const starters=["Which cases deal with fair hearing?","Passport seizure and freedom of movement",
+      "Peaceful assembly and the right to protest"];
+    el.innerHTML=starters.map(s=>
+      `<button class="chip" onclick="askStudents('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join("");
+  }
+
+  function renderCases(){
+    const input=document.getElementById("caseSearch");
+    const needle=(input?input.value:"").trim().toLowerCase();
+    let cases=CASES;
+    if(CASE_AREA) cases=cases.filter(item=>item.area_of_law===CASE_AREA);
+    if(needle) cases=cases.filter(item=>[item.name,item.court,item.area_of_law,item.summary,item.holding,item.ratio].join(" ").toLowerCase().includes(needle));
     document.getElementById("caseList").innerHTML=cases.length?cases.map(caseCard).join(""):'<p class="muted-note">No matching cases.</p>';
   }
   function openCase(id){
@@ -1115,18 +1272,54 @@
       ${bulletBlock("do","Issues",item.issues,"?","g")}
       <div class="block do"><h5>Holding</h5><p>${esc(item.holding)}</p></div>
       <div class="block rights"><h5>Legal principle / ratio</h5><p>${esc(item.ratio)}</p></div>
-      <h2 class="section">Sources</h2><div class="cites">${(item.citations||[]).map(c=>citeChip(c,true)).join("")}</div>`;
+      ${studyNotes(item)}
+      ${linkedTopics(item)}
+      <h2 class="section">Sources</h2><div class="cites">${(item.citations||[]).map(c=>citeChip(c,true)).join("")}</div>
+      ${sourceNote(item)}
+      <div class="reviewed" style="margin-top:14px">${item.status==="verified"?verifiedBadge():""}
+        Reviewed by ${esc(item.reviewed_by||"—")}${item.reviewed_at?" · "+esc(item.reviewed_at):""}</div>
+      ${reportControl("case",item.id)}`;
     go("caseDetail");
   }
-  async function askStudents(){
-    const q=document.getElementById("studentQ").value.trim();if(!q)return;
+
+  /* Study notes are our own commentary on a case, not reproduced report text. */
+  function studyNotes(item){
+    const notes=item.interpretations||[];
+    if(!notes.length) return "";
+    return `<h2 class="section">Study notes</h2>` + notes.map(n=>
+      `<div class="note-card" style="margin-bottom:8px">
+        <div class="kind">${esc(prettyCat(n.kind||"note"))}${n.status==="verified"?" · verified":""}</div>
+        <p>${esc(n.body||"")}</p></div>`).join("");
+  }
+
+  /* Cases cross-link back to the rights topics they establish. */
+  function linkedTopics(item){
+    const linked=(item.linked_topic_ids||[]).map(id=>TOPICS.find(t=>t.id===id)).filter(Boolean);
+    if(!linked.length) return "";
+    return `<h2 class="section">Linked rights topics</h2>` + linked.map(t=>
+      `<div class="rcard" onclick="openTopic('${esc(t.id)}')">
+        <div class="top"><span class="cat">${esc(prettyCat(t.category))}</span></div>
+        <h4>${esc(t.title)}</h4></div>`).join("");
+  }
+
+  /* Proprietary law-report text is never copied - we cite and link out. */
+  function sourceNote(item){
+    if(!item.report_citation && !item.source_url) return "";
+    const link=item.source_url?` <a href="${esc(item.source_url)}" target="_blank" rel="noopener">${esc(item.source_url)}</a>`:"";
+    return `<p class="licence-note" style="margin-top:12px">Full judgment: ${esc(item.report_citation||"use a licensed law-report service")}.${link}
+      <br />This digest is our own study note — proprietary law-report text is not reproduced.</p>`;
+  }
+  async function askStudents(preset){
+    const input=document.getElementById("studentQ");
+    if(preset) input.value=preset;
+    const q=input.value.trim();if(!q)return;
     const box=document.getElementById("studentAnswer");
     box.innerHTML='<div class="answer"><p class="txt">Checking reviewed case material…</p></div>';
     try{
       const data=await apiJson("/students/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
       box.innerHTML=`<div class="answer ${data.refused?"refused":""}"><p class="lead">${data.refused?"I can't verify this yet.":"Grounded case-law answer"}</p>
         <p class="txt">${esc(data.answer)}</p><div class="cites">${(data.citations||[]).map(c=>citeChip(c,true)).join("")}</div>
-        <div class="disclaimer">${esc(data.disclaimer)}</div></div>`;
+        <div class="disclaimer">${esc(data.disclaimer)}</div>${reportControl("answer",q)}</div>`;
     }catch(error){box.innerHTML=`<div class="answer refused"><p class="txt">${esc(error.message)}</p></div>`;}
   }
 
@@ -1148,27 +1341,52 @@
       ${bulletBlock("do","What the company must do",item.requirements,"✓","g")}
       <h2 class="section">Sources</h2>
       <div class="cites">${(item.citations||[]).map(c=>citeChip(c,true)).join("")}</div>
-      ${item.status!=="verified"?'<p class="muted-note">General legal information only. This entry is excluded from company answers until lawyer review.</p>':""}`;
+      ${item.status!=="verified"?'<p class="muted-note">General legal information only. This entry is excluded from company answers until lawyer review.</p>':""}
+      ${reportControl("obligation",item.id)}`;
     go("obligationDetail");
   }
   function checklistCard(item){
+    const steps=(item.items||[]).length;
     const rows=(item.items||[]).map(row=>`<li><span class="ic g">□</span>${esc(row.text)}</li>`).join("");
-    return `<div class="block do"><h4 style="margin:0 0 5px">${esc(item.title)}</h4>
+    return `<div class="block do">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px">
+        <h4 style="margin:0;flex:1">${esc(item.title)}</h4>
+        <span class="cat">${steps} step${steps===1?"":"s"}</span></div>
       <p class="muted-note">${esc(item.description)}</p><ul>${rows}</ul></div>`;
+  }
+
+  /* Hero counters, plus an honest notice about what the assistant can answer.
+     Every obligation currently ships as `draft`, and drafts are excluded from
+     retrieval by design, so the assistant refuses everything. Saying so beats
+     inviting questions that always fail. The notice disappears on its own once
+     any obligation reaches `verified`. */
+  function renderCompanyDesk(){
+    const verified=OBLIGATIONS.filter(item=>item.status==="verified").length;
+    const metrics=document.getElementById("companyMetrics");
+    if(metrics) metrics.innerHTML=[
+      [OBLIGATIONS.length,"Obligations"],[COMPANY_CHECKLISTS.length,"Checklists"],[verified,"Verified"]
+    ].map(([v,l])=>`<div><b>${v}</b><small>${l}</small></div>`).join("");
+
+    const pending=document.getElementById("companyPending");
+    if(!pending) return;
+    pending.innerHTML=verified?"":`<div class="pending-note">
+      <b>Answers are paused while this content is in review.</b> All ${OBLIGATIONS.length} obligations
+      are still drafts, and only lawyer-verified material may be cited, so the assistant will refuse
+      until review is complete. You can read the drafts below — each already cites its CAMA section.</div>`;
   }
   async function askCompany(){
     const q=document.getElementById("companyQ").value.trim(); if(!q) return;
     const box=document.getElementById("companyAnswer");
     box.innerHTML=`<div class="answer"><p class="txt">Checking verified company material…</p></div>`;
     try{
-      const r=await fetch(API+"/company/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
-      const d=await r.json(), cites=(d.citations||[]).map(c=>citeChip(c,true)).join("");
+      const d=await apiJson("/company/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
+      const cites=(d.citations||[]).map(c=>citeChip(c,true)).join("");
       box.innerHTML=`<div class="answer ${d.refused?'refused':''}">
         <p class="lead">${d.refused?"I can't verify this yet.":"Grounded company-law answer"}</p>
         <p class="txt">${esc(d.answer)}</p>${cites?`<div class="cites">${cites}</div>`:""}
-        <div class="disclaimer">${esc(d.disclaimer)}</div></div>`;
-    }catch(e){
-      box.innerHTML=`<div class="answer refused"><p class="txt">Couldn't reach the service. Please try again.</p></div>`;
+        <div class="disclaimer">${esc(d.disclaimer)}</div>${reportControl("answer",q)}</div>`;
+    }catch(error){
+      box.innerHTML=`<div class="answer refused"><p class="txt">${esc(error.message)}</p></div>`;
     }
   }
 
@@ -1210,7 +1428,8 @@
       <h2 class="section">Sources</h2>
       <div class="cites">${sources||'<span class="muted-note">—</span>'}</div>
       ${quote?`<p class="quote">“${esc(quote.quote)}”</p>`:""}
-      <div class="reviewed">${t.status==="verified"?verifiedBadge():""} Reviewed by ${esc(t.reviewed_by||"—")}${t.reviewed_at?" · "+esc(t.reviewed_at):""}</div>`;
+      <div class="reviewed">${t.status==="verified"?verifiedBadge():""} Reviewed by ${esc(t.reviewed_by||"—")}${t.reviewed_at?" · "+esc(t.reviewed_at):""}</div>
+      ${reportControl("topic",t.id)}`;
     go("topicDetail");
   }
 
@@ -1238,7 +1457,8 @@
       <div class="steps">${steps}</div>
       <h2 class="section">Grounded in</h2>
       <div class="cites">${(s.citations||[]).map(c=>citeChip(c,false)).join("")}</div>
-      ${learn}`;
+      ${learn}
+      ${reportControl("scenario",s.id)}`;
     go("scenarioDetail");
   }
 
@@ -1257,7 +1477,7 @@
         <p class="lead">${d.refused?"I can't verify this yet.":"Here's what the law says."}</p>
         <p class="txt">${esc(d.answer)}</p>
         ${cites?`<div class="cites">${cites}</div>`:""}
-        <div class="disclaimer">${esc(d.disclaimer)}</div></div>`;
+        <div class="disclaimer">${esc(d.disclaimer)}</div>${reportControl("answer",q)}</div>`;
     }catch(e){
       box.innerHTML = `<div class="answer refused"><p class="txt">Couldn't reach the service. Please try again.</p></div>`;
     }
@@ -1349,6 +1569,9 @@
       document.getElementById("dir").innerHTML = dr.map(dirCard).join("");
       document.getElementById("obligations").innerHTML = OBLIGATIONS.map(obligationCard).join("");
       document.getElementById("companyChecklists").innerHTML = COMPANY_CHECKLISTS.map(checklistCard).join("");
+      renderCompanyDesk();
+      renderStudyDesk();
+      renderCaseAreas();
       renderCases();
     }catch(e){
       document.getElementById("homeTopics").innerHTML = `<p class="muted-note">Couldn't load content. Check your connection and refresh.</p>`;

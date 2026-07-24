@@ -20,7 +20,14 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from backend.rag.index import Document, Retriever  # noqa: E402
-from backend.schemas import AnswerCitation, AskResponse, CaseBrief, Obligation, Topic  # noqa: E402
+from backend.schemas import (  # noqa: E402
+    AnswerCitation,
+    AskResponse,
+    CaseBrief,
+    Obligation,
+    Topic,
+    is_retrievable,
+)
 
 DISCLAIMER = (
     "This is legal information, not legal advice. For advice on your specific "
@@ -67,10 +74,15 @@ def requires_guardrail_refusal(question: str) -> bool:
 
 
 def build_documents(topics: list[Topic]) -> list[Document]:
-    """Turn verified topics into retrievable documents. Unverified topics are excluded."""
+    """Turn verified topics into retrievable documents.
+
+    Unverified topics are excluded, and so are verified ones whose scheduled
+    review date has passed: stale law is dropped from retrieval automatically
+    rather than waiting for someone to notice.
+    """
     documents: list[Document] = []
     for topic in topics:
-        if topic.status.value != "verified":
+        if not is_retrievable(topic.status.value, topic.review_due_at):
             continue
         search_text = " ".join([topic.title, topic.summary, topic.body_plain, *topic.rights, *topic.do_list])
         answer_text = topic.summary
@@ -95,7 +107,7 @@ def build_company_documents(obligations: list[Obligation]) -> list[Document]:
     """Turn verified company obligations into a separate CAMA retrieval index."""
     documents: list[Document] = []
     for obligation in obligations:
-        if obligation.status.value != "verified":
+        if not is_retrievable(obligation.status.value, obligation.review_due_at):
             continue
         documents.append(
             Document(
@@ -125,7 +137,7 @@ def build_case_documents(cases: list[CaseBrief]) -> list[Document]:
     """Turn verified case briefs into a student study retrieval index."""
     documents: list[Document] = []
     for case in cases:
-        if case.status.value != "verified":
+        if not is_retrievable(case.status.value, case.review_due_at):
             continue
         verified_notes = [item.body for item in case.interpretations if item.status.value == "verified"]
         answer_parts = [

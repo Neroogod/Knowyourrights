@@ -4,9 +4,30 @@ Trust rule enforced here: a `verified` topic or scenario must carry at least one
 citation to a legal source. Nothing reaches users as authoritative without a source.
 """
 
+from datetime import date
 from enum import Enum
 
 from pydantic import BaseModel, Field, model_validator
+
+
+def is_stale(review_due_at: str | None, today: "date | None" = None) -> bool:
+    """True when a record's scheduled review date has passed.
+
+    Laws change. A record whose review fell due is no longer trustworthy enough
+    to cite, so retrieval drops it until a reviewer renews it.
+    """
+    if not review_due_at:
+        return False
+    try:
+        due = date.fromisoformat(review_due_at[:10])
+    except ValueError:
+        return False
+    return due < (today or date.today())
+
+
+def is_retrievable(status: str, review_due_at: str | None, today: "date | None" = None) -> bool:
+    """Whether a record may be used to answer a question: verified and not stale."""
+    return status == "verified" and not is_stale(review_due_at, today)
 
 
 class Status(str, Enum):
@@ -39,6 +60,7 @@ class Topic(BaseModel):
     status: Status = Status.draft
     reviewed_by: str | None = None
     reviewed_at: str | None = None
+    review_due_at: str | None = None  # past this date the record leaves AI retrieval
 
     @model_validator(mode="after")
     def verified_requires_citation(self) -> "Topic":
@@ -67,6 +89,7 @@ class Scenario(BaseModel):
     status: Status = Status.draft
     reviewed_by: str | None = None
     reviewed_at: str | None = None
+    review_due_at: str | None = None  # past this date the record leaves AI retrieval
 
     @model_validator(mode="after")
     def verified_requires_citation(self) -> "Scenario":
@@ -97,6 +120,7 @@ class Obligation(BaseModel):
     status: Status = Status.draft
     reviewed_by: str | None = None
     reviewed_at: str | None = None
+    review_due_at: str | None = None  # past this date the record leaves AI retrieval
 
     @model_validator(mode="after")
     def verified_requires_reviewer(self) -> "Obligation":
@@ -120,6 +144,7 @@ class CompanyChecklist(BaseModel):
     status: Status = Status.draft
     reviewed_by: str | None = None
     reviewed_at: str | None = None
+    review_due_at: str | None = None  # past this date the record leaves AI retrieval
 
     @model_validator(mode="after")
     def verified_requires_reviewer(self) -> "CompanyChecklist":
@@ -139,6 +164,7 @@ class CaseInterpretation(BaseModel):
     status: Status = Status.draft
     reviewed_by: str | None = None
     reviewed_at: str | None = None
+    review_due_at: str | None = None  # past this date the record leaves AI retrieval
 
     @model_validator(mode="after")
     def verified_requires_reviewer(self) -> "CaseInterpretation":
@@ -173,6 +199,7 @@ class CaseBrief(BaseModel):
     status: Status = Status.draft
     reviewed_by: str | None = None
     reviewed_at: str | None = None
+    review_due_at: str | None = None  # past this date the record leaves AI retrieval
 
     @model_validator(mode="after")
     def verified_requires_citation_and_reviewer(self) -> "CaseBrief":

@@ -42,9 +42,12 @@ from backend.account_schemas import (
     CheckInResponse,
     ContactCreate,
     ContactResponse,
+    ContributionSubmit,
     DeleteAccountRequest,
     DeliveryCallback,
     DeviceSessionResponse,
+    ErrorReportResolve,
+    ErrorReportSubmit,
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     LoginRequest,
@@ -54,6 +57,7 @@ from backend.account_schemas import (
     RegisterResponse,
     ResendVerificationRequest,
     ResetPasswordRequest,
+    ReviewDecisionSubmit,
     RoleUpdate,
     TokenResponse,
     UserSyncRequest,
@@ -70,6 +74,7 @@ from backend.content_store import ContentStore
 from backend.content_sync import ContentSigner, signed_pack
 from backend.delivery import gateway_from_environment
 from backend.managed_auth import AuthIdentity, SupabaseTokenVerifier
+from backend.review import ReviewError, ReviewService
 from backend.schemas import (
     AskRequest,
     AskResponse,
@@ -128,6 +133,8 @@ def create_app(
     app.state.accounts = accounts
     app.state.content_signer = ContentSigner.from_environment()
     app.state.ai_gate = AIProductionGate(accounts, resolved_store.version)
+    reviews = ReviewService(accounts)
+    app.state.reviews = reviews
 
     def request_ip(request: Request) -> str:
         forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
@@ -933,6 +940,122 @@ def create_app(
         except AccountError as error:
             raise account_error(error) from error
         return Response(status_code=204)
+
+    # ---------------------------------------------------------------- trust ops
+    #
+    # The pipeline behind the Verified badge: contributors submit, moderation
+    # screens, reviewers decide with notes, readers report errors, and every
+    # decision lands in an append-only audit log.
+
+    def review_error(error: ReviewError) -> HTTPException:
+        message = str(error)
+        code = 403 if "requires one of" in message else 400
+        return HTTPException(status_code=code, detail=message)
+
+    @app.post("/v1/contributions", status_code=201)
+    def submit_contribution(
+        body: ContributionSubmit,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> dict:
+        try:
+            return reviews.submit(user_id, body.content_type, body.title, body.payload)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.get("/v1/review/queue")
+    def review_queue(
+        user_id: Annotated[str, Depends(current_user)],
+        status_filter: str = Query(default="community", alias="status", max_length=24),
+        limit: int = Query(default=50, ge=1, le=200),
+    ) -> list[dict]:
+        try:
+            return reviews.queue(user_id, status_filter, limit)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.post("/v1/review/contributions/{contribution_id}/decision")
+    def decide_contribution(
+        contribution_id: str,
+        body: ReviewDecisionSubmit,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> dict:
+        try:
+            return reviews.decide(user_id, contribution_id, body.decision, body.notes)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.get("/v1/review/contributions/{contribution_id}/reviews")
+    def contribution_reviews(
+        contribution_id: str,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> list[dict]:
+        try:
+            reviews.queue(user_id, "community", 1)  # role check
+        except ReviewError as error:
+            raise review_error(error) from error
+        return reviews.reviews_for(contribution_id)
+
+    @app.post("/v1/error-reports", status_code=201)
+    def report_error(
+        body: ErrorReportSubmit,
+        request: Request,
+        user_id: Annotated[str | None, Depends(optional_user)],
+    ) -> dict:
+        # Reporting is never gated behind an account: the reader who spots wrong
+        # law is often the one least likely to have signed up.
+        limit_request(request, "error-report", 10, 3600)
+        try:
+            return reviews.report_error(body.target_type, body.target_id, body.message, user_id)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.get("/v1/review/error-reports")
+    def error_report_queue(
+        user_id: Annotated[str, Depends(current_user)],
+        status_filter: str = Query(default="open", alias="status", max_length=16),
+        limit: int = Query(default=100, ge=1, le=200),
+    ) -> list[dict]:
+        try:
+            return reviews.error_queue(user_id, status_filter, limit)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.post("/v1/review/error-reports/{report_id}")
+    def resolve_error_report(
+        report_id: str,
+        body: ErrorReportResolve,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> dict:
+        try:
+            return reviews.resolve_error(user_id, report_id, body.status, body.resolution)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.get("/v1/review/flagged")
+    def flagged_records(user_id: Annotated[str, Depends(current_user)]) -> list[dict]:
+        try:
+            return reviews.flagged_targets(user_id)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.get("/v1/review/stale")
+    def stale_records(user_id: Annotated[str, Depends(current_user)]) -> list[dict]:
+        """Published content past its review date. Already excluded from answers."""
+        try:
+            return reviews.stale_content(user_id, resolved_store._pack)
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.get("/v1/admin/audit-log")
+    def audit_log(
+        user_id: Annotated[str, Depends(current_user)],
+        target_id: str | None = Query(default=None, max_length=120),
+        limit: int = Query(default=200, ge=1, le=500),
+    ) -> list[dict]:
+        try:
+            return reviews.audit_trail(user_id, limit, target_id)
+        except ReviewError as error:
+            raise review_error(error) from error
 
     @app.get("/v1/content-pack", response_model=ContentPack)
     def content_pack() -> ContentPack:

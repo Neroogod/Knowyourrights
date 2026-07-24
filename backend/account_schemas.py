@@ -174,3 +174,31 @@ class AIReviewResponse(BaseModel):
 class AIReviewSubmit(BaseModel):
     verdict: str = Field(pattern=r"^(pass|citation_error|unsafe|incorrect|other)$")
     notes: str | None = Field(default=None, max_length=4000)
+
+
+class ContributionSubmit(BaseModel):
+    """A contributor's submission entering the draft -> community -> verified pipeline."""
+
+    content_type: str = Field(pattern=r"^(topic|scenario|obligation|checklist|case|interpretation)$")
+    title: str = Field(min_length=3, max_length=300)
+    payload: dict = Field(default_factory=dict)
+
+
+class ReviewDecisionSubmit(BaseModel):
+    """A reviewer's ruling. Notes are mandatory unless the decision is `approve`."""
+
+    decision: str = Field(pattern=r"^(approve|reject|changes)$")
+    notes: str | None = Field(default=None, max_length=4000)
+
+
+class ErrorReportSubmit(BaseModel):
+    """Report-an-error, available on every content and answer surface."""
+
+    target_type: str = Field(min_length=2, max_length=24)
+    target_id: str = Field(min_length=1, max_length=120)
+    message: str = Field(min_length=3, max_length=4000)
+
+
+class ErrorReportResolve(BaseModel):
+    status: str = Field(pattern=r"^(triaged|resolved|dismissed)$")
+    resolution: str | None = Field(default=None, max_length=4000)
