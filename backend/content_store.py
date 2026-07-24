@@ -177,13 +177,48 @@ class ContentStore:
         self,
         area_of_law: str | None = None,
         year: int | None = None,
+        court: str | None = None,
     ) -> list[CaseBrief]:
         cases = list(self._cases.values())
         if area_of_law:
             cases = [c for c in cases if c.area_of_law == area_of_law]
         if year is not None:
             cases = [c for c in cases if c.year == year]
+        if court:
+            cases = [c for c in cases if c.court == court]
         return cases
+
+    def case_filters(self) -> dict:
+        """The filter values actually present in the library, for the UI to offer."""
+        cases = list(self._cases.values())
+        return {
+            "areas_of_law": sorted({c.area_of_law for c in cases}),
+            "courts": sorted({c.court for c in cases}),
+            "years": sorted({c.year for c in cases}, reverse=True),
+        }
+
+    def related_cases(self, case_id: str) -> list[dict]:
+        """Resolve a case's citator relations to cases actually in the library."""
+        case = self._cases.get(case_id)
+        if case is None:
+            return []
+        resolved = []
+        for relation in case.related_cases:
+            other = self._cases.get(relation.case_id)
+            if other is None:
+                continue
+            resolved.append(
+                {
+                    "relation": relation.relation,
+                    "case_id": other.id,
+                    "name": other.name,
+                    "court": other.court,
+                    "year": other.year,
+                    "note": relation.note,
+                    "status": relation.status.value,
+                }
+            )
+        return resolved
 
     def get_case(self, case_id: str) -> CaseBrief | None:
         return self._cases.get(case_id)

@@ -38,6 +38,11 @@ ACCESS_TTL = timedelta(hours=1)
 GENERIC_REGISTER_MESSAGE = "If this address can be registered, a verification email has been sent."
 
 
+def _as_utc(value: datetime) -> datetime:
+    """Treat a naive datetime as UTC so stored and incoming times compare safely."""
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
 class Base(DeclarativeBase):
     pass
 
@@ -727,7 +732,10 @@ class AccountService:
 
     def sync_user_items(self, user_id: str, items: list[dict]) -> list[dict]:
         """Last-write-wins sync for a user's saved items and private drafts."""
-        allowed = {"saved", "draft"}
+        # saved: bookmarked cases/topics. draft: private work in progress.
+        # reading_list: a named list of case ids. preference: client settings
+        # such as law-student mode, which must survive a reinstall.
+        allowed = {"saved", "draft", "reading_list", "preference"}
         with self.sessions.begin() as session:
             for item in items:
                 if item["kind"] not in allowed:
@@ -740,7 +748,10 @@ class AccountService:
                         UserSyncRecord.item_id == item["item_id"],
                     )
                 )
-                if existing and existing.updated_at >= updated_at:
+                # SQLite hands back naive datetimes even for timezone-aware
+                # columns, so normalise both sides before the last-write-wins
+                # comparison; otherwise every update to an existing item raises.
+                if existing and _as_utc(existing.updated_at) >= _as_utc(updated_at):
                     continue
                 values = {
                     "payload_json": json.dumps(item.get("payload") or {}),

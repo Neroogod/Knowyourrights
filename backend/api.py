@@ -38,6 +38,7 @@ from backend.account_schemas import (
     AIReviewSubmit,
     AlertCreate,
     AlertResponse,
+    CaseDigestSubmit,
     CheckInCreate,
     CheckInResponse,
     ContactCreate,
@@ -50,15 +51,18 @@ from backend.account_schemas import (
     ErrorReportSubmit,
     ForgotPasswordRequest,
     ForgotPasswordResponse,
+    InterpretationSubmit,
     LoginRequest,
     ProfileResponse,
     ProfileUpdate,
+    ReadingListUpsert,
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
     ResetPasswordRequest,
     ReviewDecisionSubmit,
     RoleUpdate,
+    StudentPreferences,
     TokenResponse,
     UserSyncRequest,
     UserSyncResponse,
@@ -830,12 +834,151 @@ def create_app(
         response.headers["X-AI-Event-ID"] = event_id
         return answer
 
+    # ------------------------------------------------------------ student desk
+    #
+    # Study tools sit on the existing per-user sync store, so a saved case or a
+    # reading list survives a reinstall and is available offline. Contributions
+    # flow into the same review pipeline as everything else: a student's digest
+    # is community content until a lawyer verifies it.
+
+    STUDENT_PREF_ID = "student"
+
+    def _sync_write(user_id: str, kind: str, item_id: str, payload: dict,
+                    deleted: bool = False) -> None:
+        accounts.sync_user_items(
+            user_id,
+            [
+                {
+                    "kind": kind,
+                    "item_id": item_id,
+                    "payload": payload,
+                    "deleted": deleted,
+                    "updated_at": datetime.now(UTC),
+                }
+            ],
+        )
+
+    def _sync_read(user_id: str, kind: str) -> list[dict]:
+        return [
+            item
+            for item in accounts.user_items(user_id)
+            if item["kind"] == kind and not item.get("deleted")
+        ]
+
+    @app.get("/v1/students/filters")
+    def case_filters() -> dict:
+        """Filter values actually present in the library: areas, courts, years."""
+        return resolved_store.case_filters()
+
+    @app.get("/v1/students/cases/{case_id}/related")
+    def case_relations(case_id: str) -> list[dict]:
+        """The citator graph: what this case cites, follows, distinguishes, overrules."""
+        if resolved_store.get_case(case_id) is None:
+            raise HTTPException(status_code=404, detail="case not found")
+        return resolved_store.related_cases(case_id)
+
+    @app.get("/v1/students/saved")
+    def saved_cases(user_id: Annotated[str, Depends(current_user)]) -> list[dict]:
+        return _sync_read(user_id, "saved")
+
+    @app.put("/v1/students/saved/{case_id}", status_code=204)
+    def save_case(case_id: str, user_id: Annotated[str, Depends(current_user)]) -> Response:
+        if resolved_store.get_case(case_id) is None:
+            raise HTTPException(status_code=404, detail="case not found")
+        _sync_write(user_id, "saved", case_id, {"type": "case", "case_id": case_id})
+        return Response(status_code=204)
+
+    @app.delete("/v1/students/saved/{case_id}", status_code=204)
+    def unsave_case(case_id: str, user_id: Annotated[str, Depends(current_user)]) -> Response:
+        _sync_write(user_id, "saved", case_id, {"type": "case", "case_id": case_id}, deleted=True)
+        return Response(status_code=204)
+
+    @app.get("/v1/students/reading-lists")
+    def reading_lists(user_id: Annotated[str, Depends(current_user)]) -> list[dict]:
+        return _sync_read(user_id, "reading_list")
+
+    @app.put("/v1/students/reading-lists/{list_id}", status_code=204)
+    def upsert_reading_list(
+        list_id: str,
+        body: ReadingListUpsert,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> Response:
+        unknown = [c for c in body.case_ids if resolved_store.get_case(c) is None]
+        if unknown:
+            raise HTTPException(status_code=400, detail=f"unknown cases: {', '.join(unknown[:5])}")
+        _sync_write(user_id, "reading_list", list_id,
+                    {"name": body.name, "case_ids": body.case_ids})
+        return Response(status_code=204)
+
+    @app.delete("/v1/students/reading-lists/{list_id}", status_code=204)
+    def delete_reading_list(
+        list_id: str, user_id: Annotated[str, Depends(current_user)]
+    ) -> Response:
+        _sync_write(user_id, "reading_list", list_id, {}, deleted=True)
+        return Response(status_code=204)
+
+    @app.get("/v1/students/preferences", response_model=StudentPreferences)
+    def get_student_preferences(
+        user_id: Annotated[str, Depends(current_user)]
+    ) -> StudentPreferences:
+        for item in _sync_read(user_id, "preference"):
+            if item["item_id"] == STUDENT_PREF_ID:
+                return StudentPreferences(**item["payload"])
+        return StudentPreferences()
+
+    @app.put("/v1/students/preferences", response_model=StudentPreferences)
+    def set_student_preferences(
+        body: StudentPreferences,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> StudentPreferences:
+        """Law-student mode keeps the case library out of the way for everyone else."""
+        _sync_write(user_id, "preference", STUDENT_PREF_ID, body.model_dump())
+        return body
+
+    @app.post("/v1/students/cases/{case_id}/interpretations", status_code=201)
+    def contribute_interpretation(
+        case_id: str,
+        body: InterpretationSubmit,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> dict:
+        """Contribute commentary on a case. Enters review; never published directly."""
+        case = resolved_store.get_case(case_id)
+        if case is None:
+            raise HTTPException(status_code=404, detail="case not found")
+        try:
+            return reviews.submit(
+                user_id,
+                "interpretation",
+                f"{case.name} - {body.kind}",
+                {"case_id": case_id, "kind": body.kind, "body": body.body,
+                 "citations": body.citations},
+            )
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.post("/v1/students/digests", status_code=201)
+    def contribute_digest(
+        body: CaseDigestSubmit,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> dict:
+        """Contribute a case digest, in the student's own words."""
+        try:
+            return reviews.submit(user_id, "case", body.name, body.model_dump())
+        except ReviewError as error:
+            raise review_error(error) from error
+
+    @app.get("/v1/students/me/contributions")
+    def my_contributions(user_id: Annotated[str, Depends(current_user)]) -> dict:
+        """A contributor's own record: what they submitted and how it fared."""
+        return reviews.contributor_profile(user_id)
+
     @app.get("/v1/students/cases", response_model=list[CaseBrief])
     def list_cases(
         area_of_law: str | None = Query(default=None),
         year: int | None = Query(default=None),
+        court: str | None = Query(default=None, max_length=160),
     ) -> list[CaseBrief]:
-        return resolved_store.list_cases(area_of_law=area_of_law, year=year)
+        return resolved_store.list_cases(area_of_law=area_of_law, year=year, court=court)
 
     @app.get("/v1/students/cases/{case_id}", response_model=CaseBrief)
     def get_case(case_id: str) -> CaseBrief:

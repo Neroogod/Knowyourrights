@@ -182,6 +182,18 @@
     background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);}
   .panel-metrics b{display:block;font-family:var(--serif);font-size:1.2rem;font-weight:600;}
   .panel-metrics small{font-size:.66rem;opacity:.78;}
+  .filter-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+  .filter-row select{padding:9px 11px;border:1px solid var(--line);border-radius:10px;
+    font:inherit;font-size:.86rem;background:var(--card);color:var(--ink);}
+  .saved-toggle{display:flex;flex-direction:row;align-items:center;gap:7px;font-size:.86rem;}
+  .save-btn{background:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;
+    font:inherit;font-size:.76rem;cursor:pointer;color:var(--muted);}
+  .save-btn.on{background:var(--gold-tint);border-color:var(--gold);color:var(--gold-ink);font-weight:700;}
+  .relation{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:800;
+    text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:6px;
+    background:var(--green-tint);color:var(--green);}
+  .relation.overrules{background:var(--sos-tint);color:var(--sos);}
+  .relation.distinguishes{background:var(--gold-tint);color:var(--gold-ink);}
   .report-link{background:none;border:none;color:var(--faint);font:inherit;font-size:.78rem;
     text-decoration:underline;cursor:pointer;padding:6px 0;display:inline-flex;gap:6px;align-items:center;}
   .report-link:hover{color:var(--sos);}
@@ -538,7 +550,21 @@
       <h2 class="section">Case library</h2>
       <input class="field" id="caseSearch" placeholder="Search cases, courts, or legal areas…" oninput="renderCases()" />
       <div class="chips" id="caseAreas"></div>
+      <div class="filter-row">
+        <label class="field-label">Court
+          <select id="caseCourt" onchange="renderCases()"><option value="">All courts</option></select>
+        </label>
+        <label class="field-label">Year
+          <select id="caseYear" onchange="renderCases()"><option value="">All years</option></select>
+        </label>
+        <label class="field-label saved-toggle">
+          <input type="checkbox" id="savedOnly" onchange="renderCases()"> Saved only
+        </label>
+      </div>
       <div id="caseList"></div>
+
+      <h2 class="section">My study desk</h2>
+      <div id="studyDesk"></div>
     </section>
     <section class="view" id="caseDetail"></section>
 
@@ -749,6 +775,7 @@
     }catch(_error){}
   }
   function showApp(){
+    loadStudentDesk();
     document.getElementById("accountGate").hidden=true;
     document.getElementById("profileButton").hidden=false;
     const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
@@ -1218,6 +1245,128 @@
     }catch(error){ if(statusEl) statusEl.textContent=error.message; }
   }
 
+
+  /* ------------------------------- student study desk ------------------- */
+  let SAVED_CASES=new Set(), READING_LISTS=[], CASE_FILTERS={courts:[],years:[],areas_of_law:[]};
+
+  async function loadStudentDesk(){
+    try{ CASE_FILTERS=await apiJson("/students/filters"); }catch(_e){}
+    const courtSel=document.getElementById("caseCourt"), yearSel=document.getElementById("caseYear");
+    if(courtSel) courtSel.innerHTML='<option value="">All courts</option>'+
+      CASE_FILTERS.courts.map(c=>`<option>${esc(c)}</option>`).join("");
+    if(yearSel) yearSel.innerHTML='<option value="">All years</option>'+
+      CASE_FILTERS.years.map(y=>`<option>${y}</option>`).join("");
+    if(!AUTH_TOKEN){ renderStudyDesk(); return; }
+    try{
+      const saved=await apiJson("/students/saved",{headers:authHeaders()});
+      SAVED_CASES=new Set(saved.map(item=>item.item_id));
+      READING_LISTS=await apiJson("/students/reading-lists",{headers:authHeaders()});
+    }catch(_e){}
+    renderStudyDesk(); renderCases();
+  }
+
+  async function toggleSaveCase(caseId,event){
+    if(event) event.stopPropagation();
+    if(!AUTH_TOKEN){ alert("Sign in to save cases to your study desk."); return; }
+    const saved=SAVED_CASES.has(caseId);
+    try{
+      await apiJson(`/students/saved/${encodeURIComponent(caseId)}`,
+        {method:saved?"DELETE":"PUT",headers:authHeaders()});
+      if(saved) SAVED_CASES.delete(caseId); else SAVED_CASES.add(caseId);
+      renderCases(); renderStudyDesk();
+    }catch(error){ alert(error.message); }
+  }
+
+  function renderStudyDesk(){
+    const el=document.getElementById("studyDesk"); if(!el) return;
+    if(!AUTH_TOKEN){
+      el.innerHTML='<p class="muted-note">Sign in to save cases and build reading lists.</p>';
+      return;
+    }
+    const savedNames=[...SAVED_CASES].map(id=>CASES.find(c=>c.id===id)).filter(Boolean);
+    el.innerHTML=`
+      <div class="block do">
+        <h5>Saved cases (${savedNames.length})</h5>
+        ${savedNames.length?`<ul>${savedNames.map(c=>
+          `<li><span class="ic g">★</span><a href="#" onclick="openCase('${esc(c.id)}');return false;">${esc(c.name)}</a></li>`
+        ).join("")}</ul>`:'<p class="muted-note">Nothing saved yet — use ☆ Save on any case.</p>'}
+      </div>
+      <div class="block rights" style="margin-top:10px">
+        <h5>Reading lists (${READING_LISTS.length})</h5>
+        ${READING_LISTS.length?READING_LISTS.map(list=>`
+          <div style="margin-bottom:8px">
+            <strong>${esc(list.payload.name)}</strong>
+            <span class="muted-note"> · ${(list.payload.case_ids||[]).length} cases</span>
+            <button class="report-link" onclick="deleteReadingList('${esc(list.item_id)}')">remove</button>
+          </div>`).join(""):'<p class="muted-note">No reading lists yet.</p>'}
+        <div class="row" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <input class="field" id="newListName" placeholder="New reading list name" style="flex:1;min-width:180px">
+          <button class="btn-primary" onclick="createReadingList()">Create from saved</button>
+        </div>
+      </div>`;
+  }
+
+  async function createReadingList(){
+    const nameEl=document.getElementById("newListName");
+    const name=(nameEl?.value||"").trim();
+    if(!name){ alert("Give the list a name."); return; }
+    if(!SAVED_CASES.size){ alert("Save some cases first — the list is built from them."); return; }
+    const id=name.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,60)||`list-${Date.now()}`;
+    try{
+      await apiJson(`/students/reading-lists/${encodeURIComponent(id)}`,{method:"PUT",
+        headers:{...authHeaders(),"Content-Type":"application/json"},
+        body:JSON.stringify({id,name,case_ids:[...SAVED_CASES]})});
+      nameEl.value="";
+      READING_LISTS=await apiJson("/students/reading-lists",{headers:authHeaders()});
+      renderStudyDesk();
+    }catch(error){ alert(error.message); }
+  }
+
+  async function deleteReadingList(listId){
+    try{
+      await apiJson(`/students/reading-lists/${encodeURIComponent(listId)}`,
+        {method:"DELETE",headers:authHeaders()});
+      READING_LISTS=READING_LISTS.filter(l=>l.item_id!==listId);
+      renderStudyDesk();
+    }catch(error){ alert(error.message); }
+  }
+
+  /* Contribute commentary. It enters review - it is never published directly. */
+  function contributeForm(caseId){
+    return `<div class="report-box" style="margin-top:12px">
+      <strong style="font-size:.9rem">Contribute an interpretation</strong>
+      <p class="muted-note" style="margin:0">Your own words only. A lawyer reviews it before
+        it appears, and it is never used to answer questions until verified.</p>
+      <select id="contribKind-${esc(caseId)}" style="padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)">
+        <option value="significance">Significance</option>
+        <option value="ratio">Ratio</option>
+        <option value="commentary">Commentary</option>
+      </select>
+      <textarea id="contribBody-${esc(caseId)}" placeholder="At least 40 characters, in your own words…"></textarea>
+      <div class="row">
+        <button class="btn-primary" onclick="submitInterpretation('${esc(caseId)}')">Submit for review</button>
+        <span class="report-status" id="contribStatus-${esc(caseId)}"></span>
+      </div></div>`;
+  }
+
+  async function submitInterpretation(caseId){
+    const statusEl=document.getElementById(`contribStatus-${caseId}`);
+    const kind=document.getElementById(`contribKind-${caseId}`).value;
+    const body=document.getElementById(`contribBody-${caseId}`).value.trim();
+    if(!AUTH_TOKEN){ statusEl.textContent="Sign in to contribute."; return; }
+    if(body.length<40){ statusEl.textContent="Please write at least 40 characters."; return; }
+    statusEl.textContent="Submitting…";
+    try{
+      const result=await apiJson(`/students/cases/${encodeURIComponent(caseId)}/interpretations`,
+        {method:"POST",headers:{...authHeaders(),"Content-Type":"application/json"},
+         body:JSON.stringify({kind,body})});
+      document.getElementById(`contribBody-${caseId}`).value="";
+      statusEl.textContent=result.status==="community"
+        ? "Submitted — awaiting lawyer review."
+        : `Held for checks (${result.moderation_flags.join(", ")}).`;
+    }catch(error){ statusEl.textContent=error.message; }
+  }
+
   let CASE_AREA=null;
 
   function caseCard(item){
@@ -1225,7 +1374,9 @@
       <div class="top"><span class="cat">${esc(prettyCat(item.area_of_law))}</span>${item.status==="verified"?verifiedBadge():"<span class='muted-note'>Pending review</span>"}</div>
       <h4>${esc(item.name)}</h4>
       <p class="muted-note" style="margin:2px 0 4px">${esc(item.court)} · ${esc(String(item.year))}</p>
-      <p>${esc(item.summary)}</p></div>`;
+      <p>${esc(item.summary)}</p>
+      <button class="save-btn ${SAVED_CASES.has(item.id)?"on":""}" onclick="toggleSaveCase('${esc(item.id)}',event)">
+        ${SAVED_CASES.has(item.id)?"★ Saved":"☆ Save"}</button></div>`;
   }
 
   function renderCaseAreas(){
@@ -1256,8 +1407,14 @@
   function renderCases(){
     const input=document.getElementById("caseSearch");
     const needle=(input?input.value:"").trim().toLowerCase();
+    const court=document.getElementById("caseCourt")?.value||"";
+    const year=document.getElementById("caseYear")?.value||"";
+    const savedOnly=document.getElementById("savedOnly")?.checked;
     let cases=CASES;
     if(CASE_AREA) cases=cases.filter(item=>item.area_of_law===CASE_AREA);
+    if(court) cases=cases.filter(item=>item.court===court);
+    if(year) cases=cases.filter(item=>String(item.year)===year);
+    if(savedOnly) cases=cases.filter(item=>SAVED_CASES.has(item.id));
     if(needle) cases=cases.filter(item=>[item.name,item.court,item.area_of_law,item.summary,item.holding,item.ratio].join(" ").toLowerCase().includes(needle));
     document.getElementById("caseList").innerHTML=cases.length?cases.map(caseCard).join(""):'<p class="muted-note">No matching cases.</p>';
   }
@@ -1276,10 +1433,28 @@
       ${linkedTopics(item)}
       <h2 class="section">Sources</h2><div class="cites">${(item.citations||[]).map(c=>citeChip(c,true)).join("")}</div>
       ${sourceNote(item)}
+      <div id="caseRelated"></div>
+      ${contributeForm(item.id)}
       <div class="reviewed" style="margin-top:14px">${item.status==="verified"?verifiedBadge():""}
         Reviewed by ${esc(item.reviewed_by||"—")}${item.reviewed_at?" · "+esc(item.reviewed_at):""}</div>
       ${reportControl("case",item.id)}`;
     go("caseDetail");
+    loadCaseRelations(item.id);
+  }
+
+  /* The citator graph: what this case cites, follows, distinguishes or overrules. */
+  async function loadCaseRelations(caseId){
+    const el=document.getElementById("caseRelated"); if(!el) return;
+    try{
+      const related=await apiJson(`/students/cases/${encodeURIComponent(caseId)}/related`);
+      el.innerHTML=related.length?`<h2 class="section">Related cases</h2>`+related.map(r=>
+        `<div class="rcard" onclick="openCase('${esc(r.case_id)}')">
+          <div class="top"><span class="relation ${esc(r.relation)}">${esc(r.relation)}</span>
+            ${r.status!=="verified"?'<span class="muted-note">pending review</span>':""}</div>
+          <h4>${esc(r.name)}</h4>
+          <p class="muted-note">${esc(r.court)} · ${esc(String(r.year))}</p>
+          ${r.note?`<p>${esc(r.note)}</p>`:""}</div>`).join(""):"";
+    }catch(_e){ el.innerHTML=""; }
   }
 
   /* Study notes are our own commentary on a case, not reproduced report text. */
@@ -1573,6 +1748,7 @@
       renderStudyDesk();
       renderCaseAreas();
       renderCases();
+      loadStudentDesk();
     }catch(e){
       document.getElementById("homeTopics").innerHTML = `<p class="muted-note">Couldn't load content. Check your connection and refresh.</p>`;
     }

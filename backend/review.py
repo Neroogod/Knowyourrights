@@ -354,6 +354,30 @@ class ReviewService:
                 for r in rows
             ]
 
+    def contributor_profile(self, user_id: str) -> dict:
+        """What a contributor has submitted and how it fared.
+
+        Attribution is part of the incentive to contribute well, so accepted work
+        is counted and shown back to the person who did it.
+        """
+        with self.sessions() as session:
+            rows = session.scalars(
+                select(ContributionRecord)
+                .where(ContributionRecord.author_user_id == user_id)
+                .order_by(ContributionRecord.created_at.desc())
+            ).all()
+        counts: dict[str, int] = {}
+        for row in rows:
+            counts[row.status] = counts.get(row.status, 0) + 1
+        return {
+            "user_id": user_id,
+            "submitted": len(rows),
+            "by_status": counts,
+            "verified": counts.get(STATUS_VERIFIED, 0),
+            "awaiting_review": counts.get(STATUS_COMMUNITY, 0),
+            "contributions": [_contribution_dict(r) for r in rows[:50]],
+        }
+
     # -- error reports ---------------------------------------------------
 
     def report_error(self, target_type: str, target_id: str, message: str,

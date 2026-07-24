@@ -202,3 +202,41 @@ class ErrorReportSubmit(BaseModel):
 class ErrorReportResolve(BaseModel):
     status: str = Field(pattern=r"^(triaged|resolved|dismissed)$")
     resolution: str | None = Field(default=None, max_length=4000)
+
+
+class ReadingListUpsert(BaseModel):
+    """A named list of cases a student is working through."""
+
+    id: str = Field(min_length=1, max_length=120)
+    name: str = Field(min_length=1, max_length=160)
+    case_ids: list[str] = Field(default_factory=list, max_length=500)
+
+
+class StudentPreferences(BaseModel):
+    """Client settings that must survive a reinstall."""
+
+    law_student_mode: bool = False
+
+
+class InterpretationSubmit(BaseModel):
+    """A student's own commentary on a case, entering the review pipeline."""
+
+    kind: str = Field(pattern=r"^(ratio|commentary|significance)$")
+    body: str = Field(min_length=40, max_length=8000)
+    citations: list[dict] = Field(default_factory=list)
+
+
+class CaseDigestSubmit(BaseModel):
+    """A student-authored case digest. Must be their own words, never report text."""
+
+    name: str = Field(min_length=3, max_length=300)
+    court: str = Field(min_length=2, max_length=160)
+    year: int = Field(ge=1900, le=2100)
+    area_of_law: str = Field(min_length=2, max_length=80)
+    summary: str = Field(min_length=20, max_length=2000)
+    facts: str = Field(min_length=20, max_length=8000)
+    issues: list[str] = Field(min_length=1, max_length=20)
+    holding: str = Field(min_length=10, max_length=4000)
+    ratio: str = Field(min_length=10, max_length=4000)
+    report_citation: str | None = Field(default=None, max_length=300)
+    citations: list[dict] = Field(default_factory=list)

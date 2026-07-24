@@ -173,6 +173,20 @@ class CaseInterpretation(BaseModel):
         return self
 
 
+class CaseRelation(BaseModel):
+    """How one case relates to another - the citator graph a student needs.
+
+    Asserting that a case overrules or distinguishes another is a legal claim, so
+    a relation carries the same burden as any other: it needs a source, and it is
+    reviewed before it ships.
+    """
+
+    relation: str = Field(pattern=r"^(cites|follows|distinguishes|overrules)$")
+    case_id: str = Field(min_length=1)
+    note: str | None = None
+    status: Status = Status.draft
+
+
 class CaseBrief(BaseModel):
     """Law-student case brief: facts / issues / holding / ratio + interpretations.
 
@@ -194,6 +208,7 @@ class CaseBrief(BaseModel):
     report_citation: str | None = None
     source_url: str | None = None
     linked_topic_ids: list[str] = Field(default_factory=list)
+    related_cases: list[CaseRelation] = Field(default_factory=list)
     interpretations: list[CaseInterpretation] = Field(default_factory=list)
     citations: list[Citation] = Field(default_factory=list)
     status: Status = Status.draft

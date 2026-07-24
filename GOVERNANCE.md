@@ -119,3 +119,20 @@ The seed content currently carries `status: verified` with
 contradiction: it is cited but **not** lawyer-reviewed, and it therefore does not
 meet section 3. It must either be reviewed by a qualified Nigerian lawyer or have
 its status lowered before any public launch.
+
+## 10. Student contributions
+
+Law students may contribute case digests and interpretations. The same rules
+apply, with two additions specific to this layer:
+
+- **Digests must be the student's own words.** Reproducing a law report's
+  headnote or body text is the licensing risk this product cannot take, and the
+  automated screen blocks it before a reviewer ever sees it.
+- **Citator relations are legal claims.** Asserting that one case *overrules*,
+  *distinguishes*, *follows*, or *cites* another is an assertion about the law
+  and is reviewed like any other content. Relations default to `draft` and are
+  shown as "pending review" until verified.
+
+Accepted contributions are attributed to their author, and a contributor's
+record is visible to them at `/v1/students/me/contributions`. Contribution is a
+route into reviewer training, not free labour.
