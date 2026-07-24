@@ -230,6 +230,23 @@ class AIUsageRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
+class SubscriptionRecord(Base):
+    """A subject's paid plan. Absence of an active row means the free plan."""
+
+    __tablename__ = "subscriptions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    subject_type: Mapped[str] = mapped_column(String(16), default="user")  # user | org
+    subject_id: Mapped[str] = mapped_column(String(36), index=True)
+    plan: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20), index=True)  # active | canceled | expired
+    provider: Mapped[str] = mapped_column(String(20))
+    provider_reference: Mapped[str] = mapped_column(String(120), unique=True, index=True)
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class AIReviewRecord(Base):
     __tablename__ = "ai_answer_reviews"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -393,6 +410,135 @@ class AccountService:
                     session.add(UserRoleRecord(user_id=user_id, role="reader", updated_at=self._now()))
             elif email and user.email != email.strip().lower():
                 user.email = email.strip().lower()
+
+    def active_plan(self, subject_id: str) -> str:
+        """The subject's current plan, or 'free' when none is active or it lapsed."""
+        from backend.billing import PLAN_FREE
+
+        now = self._now()
+        with self.sessions() as session:
+            row = session.scalar(
+                select(SubscriptionRecord)
+                .where(
+                    SubscriptionRecord.subject_id == subject_id,
+                    SubscriptionRecord.status == "active",
+                )
+                .order_by(SubscriptionRecord.updated_at.desc())
+            )
+            if row is None:
+                return PLAN_FREE
+            if row.current_period_end is not None and _as_utc(row.current_period_end) < now:
+                return PLAN_FREE
+            return row.plan
+
+    def ai_quota_for(self, subject_id: str | None) -> int:
+        """Daily AI question quota for a subject; anonymous callers get free."""
+        from backend.billing import PLAN_FREE, ai_daily_quota
+
+        return ai_daily_quota(self.active_plan(subject_id) if subject_id else PLAN_FREE)
+
+    def activate_subscription(
+        self,
+        *,
+        subject_id: str,
+        plan: str,
+        provider: str,
+        reference: str,
+        subject_type: str = "user",
+        period_days: int = 30,
+    ) -> None:
+        """Record a paid subscription. Idempotent on the provider reference, so a
+        webhook delivered twice does not create two subscriptions."""
+        from backend.billing import VALID_PLANS
+
+        if plan not in VALID_PLANS:
+            raise AccountError("unknown plan")
+        now = self._now()
+        with self.sessions.begin() as session:
+            existing = session.scalar(
+                select(SubscriptionRecord).where(SubscriptionRecord.provider_reference == reference)
+            )
+            if existing is not None:
+                existing.status = "active"
+                existing.plan = plan
+                existing.current_period_end = now + timedelta(days=period_days)
+                existing.updated_at = now
+                return
+            session.add(
+                SubscriptionRecord(
+                    id=str(uuid.uuid4()),
+                    subject_type=subject_type,
+                    subject_id=subject_id,
+                    plan=plan,
+                    status="active",
+                    provider=provider,
+                    provider_reference=reference,
+                    current_period_end=now + timedelta(days=period_days),
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+
+    # A checkout is created for one user, then confirmed by a provider webhook
+    # that only carries the reference. We record the reference->user binding as an
+    # inactive subscription row so the webhook can activate the right account -
+    # and never activate an account from an unbound reference.
+
+    def record_pending_checkout(self, reference: str, user_id: str, plan: str) -> None:
+        from backend.billing import VALID_PLANS
+
+        if plan not in VALID_PLANS:
+            raise AccountError("unknown plan")
+        now = self._now()
+        with self.sessions.begin() as session:
+            session.add(
+                SubscriptionRecord(
+                    id=str(uuid.uuid4()),
+                    subject_type="user",
+                    subject_id=user_id,
+                    plan=plan,
+                    status="pending",
+                    provider="pending",
+                    provider_reference=reference,
+                    current_period_end=None,
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+
+    def fulfil_checkout(self, reference: str, plan: str, provider: str, period_days: int = 30) -> bool:
+        """Activate the subscription for a paid reference. Idempotent; ignores
+        references we never issued, so a forged webhook cannot grant a plan."""
+        now = self._now()
+        with self.sessions.begin() as session:
+            row = session.scalar(
+                select(SubscriptionRecord).where(SubscriptionRecord.provider_reference == reference)
+            )
+            if row is None:
+                return False  # unknown reference — do not activate anything
+            row.status = "active"
+            row.plan = plan
+            row.provider = provider
+            row.current_period_end = now + timedelta(days=period_days)
+            row.updated_at = now
+            return True
+
+    def subscription_status(self, subject_id: str) -> dict:
+        """What a user sees on their billing screen."""
+        plan = self.active_plan(subject_id)
+        with self.sessions() as session:
+            row = session.scalar(
+                select(SubscriptionRecord)
+                .where(SubscriptionRecord.subject_id == subject_id)
+                .order_by(SubscriptionRecord.updated_at.desc())
+            )
+        return {
+            "plan": plan,
+            "status": row.status if row else "none",
+            "current_period_end": (
+                row.current_period_end.isoformat() if row and row.current_period_end else None
+            ),
+        }
 
     def role(self, user_id: str) -> str:
         with self.sessions() as session:

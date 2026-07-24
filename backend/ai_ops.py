@@ -22,6 +22,7 @@ class AIRequestContext:
     jurisdiction: str
     privacy_id: str
     user_id: str | None
+    daily_quota: int | None = None  # plan-based; falls back to the gate default
 
 
 class AIProductionGate:
@@ -65,7 +66,7 @@ class AIProductionGate:
         # records no telemetry, so a sensitive question ("can they detain me
         # for X?") leaves no trace. The hourly rate limit still applies.
         if incognito:
-            if self.accounts.ai_daily_usage(context.privacy_id) >= self.daily_quota:
+            if self.accounts.ai_daily_usage(context.privacy_id) >= (context.daily_quota or self.daily_quota):
                 raise PermissionError("Daily AI question limit reached. Try again tomorrow.")
             return answerer(question), False, "incognito"
         normalized = _SPACE.sub(" ", question.strip().lower())
@@ -88,7 +89,7 @@ class AIProductionGate:
             )
             return response, True, event_id
 
-        if self.accounts.ai_daily_usage(context.privacy_id) >= self.daily_quota:
+        if self.accounts.ai_daily_usage(context.privacy_id) >= (context.daily_quota or self.daily_quota):
             raise PermissionError("Daily AI question limit reached. Try again tomorrow.")
 
         response = answerer(question)

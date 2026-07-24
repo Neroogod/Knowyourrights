@@ -221,3 +221,37 @@ Deferred, with reasons:
   explicit in-app settings screen is follow-up.
 - **Organizations, memberships, subscriptions, billing webhooks:** a Layer 2
   business decision, deferred until the content is verified and proven (section 11).
+
+## 14. Monetization — status and the non-negotiable guardrail
+
+**The guardrail, enforced in code (`backend/billing.py`):** a plan only ever raises
+the AI question quota. It never gates reading a right, an emergency scenario, the
+directory, or Custody Alert. The plan table is structurally incapable of changing
+anything but the quota, and tests assert that an anonymous user and a free-plan
+user keep full access to rights content. Monetization sells convenience and depth,
+never access to a person's basic rights.
+
+Built this pass:
+- **Tiered AI question limits** — free (5/day), premium/student (100/day), team
+  (500/day). Anonymous and free callers get the free quota; an active subscription
+  raises it; a lapsed subscription silently falls back to free.
+- **Payment providers** — a provider-agnostic gateway with Paystack and Flutterwave
+  adapters (Nigerian rails) plus a development adapter, mirroring the delivery
+  pattern. Endpoints: `/v1/billing/plans`, `/checkout`, `/webhook/{provider}`,
+  `/subscription`. Webhook signatures are verified (Paystack HMAC-SHA512,
+  Flutterwave hash header); a webhook for a reference we never issued grants
+  nothing, and activation is idempotent so a double-delivered webhook is safe.
+- **Student subscription** — a plan is present and purchasable; the study content
+  it unlocks depth on already exists (Layer 3).
+
+Deferred, with reasons:
+- **Live payments** need a real Paystack/Flutterwave merchant account and secret
+  keys; without them the provider adapters fail closed and only the development
+  adapter runs. Real prices are a business decision (placeholders are set).
+- **Organization billing, seats, and campus/faculty licences** depend on
+  organization accounts, which are themselves deferred (section 11). The `team`
+  plan and `subject_type=org` are modelled so the schema is ready, but seat
+  management is not built.
+- **Lawyer referral marketplace** needs real lawyer partners and a revenue-share
+  agreement — a partnerships/ops effort, not a code gap. The directory's lawyer
+  entry type is the foundation it would build on.

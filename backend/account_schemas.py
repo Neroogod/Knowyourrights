@@ -255,3 +255,9 @@ class DirectoryContribution(BaseModel):
     specialty: list[str] = Field(default_factory=list, max_length=10)
     url: str | None = Field(default=None, max_length=300)
     corrects_id: str | None = Field(default=None, max_length=120)  # set when fixing an entry
+
+
+class CheckoutRequest(BaseModel):
+    """Start a payment for a plan."""
+
+    plan: str = Field(pattern=r"^(premium|student|team)$")

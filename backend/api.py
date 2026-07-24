@@ -14,6 +14,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+import uuid
 from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
 from pathlib import Path
@@ -34,6 +35,7 @@ from fastapi.responses import (
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 
+from backend import billing
 from backend.account_schemas import (
     AIReviewResponse,
     AIReviewSubmit,
@@ -42,6 +44,7 @@ from backend.account_schemas import (
     CaseDigestSubmit,
     CheckInCreate,
     CheckInResponse,
+    CheckoutRequest,
     ContactCreate,
     ContactResponse,
     ContributionSubmit,
@@ -199,6 +202,8 @@ def create_app(
     app.state.ai_gate = AIProductionGate(accounts, resolved_store.version)
     reviews = ReviewService(accounts)
     app.state.reviews = reviews
+    payment_gateway = billing.gateway_from_environment(development_mode)
+    app.state.payments = payment_gateway
 
     def request_ip(request: Request) -> str:
         forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
@@ -296,6 +301,9 @@ def create_app(
             jurisdiction=jurisdiction,
             privacy_id=app.state.ai_gate.privacy_id(raw_identifier),
             user_id=user_id,
+            # The plan only ever raises the AI question quota; it never gates
+            # reading a right. Anonymous callers get the free quota.
+            daily_quota=accounts.ai_quota_for(user_id),
         )
 
     def gated_answer(
@@ -1384,6 +1392,54 @@ def create_app(
             "stale_backlog": len(reviews.stale_content(user_id, pack)),
             "error_reports": accounts.error_report_metrics(),
         }
+
+    # ---------------------------------------------------------------- billing
+    #
+    # Guardrail (billing.py): a plan only ever raises the AI question quota. Rights
+    # content, scenarios, the directory, and Custody Alert are never gated by plan.
+
+    @app.get("/v1/billing/plans")
+    def billing_plans() -> dict:
+        return {"plans": billing.plan_catalogue()}
+
+    @app.get("/v1/billing/subscription")
+    def billing_subscription(user_id: Annotated[str, Depends(current_user)]) -> dict:
+        status_info = accounts.subscription_status(user_id)
+        status_info["ai_daily_quota"] = accounts.ai_quota_for(user_id)
+        return status_info
+
+    @app.post("/v1/billing/checkout")
+    def billing_checkout(
+        body: CheckoutRequest,
+        request: Request,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> dict:
+        limit_request(request, "billing", 10, 3600)
+        reference = f"kyr_{uuid.uuid4().hex}"
+        email = accounts.profile(user_id)["email"]
+        try:
+            session = payment_gateway.initialize(email=email, plan=body.plan, reference=reference)
+        except billing.PaymentError as error:
+            raise HTTPException(status_code=503, detail=str(error)) from error
+        # Bind the reference to this user so the webhook activates the right account.
+        accounts.record_pending_checkout(reference, user_id, body.plan)
+        return {
+            "reference": session.reference,
+            "authorization_url": session.authorization_url,
+            "provider": session.provider,
+        }
+
+    @app.post("/v1/billing/webhook/{provider}")
+    async def billing_webhook(provider: str, request: Request) -> Response:
+        raw = await request.body()
+        signature = request.headers.get("x-paystack-signature") or request.headers.get("verif-hash") or ""
+        if not payment_gateway.verify_signature(body=raw, signature=signature):
+            raise HTTPException(status_code=401, detail="invalid webhook signature")
+        payload = json.loads(raw or b"{}")
+        event = payment_gateway.parse_event(payload)
+        if event.succeeded:
+            accounts.fulfil_checkout(event.reference, event.plan, payment_gateway.name)
+        return Response(status_code=204)
 
     @app.get("/v1/content-pack", response_model=ContentPack)
     def content_pack() -> ContentPack:
