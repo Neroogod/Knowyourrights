@@ -6,7 +6,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'content_sync_client.dart';
 import 'models.dart';
+import 'offline_database.dart';
 
 const String kBaseUrl = String.fromEnvironment(
   'KYR_BASE_URL',
@@ -68,9 +70,15 @@ const Set<String> _stopwords = {
 };
 
 class ContentRepository {
-  ContentRepository({http.Client? client}) : _client = client ?? http.Client();
+  ContentRepository({http.Client? client, OfflineDatabase? database})
+    : _client = client ?? http.Client(),
+      _database = database ?? OfflineDatabase.instance {
+    _sync = ContentPackSyncClient(database: _database, client: _client);
+  }
 
   final http.Client _client;
+  final OfflineDatabase _database;
+  late final ContentPackSyncClient _sync;
 
   List<Topic> topics = [];
   List<Scenario> scenarios = [];
@@ -80,21 +88,33 @@ class ContentRepository {
   List<CaseBrief> cases = [];
   int version = 0;
   bool loadedFromCache = false;
+  DateTime? lastSyncedAt;
+  String? syncError;
+
+  Map<String, bool> get offlineAvailability => {
+    'Rights and offline answers': topics.isNotEmpty,
+    'Emergency guides': scenarios.isNotEmpty,
+    'Emergency directory': directory.isNotEmpty,
+    'Student case search': cases.isNotEmpty,
+    'Company reference': obligations.isNotEmpty,
+    'Generative AI answers': false,
+  };
 
   /// Load content: try the network, fall back to the cached pack when offline.
   Future<void> load() async {
     try {
-      final resp = await _client
-          .get(Uri.parse('$kBaseUrl/v1/content-pack'))
-          .timeout(const Duration(seconds: 6));
-      if (resp.statusCode == 200) {
-        await _cache(resp.body);
-        _parsePack(jsonDecode(resp.body) as Map<String, dynamic>);
-        loadedFromCache = false;
+      await _sync.syncAll();
+      await _loadDatabase();
+      loadedFromCache = false;
+      lastSyncedAt = DateTime.now();
+      syncError = null;
+      return;
+    } catch (error) {
+      syncError = error.toString();
+      if (await _loadDatabase()) {
+        loadedFromCache = true;
         return;
       }
-    } catch (_) {
-      // fall through to cache
     }
     final cached = await _readCache();
     if (cached != null) {
@@ -103,14 +123,54 @@ class ContentRepository {
     }
   }
 
-  Future<void> _cache(String body) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_cacheKey, body);
-  }
-
   Future<String?> _readCache() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_cacheKey);
+  }
+
+  Future<bool> _loadDatabase() async {
+    final topicRows = await _database.records('rights', 'NG-Federal', 'topics');
+    final scenarioRows = await _database.records(
+      'rights',
+      'NG-Federal',
+      'scenarios',
+    );
+    final directoryRows = await _database.records(
+      'rights',
+      'NG-Federal',
+      'directory',
+    );
+    final obligationRows = await _database.records(
+      'company',
+      'NG-Federal',
+      'obligations',
+    );
+    final checklistRows = await _database.records(
+      'company',
+      'NG-Federal',
+      'company_checklists',
+    );
+    final caseRows = await _database.records('students', 'NG-Federal', 'cases');
+    if (topicRows.isEmpty && scenarioRows.isEmpty && caseRows.isEmpty) {
+      return false;
+    }
+    topics = topicRows.map(Topic.fromJson).toList();
+    scenarios = scenarioRows.map(Scenario.fromJson).toList();
+    directory = directoryRows.map(DirectoryEntry.fromJson).toList();
+    obligations = obligationRows.map(Obligation.fromJson).toList();
+    companyChecklists = checklistRows.map(CompanyChecklist.fromJson).toList();
+    cases = caseRows.map(CaseBrief.fromJson).toList();
+    final states = await _database.select(_database.contentSyncStates).get();
+    version = states.fold(0, (best, item) {
+      return item.contentVersion > best ? item.contentVersion : best;
+    });
+    lastSyncedAt = states
+        .map((state) => state.lastCheckedAt)
+        .whereType<DateTime>()
+        .fold<DateTime?>(null, (best, item) {
+          return best == null || item.isAfter(best) ? item : best;
+        });
+    return true;
   }
 
   void _parsePack(Map<String, dynamic> json) {

@@ -998,6 +998,66 @@ class MoreScreen extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 8),
+        KyrCard(
+          child: ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: const EdgeInsets.only(top: 4, bottom: 4),
+            leading: Icon(
+              repo.loadedFromCache
+                  ? Icons.cloud_off_outlined
+                  : Icons.offline_pin_outlined,
+              color: repo.loadedFromCache ? p.gold : p.green,
+            ),
+            title: Text(
+              'Offline availability',
+              style: TextStyle(
+                color: p.ink,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            subtitle: Text(
+              repo.loadedFromCache
+                  ? 'Using verified content stored on this device'
+                  : 'Verified offline content is up to date',
+              style: TextStyle(color: p.muted, fontSize: 12),
+            ),
+            children: repo.offlineAvailability.entries
+                .map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          entry.value
+                              ? Icons.check_circle_outline
+                              : Icons.wifi_off_outlined,
+                          size: 18,
+                          color: entry.value ? p.green : p.faint,
+                        ),
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: Text(
+                            entry.key,
+                            style: TextStyle(fontSize: 13, color: p.ink),
+                          ),
+                        ),
+                        Text(
+                          entry.value ? 'Offline' : 'Internet required',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: entry.value ? p.green : p.faint,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
       ],
     );
   }

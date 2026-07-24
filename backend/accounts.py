@@ -2,6 +2,7 @@
 
 import base64
 import hashlib
+import json
 import os
 import secrets
 import uuid
@@ -22,6 +23,7 @@ from sqlalchemy import (
     create_engine,
     delete,
     func,
+    inspect,
     select,
     update,
 )
@@ -185,6 +187,20 @@ class CheckInRecord(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class UserSyncRecord(Base):
+    __tablename__ = "user_sync_items"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(20), index=True)
+    item_id: Mapped[str] = mapped_column(String(160))
+    payload_json: Mapped[str] = mapped_column(String(12000))
+    deleted: Mapped[bool] = mapped_column(default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    __table_args__ = (
+        UniqueConstraint("user_id", "kind", "item_id", name="uq_user_sync_item"),
+    )
+
+
 class AccountError(ValueError):
     pass
 
@@ -217,7 +233,15 @@ class AccountService:
             )
         else:
             self.engine = create_engine(resolved_database, connect_args=connect_args)
-        Base.metadata.create_all(self.engine)
+        if resolved_database.startswith("postgresql"):
+            if not inspect(self.engine).has_table("users"):
+                raise RuntimeError(
+                    "PostgreSQL schema is not migrated; run `alembic upgrade head` before startup"
+                )
+        else:
+            # SQLite remains a zero-setup local/test adapter. Production PostgreSQL is
+            # migration-only so application startup can never mutate its schema.
+            Base.metadata.create_all(self.engine)
         self.sessions = sessionmaker(self.engine, expire_on_commit=False)
         self.passwords = PasswordHasher()
         key = base64.urlsafe_b64encode(hashlib.sha256(self.secret.encode()).digest())
@@ -536,6 +560,60 @@ class AccountService:
                 "phone": phone,
                 "onboarding_complete": profile is not None and phone is not None,
             }
+
+    def sync_user_items(self, user_id: str, items: list[dict]) -> list[dict]:
+        """Last-write-wins sync for a user's saved items and private drafts."""
+        allowed = {"saved", "draft"}
+        with self.sessions.begin() as session:
+            for item in items:
+                if item["kind"] not in allowed:
+                    raise AccountError("unsupported sync item kind")
+                updated_at = item["updated_at"]
+                existing = session.scalar(
+                    select(UserSyncRecord).where(
+                        UserSyncRecord.user_id == user_id,
+                        UserSyncRecord.kind == item["kind"],
+                        UserSyncRecord.item_id == item["item_id"],
+                    )
+                )
+                if existing and existing.updated_at >= updated_at:
+                    continue
+                values = {
+                    "payload_json": json.dumps(item.get("payload") or {}),
+                    "deleted": bool(item.get("deleted")),
+                    "updated_at": updated_at,
+                }
+                if existing:
+                    for key, value in values.items():
+                        setattr(existing, key, value)
+                else:
+                    session.add(
+                        UserSyncRecord(
+                            id=str(uuid.uuid4()),
+                            user_id=user_id,
+                            kind=item["kind"],
+                            item_id=item["item_id"],
+                            **values,
+                        )
+                    )
+        return self.user_items(user_id)
+
+    def user_items(self, user_id: str, since: datetime | None = None) -> list[dict]:
+        with self.sessions() as session:
+            query = select(UserSyncRecord).where(UserSyncRecord.user_id == user_id)
+            if since:
+                query = query.where(UserSyncRecord.updated_at > since)
+            rows = session.scalars(query.order_by(UserSyncRecord.updated_at)).all()
+            return [
+                {
+                    "kind": row.kind,
+                    "item_id": row.item_id,
+                    "payload": json.loads(row.payload_json),
+                    "deleted": row.deleted,
+                    "updated_at": row.updated_at,
+                }
+                for row in rows
+            ]
 
     def create_contact(
         self,

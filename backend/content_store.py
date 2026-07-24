@@ -2,6 +2,7 @@
 the directory, search, and the grounded Q&A answerer."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -9,6 +10,10 @@ _ROOT = str(Path(__file__).resolve().parents[1])
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+from backend.content_db import (  # noqa: E402
+    DatabaseContentRepository,
+    content_repository_from_environment,
+)
 from backend.rag.answerer import (  # noqa: E402
     COMPANY_REFUSAL,
     STUDENT_REFUSAL,
@@ -19,6 +24,10 @@ from backend.rag.answerer import (  # noqa: E402
     generative_answerer_from_environment,
 )
 from backend.rag.index import Retriever  # noqa: E402
+from backend.rag.pgvector import (  # noqa: E402
+    PgVectorRetriever,
+    embedding_provider_from_environment,
+)
 from backend.schemas import (  # noqa: E402
     AskResponse,
     CaseBrief,
@@ -36,7 +45,11 @@ DEFAULT_PACK_PATH = Path(__file__).resolve().parents[1] / "data" / "content_pack
 class ContentStore:
     """Serves validated content and answers questions over verified topics only."""
 
-    def __init__(self, pack: ContentPack) -> None:
+    def __init__(
+        self,
+        pack: ContentPack,
+        database_repository: DatabaseContentRepository | None = None,
+    ) -> None:
         self._pack = pack
         self._topics: dict[str, Topic] = {t.id: t for t in pack.topics}
         self._scenarios: dict[str, Scenario] = {s.id: s for s in pack.scenarios}
@@ -48,14 +61,25 @@ class ContentStore:
         self._cases: dict[str, CaseBrief] = {item.id: item for item in pack.cases}
 
         documents = build_documents(pack.topics)
-        self._retriever = Retriever(documents)
+        embedding_provider = (
+            embedding_provider_from_environment() if database_repository else None
+        )
+        self._retriever = (
+            PgVectorRetriever(database_repository, embedding_provider, "topic")
+            if database_repository and embedding_provider
+            else Retriever(documents)
+        )
         rights_fallback = ExtractiveAnswerer(self._retriever)
         self._answerer = generative_answerer_from_environment(
             self._retriever,
             rights_fallback,
         )
         company_documents = build_company_documents(pack.obligations)
-        company_retriever = Retriever(company_documents)
+        company_retriever = (
+            PgVectorRetriever(database_repository, embedding_provider, "obligation")
+            if database_repository and embedding_provider
+            else Retriever(company_documents)
+        )
         company_fallback = ExtractiveAnswerer(
             company_retriever,
             refusal=COMPANY_REFUSAL,
@@ -66,7 +90,11 @@ class ContentStore:
             refusal=COMPANY_REFUSAL,
         )
         case_documents = build_case_documents(pack.cases)
-        case_retriever = Retriever(case_documents)
+        case_retriever = (
+            PgVectorRetriever(database_repository, embedding_provider, "case")
+            if database_repository and embedding_provider
+            else Retriever(case_documents)
+        )
         student_fallback = ExtractiveAnswerer(
             case_retriever,
             refusal=STUDENT_REFUSAL,
@@ -81,6 +109,23 @@ class ContentStore:
     def from_file(cls, path: Path = DEFAULT_PACK_PATH) -> "ContentStore":
         data = json.loads(path.read_text(encoding="utf-8"))
         return cls(ContentPack.model_validate(data))
+
+    @classmethod
+    def from_environment(cls, path: Path = DEFAULT_PACK_PATH) -> "ContentStore":
+        """Use PostgreSQL content when configured, retaining JSON for offline development."""
+        repository = content_repository_from_environment()
+        if repository is None:
+            return cls.from_file(path)
+        pack = repository.load_active_pack()
+        if pack is None and os.getenv("KYR_CONTENT_AUTO_IMPORT") == "1":
+            source_pack = ContentPack.model_validate(json.loads(path.read_text(encoding="utf-8")))
+            repository.import_pack(source_pack)
+            pack = repository.load_active_pack()
+        if pack is None:
+            raise RuntimeError(
+                "database content backend has no active content version; run the content import command"
+            )
+        return cls(pack, database_repository=repository)
 
     @property
     def version(self) -> int:

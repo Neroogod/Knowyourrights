@@ -68,7 +68,7 @@
 
   /* account gate */
   .account-gate{position:fixed;inset:0;z-index:100;background:var(--canvas);overflow:auto;padding:28px 18px 50px;}
-  .account-gate[hidden],.profile-panel[hidden]{display:none;}
+  .account-gate[hidden],.profile-panel[hidden],.more-panel[hidden]{display:none;}
   .account-shell{width:min(100%,520px);margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:24px;
     padding:24px;box-shadow:var(--shadow-lg);}
   .account-brand{margin-bottom:18px;}
@@ -127,6 +127,17 @@
   .profile-message{min-height:18px;color:var(--muted);font-size:.76rem;margin-top:8px;}
   .delivery-row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:7px;margin-top:7px;font-size:.75rem;}
   .history-list{max-height:390px;overflow:auto;padding-right:2px;}
+  .history-disclosure{border-top:1px solid var(--line);padding:0;}
+  .history-disclosure summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:16px 0;cursor:pointer;font-weight:800;}
+  .history-disclosure summary::-webkit-details-marker{display:none;}
+  .history-disclosure summary::after{content:"⌄";display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--line);
+    border-radius:50%;background:var(--card-2);font-size:1rem;transition:transform .2s ease;}
+  .history-disclosure[open] summary::after{transform:rotate(180deg);}
+  .history-summary-copy{display:flex;flex-direction:column;gap:3px;}
+  .history-summary-copy small{color:var(--muted);font-size:.75rem;font-weight:500;}
+  .history-content{padding:0 0 16px;}
+  .history-toolbar{display:flex;justify-content:flex-end;margin-bottom:8px;}
   .alert-results{grid-column:1/-1;width:100%;}
   .alert-result{font-size:.78rem;}
   @media(max-width:520px){.profile-form{grid-template-columns:1fr}.profile-form .wide,.channel-options{grid-column:auto}}
@@ -167,16 +178,29 @@
     border-radius:12px;padding:12px;font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;text-align:left;}
   .trig:hover{background:rgba(255,255,255,.24);}
 
-  .alert-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);}
+  .alert-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;box-shadow:var(--shadow);
+    position:relative;z-index:2;overflow:visible;}
   .alert-ring{width:46px;height:46px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;color:var(--sos);
     background:var(--sos-tint);box-shadow:0 0 0 4px color-mix(in srgb,var(--sos) 18%,transparent);}
   .alert-card h4{margin:0 0 2px;font-size:1rem;}
   .alert-card p{margin:0;color:var(--muted);font-size:.84rem;}
   .alert-card .go{margin-left:auto;border:1px solid var(--sos);color:var(--sos);background:transparent;border-radius:10px;padding:9px 13px;font:inherit;font-weight:700;font-size:.82rem;cursor:pointer;flex:0 0 auto;}
-  .alert-actions{margin-left:auto;display:flex;flex-direction:column;gap:7px;flex:0 0 auto;}
+  .alert-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
   .alert-actions .go{margin-left:0;}
-  .alert-actions .go.primary{background:var(--sos);color:var(--on-sos);}
-  @media(max-width:520px){.alert-card{align-items:flex-start;flex-wrap:wrap}.alert-actions{width:100%;flex-direction:row;margin-left:60px}.alert-actions .go{flex:1}}
+  .alert-actions .go.primary{background:var(--sos);color:var(--on-sos);min-height:44px;padding-inline:17px;}
+  .alert-menu{position:relative;}
+  .alert-menu[open]{z-index:50;}
+  .alert-menu summary{list-style:none;width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);
+    border-radius:12px;background:var(--card-2);color:var(--ink);font-size:1.25rem;font-weight:800;cursor:pointer;}
+  .alert-menu summary::-webkit-details-marker{display:none;}
+  .alert-menu-popover{position:absolute;z-index:100;right:0;top:51px;width:210px;padding:7px;border:1px solid var(--line);
+    border-radius:14px;background:var(--card);box-shadow:var(--shadow-lg);}
+  .alert-menu-popover button{display:block;width:100%;border:0;background:transparent;color:var(--ink);border-radius:9px;
+    padding:11px;text-align:left;font:inherit;font-size:.84rem;font-weight:700;cursor:pointer;}
+  .alert-menu-popover button:hover{background:var(--card-2);}
+  .alert-results{grid-column:1/-1;width:100%;}
+  @media(max-width:520px){.alert-card{grid-template-columns:auto 1fr}.alert-actions{grid-column:1/-1;margin-left:60px}.alert-actions .primary{flex:1}}
 
   .askbar{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow);cursor:text;width:100%;text-align:left;font:inherit;color:var(--faint);}
   .askbar .mag{color:var(--green);display:flex;}
@@ -259,6 +283,25 @@
   .nav button svg{width:23px;height:23px;}
   .nav button.on{color:var(--green);}
   .nav button.on.em{color:var(--sos);}
+  .more-panel{position:fixed;inset:0;z-index:40;background:rgba(7,15,10,.45);display:flex;align-items:flex-end;
+    justify-content:center;padding:18px;backdrop-filter:blur(4px);}
+  .more-sheet{width:min(100%,560px);background:var(--card);border:1px solid var(--line);border-radius:24px;
+    padding:22px;box-shadow:var(--shadow-lg);animation:moreUp .2s ease both;}
+  @keyframes moreUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .more-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+  .more-head h2{font-family:var(--serif);font-size:1.45rem;margin:0;}
+  .more-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .more-choice{border:1px solid var(--line);background:var(--card-2);color:var(--ink);border-radius:16px;padding:18px;
+    min-height:132px;text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:20px;}
+  .more-choice:hover{border-color:color-mix(in srgb,var(--green) 42%,var(--line));transform:translateY(-1px);}
+  .more-choice svg{width:25px;height:25px;color:var(--green);}
+  .more-choice span{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;}
+  .more-choice strong{display:block;font-size:.93rem;line-height:1.2;}
+  .more-choice small{display:block;color:var(--muted);font-size:.73rem;line-height:1.45;}
+  @media(max-width:420px){
+    .more-panel{padding:10px}.more-sheet{padding:18px;border-radius:22px}.more-head{margin-bottom:16px}
+    .more-grid{gap:9px}.more-choice{min-height:124px;padding:15px;gap:17px}
+  }
 
   .banner{font-size:.76rem;color:var(--faint);text-align:center;border:1px dashed var(--line);border-radius:12px;padding:10px;}
 
@@ -407,13 +450,17 @@
         <span class="alert-ring" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a7 7 0 00-7 7c0 5-3 6-3 6h20s-3-1-3-6a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20a2 2 0 004 0" stroke-linecap="round"/></svg>
         </span>
-        <div><h4>Custody Alert</h4><p id="custodyStatus">Alert your verified emergency contact and share your location when available.</p></div>
-        <input class="field" id="custodyStation" placeholder="Station name (optional)" />
+        <div><h4>Custody Alert</h4><p id="custodyStatus">Quickly alert your emergency contacts and share your location when available.</p></div>
         <div class="alert-actions">
           <button class="go primary" id="custodyAlert" type="button">Send alert</button>
-          <button class="go" id="custodySms" type="button">Send SMS</button>
-          <button class="go" id="custodyTest" type="button">Test alert</button>
-          <button class="go" id="safeWalk" type="button">Safe Walk</button>
+          <details class="alert-menu" id="alertMenu">
+            <summary aria-label="More custody alert options">•••</summary>
+            <div class="alert-menu-popover">
+              <button id="custodySms" type="button">Send using my SMS app</button>
+              <button id="custodyTest" type="button">Send a test alert</button>
+              <button id="safeWalk" type="button">Start Safe Walk</button>
+            </div>
+          </details>
         </div>
         <div class="alert-results" id="custodyResults" aria-live="polite"></div>
       </div>
@@ -440,6 +487,21 @@
       <div id="scenarioList"></div>
     </section>
     <section class="view" id="scenarioDetail"></section>
+
+    <!-- STUDENTS -->
+    <section class="view" id="students">
+      <h1 class="lead-h">Law students</h1>
+      <p class="detail-body">Reviewed educational case digests with facts, issues, holdings, ratios, and source links.</p>
+      <div class="askrow">
+        <input class="field" id="studentQ" placeholder="Ask about a case or legal principle…" onkeydown="if(event.key==='Enter')askStudents()" />
+        <button class="btn-primary" onclick="askStudents()">Ask</button>
+      </div>
+      <div id="studentAnswer"></div>
+      <h2 class="section">Case library</h2>
+      <input class="field" id="caseSearch" placeholder="Search cases, courts, or legal areas…" oninput="renderCases(this.value)" />
+      <div id="caseList"></div>
+    </section>
+    <section class="view" id="caseDetail"></section>
 
     <!-- COMPANIES -->
     <section class="view" id="companies">
@@ -484,10 +546,21 @@
       <button id="nav-rights" onclick="go('rights')" aria-label="Rights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h13a2 2 0 012 2v14H6a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h7M8 12h7" stroke-linecap="round"/></svg>Rights</button>
       <button class="em" id="nav-emergencies" onclick="go('emergencies')" aria-label="Emergencies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 10v4M12 17v.5" stroke-linecap="round"/></svg>Emergency</button>
       <button id="nav-ask" onclick="go('ask')" aria-label="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6.5A8 8 0 1121 12z" stroke-linecap="round" stroke-linejoin="round"/></svg>Ask</button>
-      <button id="nav-help" onclick="go('help')" aria-label="Get help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h2l2 4-2 2a12 12 0 005 5l2-2 4 2v2a2 2 0 01-2 2A16 16 0 014 5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Help</button>
-      <button id="nav-companies" onclick="go('companies')" aria-label="Companies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V7h10v14M14 11h6v10M8 11h2M8 15h2M8 19h2M17 15h1M17 19h1" stroke-linecap="round" stroke-linejoin="round"/></svg>Company</button>
+      <button id="nav-more" onclick="openMore()" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>More</button>
     </div>
   </nav>
+
+  <section class="more-panel" id="morePanel" hidden aria-modal="true" role="dialog" aria-labelledby="moreTitle">
+    <div class="more-sheet">
+      <div class="more-head"><h2 id="moreTitle">More</h2><button class="icon-button" onclick="closeMore()" aria-label="Close">×</button></div>
+      <div class="more-grid">
+        <button class="more-choice" onclick="goMore('students')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4z"/><path d="M6 9v6c3 2 9 2 12 0V9"/></svg><span><strong>Law students</strong><small>Case briefs and legal principles</small></span></button>
+        <button class="more-choice" onclick="goMore('companies')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V7h10v14M14 11h6v10M8 11h2M8 15h2M17 15h1"/></svg><span><strong>Company</strong><small>Obligations and compliance guides</small></span></button>
+        <button class="more-choice" onclick="goMore('help')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h2l2 4-2 2a12 12 0 005 5l2-2 4 2v2a2 2 0 01-2 2A16 16 0 014 5z"/></svg><span><strong>Get help</strong><small>Emergency and legal-aid contacts</small></span></button>
+        <button class="more-choice" onclick="closeMore();openProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg><span><strong>Your profile</strong><small>Contacts, alerts, and account settings</small></span></button>
+      </div>
+    </div>
+  </section>
 
   <section class="profile-panel" id="profilePanel" hidden aria-modal="true" role="dialog" aria-labelledby="profileTitle">
     <div class="profile-card">
@@ -512,7 +585,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
   const API = "/v1";
-  let TOPICS = [], SCENARIOS = [], OBLIGATIONS = [], COMPANY_CHECKLISTS = [];
+  let TOPICS = [], SCENARIOS = [], OBLIGATIONS = [], COMPANY_CHECKLISTS = [], CASES = [];
   let ACCOUNT_PROFILE = null, EMERGENCY_CONTACTS = [], AUTH_MODE = "register", RESET_TOKEN = "", SIGNUP_STEP = 1;
   let ALERT_COUNTDOWN = null;
   const REMEMBERED_EMAIL = localStorage.getItem("kyr_email") || "";
@@ -631,7 +704,7 @@
     document.getElementById("accountGate").hidden=true;
     document.getElementById("profileButton").hidden=false;
     const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
-    if(contact) document.getElementById("custodyStatus").textContent=`Ready to alert ${contact.name}.`;
+    if(contact) document.getElementById("custodyStatus").textContent="Your emergency contacts are configured.";
     else document.getElementById("custodyStatus").textContent="Your profile is ready. Add or verify an emergency contact to enable alerts.";
   }
   async function signOut(){
@@ -679,12 +752,17 @@
         </form>`:"<p>You have reached the three-contact limit.</p>"}
         <div class="profile-message" id="profileMessage" role="status"></div>
       </section>
-      <section class="profile-section"><div class="contact-top"><div><h3>Alert history</h3><p class="contact-meta">Delivery status for every contact and channel.</p></div>
-        <button class="profile-action" type="button" onclick="loadAlertHistory()">Refresh</button></div>
-        <div class="history-list" id="alertHistory"><div class="contact-meta">Loading…</div></div>
-      </section>`;
+      <details class="history-disclosure" id="alertHistoryDisclosure">
+        <summary><span class="history-summary-copy">Alert history<small>View delivery status and past alerts</small></span></summary>
+        <div class="history-content">
+          <div class="history-toolbar"><button class="profile-action" type="button" onclick="loadAlertHistory()">Refresh</button></div>
+          <div class="history-list" id="alertHistory"><div class="contact-meta">Open to load your alert history.</div></div>
+        </div>
+      </details>`;
     document.getElementById("contactForm")?.addEventListener("submit",addWebContact);
-    loadAlertHistory();
+    document.getElementById("alertHistoryDisclosure").addEventListener("toggle",event=>{
+      if(event.currentTarget.open) loadAlertHistory();
+    });
   }
   function openProfile(){
     renderProfile();
@@ -834,7 +912,7 @@
         }
       }
       const ready=await loadAccount();
-      if(!ready) throw new Error("Finish your profile and verify an emergency contact before continuing.");
+      if(!ready) throw new Error("Your account is signed in, but your profile details are incomplete.");
       showApp();
     }catch(error){
       if(AUTH_MODE==="login"){
@@ -909,6 +987,7 @@
     },1000);
   }
   async function sendCustodyAlert(isTest=false){
+    document.getElementById("alertMenu").open=false;
     clearInterval(ALERT_COUNTDOWN);
     ALERT_COUNTDOWN=null;
     document.getElementById("alertConfirm").close();
@@ -921,11 +1000,10 @@
     try{
       const location=await currentLocation();
       const idempotency=(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()).toString();
-      const station=document.getElementById("custodyStation").value.trim()||null;
       const results=await Promise.all(contacts.map((contact,index)=>apiJson("/custody-alerts",{
         method:"POST",headers:authHeaders(),body:JSON.stringify({
           contact_id:contact.id,idempotency_key:idempotency+"-"+index,
-          station_name:station,is_test:isTest,...(location||{})
+          station_name:null,is_test:isTest,...(location||{})
         })
       })));
       status.textContent=isTest
@@ -952,10 +1030,9 @@
   async function startSafeWalk(){
     const minutes=Number(prompt("Alert your contacts if you do not check in after how many minutes?","15"));
     if(!minutes||minutes<1||minutes>1440)return;
-    const station=document.getElementById("custodyStation").value.trim()||null;
     try{
       const result=await apiJson("/check-ins",{method:"POST",headers:authHeaders(),body:JSON.stringify({
-        minutes,station_name:station
+        minutes,station_name:null
       })});
       document.getElementById("custodyStatus").textContent=`Safe Walk armed until ${result.due_at}.`;
       document.getElementById("safeWalk").textContent="I'm safe — stop timer";
@@ -963,6 +1040,7 @@
     }catch(error){document.getElementById("custodyStatus").textContent=error.message;}
   }
   async function toggleSafeWalk(){
+    document.getElementById("alertMenu").open=false;
     const button=document.getElementById("safeWalk");
     if(button.dataset.checkInId){
       await apiJson(`/check-ins/${button.dataset.checkInId}/safe`,{method:"POST",headers:authHeaders()});
@@ -972,6 +1050,7 @@
     }else await startSafeWalk();
   }
   async function openCustodySms(){
+    document.getElementById("alertMenu").open=false;
     const button=document.getElementById("custodySms");
     const status=document.getElementById("custodyStatus");
     const contact=EMERGENCY_CONTACTS.find(item=>item.status==="verified");
@@ -998,11 +1077,57 @@
     return {label:"Call", href:"tel:", sos:false}; }
 
   function go(id){
+    closeMore();
     document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on", v.id===id));
     document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("on"));
-    const map={home:"home",rights:"rights",topicDetail:"rights",emergencies:"emergencies",scenarioDetail:"emergencies",ask:"ask",help:"help",companies:"companies",obligationDetail:"companies"};
+    const map={home:"home",rights:"rights",topicDetail:"rights",emergencies:"emergencies",scenarioDetail:"emergencies",ask:"ask",
+      help:"more",companies:"more",obligationDetail:"more",students:"more",caseDetail:"more"};
     const nav=document.getElementById("nav-"+(map[id]||id)); if(nav) nav.classList.add("on");
     window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
+  }
+  function openMore(){
+    document.getElementById("morePanel").hidden=false;
+    document.querySelectorAll(".nav button").forEach(button=>button.classList.remove("on"));
+    document.getElementById("nav-more").classList.add("on");
+  }
+  function closeMore(){document.getElementById("morePanel").hidden=true;}
+  function goMore(id){closeMore();go(id);}
+
+  /* ---------- Students ---------- */
+  function caseCard(item){
+    return `<div class="rcard" onclick="openCase('${esc(item.id)}')">
+      <div class="top"><span class="cat">${esc(item.area_of_law)}</span><span class="muted-note">${esc(String(item.year))} · ${esc(item.court)}</span></div>
+      <h4>${esc(item.name)}</h4><p>${esc(item.summary)}</p></div>`;
+  }
+  function renderCases(query=""){
+    const needle=query.trim().toLowerCase();
+    const cases=needle?CASES.filter(item=>[item.name,item.court,item.area_of_law,item.summary].join(" ").toLowerCase().includes(needle)):CASES;
+    document.getElementById("caseList").innerHTML=cases.length?cases.map(caseCard).join(""):'<p class="muted-note">No matching cases.</p>';
+  }
+  function openCase(id){
+    const item=CASES.find(entry=>entry.id===id);if(!item)return;
+    document.getElementById("caseDetail").innerHTML=`
+      <button class="backbtn" onclick="go('students')">← Case library</button>
+      <span class="cat">${esc(item.area_of_law)}</span><h1 class="lead-h">${esc(item.name)}</h1>
+      <p class="muted-note">${esc(item.court)} · ${esc(String(item.year))}${item.report_citation?" · "+esc(item.report_citation):""}</p>
+      <p class="detail-lead">${esc(item.summary)}</p>
+      <div class="block rights"><h5>Facts</h5><p>${esc(item.facts)}</p></div>
+      ${bulletBlock("do","Issues",item.issues,"?","g")}
+      <div class="block do"><h5>Holding</h5><p>${esc(item.holding)}</p></div>
+      <div class="block rights"><h5>Legal principle / ratio</h5><p>${esc(item.ratio)}</p></div>
+      <h2 class="section">Sources</h2><div class="cites">${(item.citations||[]).map(c=>citeChip(c,true)).join("")}</div>`;
+    go("caseDetail");
+  }
+  async function askStudents(){
+    const q=document.getElementById("studentQ").value.trim();if(!q)return;
+    const box=document.getElementById("studentAnswer");
+    box.innerHTML='<div class="answer"><p class="txt">Checking reviewed case material…</p></div>';
+    try{
+      const data=await apiJson("/students/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
+      box.innerHTML=`<div class="answer ${data.refused?"refused":""}"><p class="lead">${data.refused?"I can't verify this yet.":"Grounded case-law answer"}</p>
+        <p class="txt">${esc(data.answer)}</p><div class="cites">${(data.citations||[]).map(c=>citeChip(c,true)).join("")}</div>
+        <div class="disclaimer">${esc(data.disclaimer)}</div></div>`;
+    }catch(error){box.innerHTML=`<div class="answer refused"><p class="txt">${esc(error.message)}</p></div>`;}
   }
 
   /* ---------- Companies ---------- */
@@ -1209,20 +1334,22 @@
 
   async function boot(){
     try{
-      const [tp, sc, dr, ob, cc] = await Promise.all([
+      const [tp, sc, dr, ob, cc, cases] = await Promise.all([
         fetch(API+"/topics").then(r=>r.json()),
         fetch(API+"/scenarios").then(r=>r.json()),
         fetch(API+"/directory").then(r=>r.json()),
         fetch(API+"/company/obligations").then(r=>r.json()),
         fetch(API+"/company/checklists").then(r=>r.json()),
+        fetch(API+"/students/cases").then(r=>r.json()),
       ]);
-      TOPICS = tp; SCENARIOS = sc; OBLIGATIONS = ob; COMPANY_CHECKLISTS = cc;
+      TOPICS = tp; SCENARIOS = sc; OBLIGATIONS = ob; COMPANY_CHECKLISTS = cc; CASES = cases;
       renderTopics(TOPICS.slice(0,4), "homeTopics");
       renderTopics(TOPICS, "topics");
       document.getElementById("scenarioList").innerHTML = SCENARIOS.map(scenarioCard).join("");
       document.getElementById("dir").innerHTML = dr.map(dirCard).join("");
       document.getElementById("obligations").innerHTML = OBLIGATIONS.map(obligationCard).join("");
       document.getElementById("companyChecklists").innerHTML = COMPANY_CHECKLISTS.map(checklistCard).join("");
+      renderCases();
     }catch(e){
       document.getElementById("homeTopics").innerHTML = `<p class="muted-note">Couldn't load content. Check your connection and refresh.</p>`;
     }

@@ -11,7 +11,7 @@ testpaths = ["backend/tests"]
 [tool.ruff]
 line-length = 110
 target-version = "py311"
-extend-exclude = ["app", ".venv"]
+extend-exclude = ["app", ".venv", "migrations"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

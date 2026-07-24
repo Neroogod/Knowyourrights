@@ -21,7 +21,7 @@ from urllib.parse import parse_qs
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 
@@ -46,6 +46,8 @@ from backend.account_schemas import (
     ResetPasswordRequest,
     RoleUpdate,
     TokenResponse,
+    UserSyncRequest,
+    UserSyncResponse,
     VerifyTokenRequest,
 )
 from backend.accounts import (
@@ -54,6 +56,7 @@ from backend.accounts import (
     AccountService,
 )
 from backend.content_store import ContentStore
+from backend.content_sync import ContentSigner, signed_pack
 from backend.delivery import gateway_from_environment
 from backend.managed_auth import AuthIdentity, SupabaseTokenVerifier
 from backend.schemas import (
@@ -77,7 +80,7 @@ def create_app(
 ) -> FastAPI:
     """Application factory so tests can inject a store without touching disk."""
     development_mode = os.getenv("KYR_DEVELOPMENT_MODE") == "1"
-    resolved_store = store or ContentStore.from_file()
+    resolved_store = store or ContentStore.from_environment()
     accounts = account_service or AccountService(gateway=gateway_from_environment(development_mode))
     managed_auth = SupabaseTokenVerifier()
 
@@ -112,6 +115,7 @@ def create_app(
     bearer = HTTPBearer(auto_error=False)
     app.state.store = resolved_store
     app.state.accounts = accounts
+    app.state.content_signer = ContentSigner.from_environment()
 
     def request_ip(request: Request) -> str:
         forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
@@ -772,6 +776,65 @@ def create_app(
     @app.get("/v1/content-pack", response_model=ContentPack)
     def content_pack() -> ContentPack:
         return resolved_store._pack  # full pack for offline caching
+
+    @app.get("/v1/content-packs/config")
+    def content_pack_config() -> dict:
+        signer: ContentSigner = app.state.content_signer
+        return {
+            "algorithm": "Ed25519",
+            "key_id": signer.key_id,
+            "public_key": signer.public_key,
+            "layers": ["rights", "students", "company"],
+            "jurisdictions": ["NG-Federal"],
+        }
+
+    @app.get("/v1/content-packs/{layer}")
+    def content_pack_delta(
+        layer: str,
+        request: Request,
+        since: int = Query(default=0, ge=0),
+        jurisdiction: str = Query(default="NG-Federal", min_length=2, max_length=80),
+    ) -> Response:
+        try:
+            envelope, etag = signed_pack(
+                resolved_store._pack,
+                layer,
+                jurisdiction,
+                since,
+                app.state.content_signer,
+            )
+        except ValueError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        if request.headers.get("if-none-match") == etag or since >= resolved_store.version:
+            return Response(status_code=304, headers={"ETag": etag})
+        return JSONResponse(
+            envelope,
+            headers={
+                "ETag": etag,
+                "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
+            },
+        )
+
+    @app.get("/v1/sync", response_model=UserSyncResponse)
+    def pull_user_sync(
+        user_id: Annotated[str, Depends(current_user)],
+        since: Annotated[datetime | None, Query()] = None,
+    ) -> UserSyncResponse:
+        return UserSyncResponse(
+            items=accounts.user_items(user_id, since),
+            server_time=datetime.now(UTC),
+        )
+
+    @app.post("/v1/sync", response_model=UserSyncResponse)
+    def push_user_sync(
+        body: UserSyncRequest,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> UserSyncResponse:
+        items = [item.model_dump() for item in body.items]
+        return UserSyncResponse(
+            items=accounts.sync_user_items(user_id, items),
+            server_time=datetime.now(UTC),
+        )
 
     if WEB_DIR.exists():
 

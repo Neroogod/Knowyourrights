@@ -3,12 +3,16 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:cryptography/cryptography.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'api_client.dart';
+import 'offline_database.dart';
 
 class AccountApiError implements Exception {
   final String message;
@@ -44,6 +48,15 @@ class EmergencyContact {
         email: json['email'] as String?,
         channels: (json['channels'] as List? ?? const ['sms']).cast<String>(),
       );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'phone': phone,
+    'status': status,
+    'email': email,
+    'channels': channels,
+  };
 }
 
 class AccountProfile {
@@ -73,16 +86,21 @@ class AccountProfile {
 class AccountClient {
   AccountClient({http.Client? client, FlutterSecureStorage? storage})
     : _client = client ?? http.Client(),
-      _storage = storage ?? const FlutterSecureStorage();
+      _storage = storage ?? const FlutterSecureStorage() {
+    _startConnectivityRetry();
+  }
 
   static const _tokenKey = 'kyr_access_token';
   static const _rememberedEmailKey = 'kyr_remembered_email';
   static const _keepSignedInKey = 'kyr_keep_signed_in';
   static const _deviceIdKey = 'kyr_device_id';
   static const _queuedAlertsKey = 'kyr_queued_alerts';
+  static const _contactEncryptionKey = 'kyr_offline_contact_key';
+  static bool _connectivityStarted = false;
   static String? _sessionToken;
   final http.Client _client;
   final FlutterSecureStorage _storage;
+  final OfflineDatabase _database = OfflineDatabase.instance;
 
   bool get _managed => kSupabaseConfigured;
   GoTrueClient get _auth => Supabase.instance.client.auth;
@@ -306,12 +324,125 @@ class AccountClient {
   );
 
   Future<List<EmergencyContact>> contacts() async {
-    final rows = await _requestList('GET', '/v1/emergency-contacts');
-    return rows.map(EmergencyContact.fromJson).toList();
+    try {
+      final rows = await _requestList('GET', '/v1/emergency-contacts');
+      final contacts = rows.map(EmergencyContact.fromJson).toList();
+      await _cacheContacts(contacts);
+      return contacts;
+    } catch (_) {
+      final cached = await _readCachedContacts();
+      if (cached.isNotEmpty) return cached;
+      rethrow;
+    }
   }
 
   Future<void> removeContact(String contactId) =>
       _request('DELETE', '/v1/emergency-contacts/$contactId');
+
+  Future<void> saveContent(String contentType, String contentId) async {
+    await _database
+        .into(_database.savedContentRows)
+        .insert(
+          SavedContentRowsCompanion.insert(
+            contentId: contentId,
+            contentType: contentType,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+  }
+
+  Future<void> saveDraft(
+    String id,
+    String draftType,
+    Map<String, dynamic> payload,
+  ) async {
+    await _database
+        .into(_database.draftRows)
+        .insert(
+          DraftRowsCompanion.insert(
+            id: id,
+            draftType: draftType,
+            jsonBody: jsonEncode(payload),
+            updatedAt: DateTime.now().toUtc(),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+  }
+
+  Future<void> syncUserData() async {
+    final saved = await (_database.select(
+      _database.savedContentRows,
+    )..where((row) => row.dirty.equals(true))).get();
+    final drafts = await (_database.select(
+      _database.draftRows,
+    )..where((row) => row.dirty.equals(true))).get();
+    final items = <Map<String, dynamic>>[
+      ...saved.map(
+        (row) => {
+          'kind': 'saved',
+          'item_id': '${row.contentType}:${row.contentId}',
+          'payload': {
+            'content_type': row.contentType,
+            'content_id': row.contentId,
+          },
+          'deleted': row.deleted,
+          'updated_at': row.updatedAt.toUtc().toIso8601String(),
+        },
+      ),
+      ...drafts.map(
+        (row) => {
+          'kind': 'draft',
+          'item_id': row.id,
+          'payload': {
+            'draft_type': row.draftType,
+            'body': jsonDecode(row.jsonBody),
+          },
+          'deleted': row.deleted,
+          'updated_at': row.updatedAt.toUtc().toIso8601String(),
+        },
+      ),
+    ];
+    final response = await _request('POST', '/v1/sync', body: {'items': items});
+    final remote = (response['items'] as List? ?? const []).cast<Map>();
+    await _database.transaction(() async {
+      for (final raw in remote) {
+        final item = Map<String, dynamic>.from(raw);
+        final payload = Map<String, dynamic>.from(
+          item['payload'] as Map? ?? {},
+        );
+        final updatedAt = DateTime.parse(item['updated_at'] as String).toUtc();
+        if (item['kind'] == 'saved') {
+          await _database
+              .into(_database.savedContentRows)
+              .insert(
+                SavedContentRowsCompanion.insert(
+                  contentId: payload['content_id'] as String,
+                  contentType: payload['content_type'] as String,
+                  deleted: Value(item['deleted'] as bool? ?? false),
+                  updatedAt: updatedAt,
+                  dirty: const Value(false),
+                ),
+                mode: InsertMode.insertOrReplace,
+              );
+        } else {
+          await _database
+              .into(_database.draftRows)
+              .insert(
+                DraftRowsCompanion.insert(
+                  id: item['item_id'] as String,
+                  draftType: payload['draft_type'] as String? ?? 'note',
+                  jsonBody: jsonEncode(payload['body'] ?? {}),
+                  deleted: Value(item['deleted'] as bool? ?? false),
+                  updatedAt: updatedAt,
+                  dirty: const Value(false),
+                ),
+                mode: InsertMode.insertOrReplace,
+              );
+        }
+      }
+    });
+  }
 
   Future<Map<String, dynamic>> sendAlert({
     required String contactId,
@@ -342,43 +473,139 @@ class AccountClient {
   }
 
   Future<int> retryQueuedAlerts() async {
-    final preferences = await SharedPreferences.getInstance();
-    final queued =
-        (jsonDecode(preferences.getString(_queuedAlertsKey) ?? '[]') as List)
-            .cast<Map<String, dynamic>>();
-    final remaining = <Map<String, dynamic>>[];
+    await _migrateLegacyAlertQueue();
+    final now = DateTime.now().toUtc();
+    final queued = await (_database.select(
+      _database.offlineAlertQueueRows,
+    )..where((row) => row.nextAttemptAt.isSmallerOrEqualValue(now))).get();
     var sent = 0;
-    for (final body in queued) {
+    for (final row in queued) {
+      final body = Map<String, dynamic>.from(jsonDecode(row.jsonBody) as Map);
       try {
         await _request('POST', '/v1/custody-alerts', body: body);
+        await _removeQueuedAlert(row.idempotencyKey);
         sent += 1;
-      } catch (_) {
-        remaining.add(body);
+      } catch (error) {
+        final attempts = row.attempts + 1;
+        final delayMinutes = min(60, 1 << min(attempts, 6));
+        await (_database.update(_database.offlineAlertQueueRows)
+              ..where((item) => item.idempotencyKey.equals(row.idempotencyKey)))
+            .write(
+              OfflineAlertQueueRowsCompanion(
+                attempts: Value(attempts),
+                nextAttemptAt: Value(now.add(Duration(minutes: delayMinutes))),
+                lastError: Value(error.toString()),
+              ),
+            );
       }
     }
-    await preferences.setString(_queuedAlertsKey, jsonEncode(remaining));
     return sent;
   }
 
-  Future<void> _queueAlert(Map<String, dynamic> body) async {
+  Future<void> _migrateLegacyAlertQueue() async {
     final preferences = await SharedPreferences.getInstance();
-    final queued =
+    final legacy =
         (jsonDecode(preferences.getString(_queuedAlertsKey) ?? '[]') as List)
             .cast<Map<String, dynamic>>();
-    final key = body['idempotency_key'];
-    if (!queued.any((item) => item['idempotency_key'] == key)) {
-      queued.add(body);
-      await preferences.setString(_queuedAlertsKey, jsonEncode(queued));
+    for (final body in legacy) {
+      await _queueAlert(body);
     }
+    if (legacy.isNotEmpty) await preferences.remove(_queuedAlertsKey);
+  }
+
+  Future<void> _queueAlert(Map<String, dynamic> body) async {
+    final key = body['idempotency_key'] as String;
+    await _database
+        .into(_database.offlineAlertQueueRows)
+        .insert(
+          OfflineAlertQueueRowsCompanion.insert(
+            idempotencyKey: key,
+            jsonBody: jsonEncode(body),
+            createdAt: DateTime.now().toUtc(),
+            nextAttemptAt: DateTime.now().toUtc(),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
   }
 
   Future<void> _removeQueuedAlert(String idempotencyKey) async {
-    final preferences = await SharedPreferences.getInstance();
-    final queued =
-        (jsonDecode(preferences.getString(_queuedAlertsKey) ?? '[]') as List)
-            .cast<Map<String, dynamic>>();
-    queued.removeWhere((item) => item['idempotency_key'] == idempotencyKey);
-    await preferences.setString(_queuedAlertsKey, jsonEncode(queued));
+    await (_database.delete(
+      _database.offlineAlertQueueRows,
+    )..where((row) => row.idempotencyKey.equals(idempotencyKey))).go();
+  }
+
+  void _startConnectivityRetry() {
+    if (_connectivityStarted) return;
+    _connectivityStarted = true;
+    Connectivity().onConnectivityChanged.listen((results) {
+      if (results.any((result) => result != ConnectivityResult.none)) {
+        retryQueuedAlerts();
+      }
+    });
+  }
+
+  Future<SecretKey> _offlineContactSecret() async {
+    var encoded = await _storage.read(key: _contactEncryptionKey);
+    if (encoded == null) {
+      final bytes = await SecretKeyData.random(length: 32).extractBytes();
+      encoded = base64UrlEncode(bytes);
+      await _storage.write(key: _contactEncryptionKey, value: encoded);
+    }
+    return SecretKey(base64Url.decode(encoded));
+  }
+
+  Future<void> _cacheContacts(List<EmergencyContact> contacts) async {
+    final algorithm = AesGcm.with256bits();
+    final nonce = algorithm.newNonce();
+    final box = await algorithm.encrypt(
+      utf8.encode(jsonEncode(contacts.map((item) => item.toJson()).toList())),
+      secretKey: await _offlineContactSecret(),
+      nonce: nonce,
+    );
+    final payload = jsonEncode({
+      'nonce': base64UrlEncode(nonce),
+      'cipherText': base64UrlEncode(box.cipherText),
+      'mac': base64UrlEncode(box.mac.bytes),
+    });
+    await _database
+        .into(_database.encryptedContactCacheRows)
+        .insert(
+          EncryptedContactCacheRowsCompanion.insert(
+            accountKey: 'current',
+            encryptedPayload: payload,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+  }
+
+  Future<List<EmergencyContact>> _readCachedContacts() async {
+    final row = await (_database.select(
+      _database.encryptedContactCacheRows,
+    )..where((item) => item.accountKey.equals('current'))).getSingleOrNull();
+    if (row == null) return [];
+    try {
+      final payload = Map<String, dynamic>.from(
+        jsonDecode(row.encryptedPayload) as Map,
+      );
+      final clear = await AesGcm.with256bits().decrypt(
+        SecretBox(
+          base64Url.decode(payload['cipherText'] as String),
+          nonce: base64Url.decode(payload['nonce'] as String),
+          mac: Mac(base64Url.decode(payload['mac'] as String)),
+        ),
+        secretKey: await _offlineContactSecret(),
+      );
+      return (jsonDecode(utf8.decode(clear)) as List)
+          .map(
+            (item) => EmergencyContact.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<List<Map<String, dynamic>>> alertHistory() =>

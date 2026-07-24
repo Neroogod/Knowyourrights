@@ -120,6 +120,56 @@ fields and must come from the deployment secret store. The development adapter r
 email/SMS attempts in memory and never sends them. Production delivery uses **Resend** for
 transactional email and **Twilio** for SMS, and fails closed if a required setting is absent:
 
+## PostgreSQL content and migrations
+
+Production uses Alembic as the only schema writer. Application startup never calls
+`create_all()` against PostgreSQL. The initial revision creates account tables plus normalized,
+versioned content tables for categories, sources, citations, topics, scenarios, obligations,
+checklists, cases, directory entries, chunks, and embedding-model history. It also enables
+`pgvector`, creates a filtered HNSW cosine index for verified chunks, and adds PostgreSQL GIN
+full-text indexes.
+
+Run schema migrations before deploying application processes:
+
+```bash
+DATABASE_URL=postgresql+psycopg://... alembic upgrade head
+```
+
+Import the validated content pack as a new immutable version:
+
+```bash
+DATABASE_URL=postgresql+psycopg://... \
+python -m backend.content_cli import --file data/content_pack.json
+```
+
+Changing the pack creates a new version and atomically marks it active; importing an identical
+checksum is idempotent. Previous versions remain available for audit and rollback. To generate
+embeddings for verified chunks, or re-embed after changing the configured model/version:
+
+```bash
+DATABASE_URL=postgresql+psycopg://... \
+KYR_EMBEDDING_PROVIDER=local \
+KYR_EMBEDDING_MODEL=BAAI/bge-m3 \
+KYR_EMBEDDING_MODEL_VERSION=main \
+python -m backend.content_cli reembed
+```
+
+The default provider is local BGE-M3, producing normalized 1,024-dimensional embeddings without
+an API key. Set `KYR_EMBEDDING_PROVIDER=openai` and configure `OPENAI_API_KEY` only if a hosted
+embedding provider is preferred. Enable database-backed API content with
+`KYR_CONTENT_BACKEND=database`. If the configured embedding runtime is available, Q&A retrieval
+uses pgvector; otherwise it retains the offline TF-IDF fallback. `KYR_CONTENT_AUTO_IMPORT=1` is
+intended only for a brand-new environment. Production imports are explicit release steps.
+
+Migration policy:
+
+- Generate revisions with `alembic revision --autogenerate`, then review SQL in CI.
+- Test both an empty-database upgrade and content imports before release.
+- Prefer expand/migrate/contract changes; deploy compatible code before destructive schema work.
+- Back up before destructive migrations. Production rollback is an explicit operator decision.
+- Changing the embedding model or version creates a tracked model record and queues every active
+  verified chunk whose stored model does not match.
+
 ```bash
 KYR_APP_SECRET=replace-with-a-long-random-secret \
 KYR_PUBLIC_BASE_URL=https://your-public-app.example \
@@ -216,6 +266,10 @@ curl -s -X POST http://127.0.0.1:8000/v1/ask \
 - `GET /v1/search?q=...`
 - `POST /v1/ask` (body: `{"question": "..."}`)
 - `GET /v1/content-pack` (full pack for offline caching)
+- `GET /v1/content-packs/config` (content-signing key and supported layers)
+- `GET /v1/content-packs/{rights|students|company}?since=...&jurisdiction=...`
+  (signed, version-aware packs with ETag/304 support)
+- `GET/POST /v1/sync` (authenticated saved-content and draft synchronization)
 - `GET /v1/company/obligations` / `GET /v1/company/checklists` / `POST /v1/company/ask`
 - `GET /v1/students/cases` / `GET /v1/students/cases/{id}` / `POST /v1/students/ask`
 - `POST /v1/auth/register`, `/v1/auth/login`, `/v1/auth/forgot-password`,
@@ -223,6 +277,20 @@ curl -s -X POST http://127.0.0.1:8000/v1/ask \
 - `GET/PUT /v1/profile`
 - `GET/POST /v1/emergency-contacts`
 - `POST /v1/custody-alerts`
+
+### Mobile offline architecture
+
+The Flutter app stores typed content, sync state, alert jobs, saved items, drafts, and an
+encrypted emergency-contact cache in a Drift/SQLite database. Rights, student, and company
+content are downloaded separately for the selected jurisdiction. Every downloaded pack is
+verified with Ed25519 and SHA-256 before one database transaction makes it visible; invalid or
+partial downloads leave the last verified pack untouched.
+
+Requests send both `since=<content version>` and `If-None-Match`; unchanged layers receive a
+304 response. Custody alerts created without a connection retain one stable idempotency key,
+retry with backoff when connectivity returns, and remain safe to submit more than once.
+The More screen reports offline availability separately for rights, student content, company
+content, emergency contacts, custody alerts, saved content, and drafts.
 
 ## Testing
 

@@ -1,0 +1,11 @@
+Production schema migrations
+
+Create a revision:
+    DATABASE_URL=postgresql+psycopg://... alembic revision --autogenerate -m "description"
+
+Apply:
+    DATABASE_URL=postgresql+psycopg://... alembic upgrade head
+
+Rollback is never automatic in production. Review generated SQL in CI and back up before
+any destructive migration. Deploy schema-compatible application code before migrations
+that remove or rename fields. The app does not call create_all against PostgreSQL.

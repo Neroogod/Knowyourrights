@@ -144,3 +144,20 @@ class CheckInResponse(BaseModel):
     status: str
     due_at: datetime
     created_at: datetime
+
+
+class UserSyncItem(BaseModel):
+    kind: str = Field(pattern=r"^(saved|draft)$")
+    item_id: str = Field(min_length=1, max_length=160)
+    payload: dict = Field(default_factory=dict)
+    deleted: bool = False
+    updated_at: datetime
+
+
+class UserSyncRequest(BaseModel):
+    items: list[UserSyncItem] = Field(default_factory=list, max_length=250)
+
+
+class UserSyncResponse(BaseModel):
+    items: list[UserSyncItem]
+    server_time: datetime
