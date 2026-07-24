@@ -21,6 +21,7 @@ from typing import Annotated
 from urllib.parse import parse_qs
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -96,6 +97,12 @@ from backend.schemas import (
 WEB_DIR = Path(__file__).resolve().parents[1] / "web"
 
 
+def _etag(payload: object, version: int) -> str:
+    """A weak ETag over a JSON-serialisable payload and the content version."""
+    digest = hashlib.sha256(f"{version}:{json.dumps(payload, sort_keys=True)}".encode()).hexdigest()
+    return f'W/"{digest[:16]}"'
+
+
 def create_app(
     store: ContentStore | None = None,
     account_service: AccountService | None = None,
@@ -134,6 +141,36 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Every error carries the structured envelope the API contract specifies,
+    # `{"error": {"code", "message", "details"}}`, while keeping the plain
+    # `detail` field so existing clients that read it keep working.
+    def _envelope(status_code: int, message: object, details: object = None) -> dict:
+        code = {
+            400: "bad_request", 401: "unauthorized", 403: "forbidden",
+            404: "not_found", 409: "conflict", 422: "validation_error",
+            429: "rate_limited",
+        }.get(status_code, "error")
+        return {
+            "detail": message,
+            "error": {"code": code, "message": message, "details": details},
+        }
+
+    @app.exception_handler(HTTPException)
+    async def _http_error(request: Request, exc: HTTPException) -> JSONResponse:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=_envelope(exc.status_code, exc.detail),
+            headers=getattr(exc, "headers", None),
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+        return JSONResponse(
+            status_code=422,
+            content=_envelope(422, "Request validation failed", exc.errors()),
+        )
+
     bearer = HTTPBearer(auto_error=False)
     app.state.store = resolved_store
     app.state.accounts = accounts
@@ -254,11 +291,15 @@ def create_app(
             "company": resolved_store.ask_company,
             "students": resolved_store.ask_students,
         }
+        # An incognito session leaves no trace: no cache, no telemetry. Opt in via
+        # header so a client can offer a private mode for sensitive questions.
+        incognito = request.headers.get("x-kyr-incognito", "").lower() in {"1", "true"}
         try:
             return app.state.ai_gate.answer(
                 body.question,
                 ai_context(request, user_id, corpus, jurisdiction),
                 answerers[corpus],
+                incognito=incognito,
             )
         except PermissionError as error:
             raise HTTPException(
@@ -776,9 +817,23 @@ def create_app(
         except AccountError as error:
             raise account_error(error) from error
 
+    @app.get("/v1/categories")
+    def list_categories(response: Response) -> list[dict]:
+        """Topic categories with counts. Cacheable: content changes rarely."""
+        categories = resolved_store.categories()
+        response.headers["ETag"] = _etag(categories, resolved_store.version)
+        response.headers["Cache-Control"] = "public, max-age=300"
+        return categories
+
     @app.get("/v1/topics", response_model=list[Topic])
-    def list_topics(category: str | None = Query(default=None)) -> list[Topic]:
-        return resolved_store.list_topics(category=category)
+    def list_topics(
+        category: str | None = Query(default=None),
+        jurisdiction: str | None = Query(default=None, max_length=80),
+        status: str | None = Query(default=None, max_length=24),
+    ) -> list[Topic]:
+        return resolved_store.list_topics(
+            category=category, jurisdiction=jurisdiction, status=status
+        )
 
     @app.get("/v1/topics/{topic_id}", response_model=Topic)
     def get_topic(topic_id: str) -> Topic:
@@ -1067,12 +1122,22 @@ def create_app(
         response: Response,
         user_id: Annotated[str | None, Depends(optional_user)],
         jurisdiction: str = Query(default="NG-Federal"),
+        audience: str = Query(
+            default="individual",
+            description="individual | business | student — selects the verified corpus",
+        ),
     ) -> AskResponse:
+        # One question endpoint, three corpora. Company law must never answer a
+        # rights question and vice versa, so the audience picks the corpus rather
+        # than letting retrieval mix them.
+        corpus = {"individual": "rights", "business": "company", "student": "students"}.get(audience)
+        if corpus is None:
+            raise HTTPException(status_code=400, detail="audience must be individual, business, or student")
         answer, cache_hit, event_id = gated_answer(
             request,
             body,
             user_id,
-            corpus="rights",
+            corpus=corpus,
             jurisdiction=jurisdiction,
         )
         response.headers["X-AI-Cache"] = "hit" if cache_hit else "miss"

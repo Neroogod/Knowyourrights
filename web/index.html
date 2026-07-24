@@ -194,6 +194,14 @@
     background:var(--green-tint);color:var(--green);}
   .relation.overrules{background:var(--sos-tint);color:var(--sos);}
   .relation.distinguishes{background:var(--gold-tint);color:var(--gold-ink);}
+  /* Accessibility: user text-size multiplier and an optional high-contrast mode. */
+  :root{ --text-scale:1; }
+  body{ font-size:calc(1rem * var(--text-scale)); }
+  :root[data-contrast="high"]{ --ink:#000000; --muted:#1c241f; --line:#7a857d; --card:#ffffff; --paper:#ffffff; }
+  :root[data-contrast="high"][data-theme="dark"]{ --ink:#ffffff; --muted:#e4ede7; --line:#8a978d; --card:#0c110e; --paper:#0c110e; }
+  .setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .setting-row:last-child{border-bottom:none;}
+  .setting-row select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font:inherit;}
   .report-link{background:none;border:none;color:var(--faint);font:inherit;font-size:.78rem;
     text-decoration:underline;cursor:pointer;padding:6px 0;display:inline-flex;gap:6px;align-items:center;}
   .report-link:hover{color:var(--sos);}
@@ -702,7 +710,48 @@
         <button class="more-choice" onclick="goMore('companies')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V7h10v14M14 11h6v10M8 11h2M8 15h2M17 15h1"/></svg><span><strong>Company</strong><small>Obligations and compliance guides</small></span></button>
         <button class="more-choice" onclick="goMore('help')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h2l2 4-2 2a12 12 0 005 5l2-2 4 2v2a2 2 0 01-2 2A16 16 0 014 5z"/></svg><span><strong>Get help</strong><small>Emergency and legal-aid contacts</small></span></button>
         <button class="more-choice" onclick="closeMore();openProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg><span><strong>Your profile</strong><small>Contacts, alerts, and account settings</small></span></button>
+        <button class="more-choice" onclick="closeMore();openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span><strong>Settings</strong><small>Appearance, accessibility, and privacy</small></span></button>
       </div>
+    </div>
+  </section>
+
+  <section class="profile-panel" id="settingsPanel" hidden aria-modal="true" role="dialog" aria-labelledby="settingsTitle">
+    <div class="profile-card">
+      <div class="profile-head"><h2 id="settingsTitle">Settings</h2><button class="icon-button" onclick="closeSettings()" aria-label="Close">×</button></div>
+
+      <section class="profile-section"><h3>Appearance</h3>
+        <label class="setting-row"><span>Theme</span>
+          <select id="setTheme" onchange="setTheme(this.value)">
+            <option value="light">Light</option><option value="dark">Dark</option>
+          </select>
+        </label>
+        <label class="setting-row"><span>Text size</span>
+          <select id="setTextSize" onchange="setTextSize(this.value)">
+            <option value="1">Default</option><option value="1.15">Large</option><option value="1.3">Larger</option>
+          </select>
+        </label>
+        <label class="setting-row"><span>High contrast</span>
+          <input type="checkbox" id="setContrast" onchange="setHighContrast(this.checked)">
+        </label>
+      </section>
+
+      <section class="profile-section"><h3>Privacy</h3>
+        <label class="setting-row"><span>Incognito Ask<br><small class="muted-note">Questions aren't cached or logged</small></span>
+          <input type="checkbox" id="setIncognito" onchange="saveSetting('incognito',this.checked)">
+        </label>
+      </section>
+
+      <section class="profile-section"><h3>Notifications</h3>
+        <label class="setting-row"><span>Tell me when the law changes<br><small class="muted-note">Alerts when content you viewed is updated</small></span>
+          <input type="checkbox" id="setLegalChanges" onchange="saveSetting('legal_changes',this.checked)">
+        </label>
+        <p class="muted-note" id="settingsSync"></p>
+      </section>
+
+      <section class="profile-section"><h3>Your data</h3>
+        <button class="profile-action wide" onclick="exportData()">Export my data</button>
+        <button class="profile-action wide" style="border-color:var(--sos);color:var(--sos)" onclick="deleteMyAccount()">Delete my account</button>
+      </section>
     </div>
   </section>
 
@@ -1786,7 +1835,7 @@
     const box = document.getElementById("answer");
     box.innerHTML = `<div class="answer"><p class="txt">Thinking…</p></div>`;
     try{
-      const r = await fetch(API+"/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
+      const r = await fetch(API+"/ask",{method:"POST",headers:{"Content-Type":"application/json",...(LOCAL_SETTINGS.incognito?{"X-KYR-Incognito":"1"}:{})},body:JSON.stringify({question:q})});
       const d = await r.json();
       const cites = (d.citations||[]).map(c=>citeChip(c,true)).join("");
       box.innerHTML = `<div class="answer ${d.refused?'refused':''}">
@@ -1861,6 +1910,66 @@
     }catch(error){ statusEl.textContent=error.message; }
   }
 
+
+  /* ---------------------------- settings & accessibility ---------------- */
+  const LOCAL_SETTINGS = JSON.parse(localStorage.getItem("kyr_settings")||"{}");
+
+  function persistLocal(){ localStorage.setItem("kyr_settings", JSON.stringify(LOCAL_SETTINGS)); }
+
+  function setTheme(v){ document.documentElement.setAttribute("data-theme",v); LOCAL_SETTINGS.theme=v; persistLocal(); }
+  function setTextSize(v){ document.documentElement.style.setProperty("--text-scale",v); LOCAL_SETTINGS.textScale=v; persistLocal(); }
+  function setHighContrast(on){ document.documentElement.setAttribute("data-contrast", on?"high":"normal"); LOCAL_SETTINGS.contrast=on; persistLocal(); }
+
+  function applyLocalSettings(){
+    if(LOCAL_SETTINGS.theme) document.documentElement.setAttribute("data-theme",LOCAL_SETTINGS.theme);
+    if(LOCAL_SETTINGS.textScale) document.documentElement.style.setProperty("--text-scale",LOCAL_SETTINGS.textScale);
+    if(LOCAL_SETTINGS.contrast) document.documentElement.setAttribute("data-contrast","high");
+  }
+
+  // Privacy/notification prefs sync to the account so they follow the user; the
+  // accessibility settings stay local because they are device-specific.
+  async function saveSetting(key,value){
+    LOCAL_SETTINGS[key]=value; persistLocal();
+    if(!AUTH_TOKEN) return;
+    try{
+      await apiJson("/sync",{method:"POST",headers:{...authHeaders(),"Content-Type":"application/json"},
+        body:JSON.stringify({items:[{kind:"preference",item_id:"settings",
+          payload:{incognito:!!LOCAL_SETTINGS.incognito,legal_changes:!!LOCAL_SETTINGS.legal_changes},
+          deleted:false,updated_at:new Date().toISOString()}]})});
+      const el=document.getElementById("settingsSync"); if(el) el.textContent="Saved to your account.";
+    }catch(_e){}
+  }
+
+  function openSettings(){
+    document.getElementById("setTheme").value=document.documentElement.getAttribute("data-theme")||"light";
+    document.getElementById("setTextSize").value=LOCAL_SETTINGS.textScale||"1";
+    document.getElementById("setContrast").checked=!!LOCAL_SETTINGS.contrast;
+    document.getElementById("setIncognito").checked=!!LOCAL_SETTINGS.incognito;
+    document.getElementById("setLegalChanges").checked=!!LOCAL_SETTINGS.legal_changes;
+    document.getElementById("settingsPanel").hidden=false;
+  }
+  function closeSettings(){ document.getElementById("settingsPanel").hidden=true; }
+
+  async function exportData(){
+    if(!AUTH_TOKEN){ alert("Sign in to export your data."); return; }
+    try{
+      const data=await apiJson("/account/export",{headers:authHeaders()});
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+      a.download="knowyourrights-data.json"; a.click();
+    }catch(error){ alert(error.message); }
+  }
+
+  async function deleteMyAccount(){
+    if(!AUTH_TOKEN){ alert("You are not signed in."); return; }
+    if(!confirm("Permanently delete your account and all your data? This cannot be undone.")) return;
+    try{
+      await apiJson("/account",{method:"DELETE",headers:{...authHeaders(),"Content-Type":"application/json"},
+        body:JSON.stringify({confirmation:"DELETE"})});
+      localStorage.clear(); sessionStorage.clear(); location.reload();
+    }catch(error){ alert(error.message); }
+  }
+
   /* ---------- Boot ---------- */
   (function theme(){
     const root=document.documentElement, tt=document.getElementById("tt"),
@@ -1870,6 +1979,7 @@
     const paint=()=>{const d=cur()==="dark";icon.textContent=d?"☾":"☀";label.textContent=d?"Dark":"Light";};
     tt.onclick=()=>{root.setAttribute("data-theme",cur()==="dark"?"light":"dark");paint();};
     paint();
+    applyLocalSettings();
   })();
 
   document.getElementById("homeTriggers").innerHTML =

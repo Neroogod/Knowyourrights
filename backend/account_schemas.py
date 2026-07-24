@@ -147,7 +147,7 @@ class CheckInResponse(BaseModel):
 
 
 class UserSyncItem(BaseModel):
-    kind: str = Field(pattern=r"^(saved|draft)$")
+    kind: str = Field(pattern=r"^(saved|draft|reading_list|preference|history)$")
     item_id: str = Field(min_length=1, max_length=160)
     payload: dict = Field(default_factory=dict)
     deleted: bool = False

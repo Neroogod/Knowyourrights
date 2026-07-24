@@ -58,7 +58,16 @@ class AIProductionGate:
         question: str,
         context: AIRequestContext,
         answerer: Callable[[str], AskResponse],
+        *,
+        incognito: bool = False,
     ) -> tuple[AskResponse, bool, str]:
+        # An incognito session neither reads nor writes the answer cache and
+        # records no telemetry, so a sensitive question ("can they detain me
+        # for X?") leaves no trace. The hourly rate limit still applies.
+        if incognito:
+            if self.accounts.ai_daily_usage(context.privacy_id) >= self.daily_quota:
+                raise PermissionError("Daily AI question limit reached. Try again tomorrow.")
+            return answerer(question), False, "incognito"
         normalized = _SPACE.sub(" ", question.strip().lower())
         cache_key = hashlib.sha256(
             (

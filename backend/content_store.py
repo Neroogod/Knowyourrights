@@ -148,11 +148,30 @@ class ContentStore:
     def version(self) -> int:
         return self._pack.version
 
-    def list_topics(self, category: str | None = None) -> list[Topic]:
+    def list_topics(
+        self,
+        category: str | None = None,
+        jurisdiction: str | None = None,
+        status: str | None = None,
+    ) -> list[Topic]:
         topics = list(self._topics.values())
         if category:
             topics = [t for t in topics if t.category == category]
+        if jurisdiction:
+            topics = [t for t in topics if t.jurisdiction == jurisdiction]
+        if status:
+            topics = [t for t in topics if t.status.value == status]
         return topics
+
+    def categories(self) -> list[dict]:
+        """Topic categories present in the pack, each with a live count."""
+        counts: dict[str, int] = {}
+        for topic in self._topics.values():
+            counts[topic.category] = counts.get(topic.category, 0) + 1
+        return [
+            {"id": name, "name": name.replace("-", " ").capitalize(), "topic_count": count}
+            for name, count in sorted(counts.items())
+        ]
 
     def get_topic(self, topic_id: str) -> Topic | None:
         return self._topics.get(topic_id)

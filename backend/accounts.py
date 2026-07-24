@@ -735,7 +735,9 @@ class AccountService:
         # saved: bookmarked cases/topics. draft: private work in progress.
         # reading_list: a named list of case ids. preference: client settings
         # such as law-student mode, which must survive a reinstall.
-        allowed = {"saved", "draft", "reading_list", "preference"}
+        # history: recently-viewed content; preference: client settings
+        # (theme, notifications, accessibility) that must survive a reinstall.
+        allowed = {"saved", "draft", "reading_list", "preference", "history"}
         with self.sessions.begin() as session:
             for item in items:
                 if item["kind"] not in allowed:

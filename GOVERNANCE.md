@@ -185,3 +185,39 @@ proprietary-text and duplicate checks, and not from review.
 Still needed before launch: real per-state legal-aid contacts. The shipped
 directory is a national seed; the value of location filtering grows with the
 number of state and LGA entries a lawyer has verified.
+
+## 13. General user features & API contract — status
+
+Built this pass:
+- **API contract:** `GET /v1/categories` (with counts + ETag); jurisdiction and
+  status filters on `/v1/topics`; a unified `POST /v1/ask?audience=` that routes
+  to the individual, business, or student corpus (kept apart so one never answers
+  from another); and a structured error envelope `{error:{code,message,details}}`
+  added **additively** — the plain `detail` field older clients read is retained.
+- **Incognito Ask:** an `X-KYR-Incognito` header runs a question with no cache and
+  no telemetry, so a sensitive query leaves no trace. The hourly rate limit still
+  applies, so it is not an abuse bypass.
+- **General features:** reading history, saved topics, and notification/privacy
+  preferences ride the existing per-user sync store (so they survive a reinstall);
+  a web **Settings** surface with theme, **text-size** and **high-contrast**
+  accessibility controls, an incognito toggle, a legal-change-notification
+  preference, data export, and account deletion.
+
+Already present before this pass (listed as "missing" but in fact built):
+contributions, reviews, error reports, interpretation submission,
+entity-applicability, full directory filters, alert cancellation/resolution,
+delivery callbacks, check-in endpoints, the public alert status page, signed/delta
+content-pack endpoints, data export, and account deletion.
+
+Deferred, with reasons:
+- **Cursor pagination and broad ETag on list reads:** premature on a corpus of
+  ~26 topics and 6 cases, and switching list responses to a paginated envelope
+  would break both shipped clients. Add when a corpus is large enough to need it.
+- **Legal-change notifications (delivery):** the *preference* and the staleness
+  signal exist; actually pushing a notification needs push infrastructure (APNs/
+  FCM) and a job that diffs content versions — a separate build.
+- **Flutter settings/accessibility parity:** the web got the Settings surface this
+  pass; the Flutter app already honours system text scaling and theme, but an
+  explicit in-app settings screen is follow-up.
+- **Organizations, memberships, subscriptions, billing webhooks:** a Layer 2
+  business decision, deferred until the content is verified and proven (section 11).
