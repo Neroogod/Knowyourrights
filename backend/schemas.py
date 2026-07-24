@@ -43,6 +43,26 @@ class Citation(BaseModel):
     url: str | None = None
 
 
+def source_fingerprint(*parts: object) -> str:
+    """A stable hash of a record's meaningful text, used to detect drift.
+
+    A translation stores the fingerprint of its source at translation time; when
+    the source's fingerprint changes, the translation is stale and must be
+    re-reviewed before it is trusted.
+    """
+    import hashlib
+
+    joined = "\u241f".join("" if p is None else str(p) for p in parts)
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:16]
+
+
+def translation_is_stale(translation_source_hash: str | None, current_source_hash: str) -> bool:
+    """True when a translation was made against an older version of its source."""
+    if translation_source_hash is None:
+        return False
+    return translation_source_hash != current_source_hash
+
+
 class Topic(BaseModel):
     id: str = Field(min_length=1)
     title: str = Field(min_length=1)
@@ -61,6 +81,9 @@ class Topic(BaseModel):
     reviewed_by: str | None = None
     reviewed_at: str | None = None
     review_due_at: str | None = None  # past this date the record leaves AI retrieval
+    language: str = "en"  # ISO code; en | pcm | ha | yo | ig
+    translation_of: str | None = None  # id of the canonical record this translates
+    source_hash: str | None = None  # hash of the source when translated, for staleness
 
     @model_validator(mode="after")
     def verified_requires_citation(self) -> "Topic":
@@ -90,6 +113,9 @@ class Scenario(BaseModel):
     reviewed_by: str | None = None
     reviewed_at: str | None = None
     review_due_at: str | None = None  # past this date the record leaves AI retrieval
+    language: str = "en"  # ISO code; en | pcm | ha | yo | ig
+    translation_of: str | None = None  # id of the canonical record this translates
+    source_hash: str | None = None  # hash of the source when translated, for staleness
 
     @model_validator(mode="after")
     def verified_requires_citation(self) -> "Scenario":
@@ -189,6 +215,9 @@ class Obligation(BaseModel):
     reviewed_by: str | None = None
     reviewed_at: str | None = None
     review_due_at: str | None = None  # past this date the record leaves AI retrieval
+    language: str = "en"  # ISO code; en | pcm | ha | yo | ig
+    translation_of: str | None = None  # id of the canonical record this translates
+    source_hash: str | None = None  # hash of the source when translated, for staleness
 
     @model_validator(mode="after")
     def verified_requires_reviewer(self) -> "Obligation":
@@ -213,6 +242,9 @@ class CompanyChecklist(BaseModel):
     reviewed_by: str | None = None
     reviewed_at: str | None = None
     review_due_at: str | None = None  # past this date the record leaves AI retrieval
+    language: str = "en"  # ISO code; en | pcm | ha | yo | ig
+    translation_of: str | None = None  # id of the canonical record this translates
+    source_hash: str | None = None  # hash of the source when translated, for staleness
 
     @model_validator(mode="after")
     def verified_requires_reviewer(self) -> "CompanyChecklist":
@@ -233,6 +265,9 @@ class CaseInterpretation(BaseModel):
     reviewed_by: str | None = None
     reviewed_at: str | None = None
     review_due_at: str | None = None  # past this date the record leaves AI retrieval
+    language: str = "en"  # ISO code; en | pcm | ha | yo | ig
+    translation_of: str | None = None  # id of the canonical record this translates
+    source_hash: str | None = None  # hash of the source when translated, for staleness
 
     @model_validator(mode="after")
     def verified_requires_reviewer(self) -> "CaseInterpretation":
@@ -283,6 +318,9 @@ class CaseBrief(BaseModel):
     reviewed_by: str | None = None
     reviewed_at: str | None = None
     review_due_at: str | None = None  # past this date the record leaves AI retrieval
+    language: str = "en"  # ISO code; en | pcm | ha | yo | ig
+    translation_of: str | None = None  # id of the canonical record this translates
+    source_hash: str | None = None  # hash of the source when translated, for staleness
 
     @model_validator(mode="after")
     def verified_requires_citation_and_reviewer(self) -> "CaseBrief":

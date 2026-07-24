@@ -719,8 +719,11 @@
     <div class="profile-card">
       <div class="profile-head"><h2 id="settingsTitle">Settings</h2><button class="icon-button" onclick="closeSettings()" aria-label="Close">×</button></div>
 
-      <section class="profile-section"><h3>Appearance</h3>
-        <label class="setting-row"><span>Theme</span>
+      <section class="profile-section"><h3 data-i18n="settings.appearance">Appearance</h3>
+        <label class="setting-row"><span data-i18n="settings.language">Language</span>
+          <select id="setLanguage" onchange="setLanguage(this.value)"></select>
+        </label>
+        <label class="setting-row"><span data-i18n="settings.theme">Theme</span>
           <select id="setTheme" onchange="setTheme(this.value)">
             <option value="light">Light</option><option value="dark">Dark</option>
           </select>
@@ -735,20 +738,20 @@
         </label>
       </section>
 
-      <section class="profile-section"><h3>Privacy</h3>
+      <section class="profile-section"><h3 data-i18n="settings.privacy">Privacy</h3>
         <label class="setting-row"><span>Incognito Ask<br><small class="muted-note">Questions aren't cached or logged</small></span>
           <input type="checkbox" id="setIncognito" onchange="saveSetting('incognito',this.checked)">
         </label>
       </section>
 
-      <section class="profile-section"><h3>Notifications</h3>
+      <section class="profile-section"><h3 data-i18n="settings.notifications">Notifications</h3>
         <label class="setting-row"><span>Tell me when the law changes<br><small class="muted-note">Alerts when content you viewed is updated</small></span>
           <input type="checkbox" id="setLegalChanges" onchange="saveSetting('legal_changes',this.checked)">
         </label>
         <p class="muted-note" id="settingsSync"></p>
       </section>
 
-      <section class="profile-section"><h3>Your data</h3>
+      <section class="profile-section"><h3 data-i18n="settings.data">Your data</h3>
         <button class="profile-action wide" onclick="exportData()">Export my data</button>
         <button class="profile-action wide" style="border-color:var(--sos);color:var(--sos)" onclick="deleteMyAccount()">Delete my account</button>
       </section>
@@ -1911,6 +1914,52 @@
   }
 
 
+
+  /* -------------------------------- localization ------------------------ */
+  // UI strings are externalised here so the interface can be translated without
+  // touching markup. English is the source of truth; other locales fall back to
+  // it per key, so a partial translation is safe to ship. Legal *content* is
+  // translated through the review pipeline (language + translation_of fields),
+  // not here.
+  const STRINGS = {
+    en: {
+      "settings.title":"Settings", "settings.appearance":"Appearance",
+      "settings.theme":"Theme", "settings.textSize":"Text size",
+      "settings.contrast":"High contrast", "settings.privacy":"Privacy",
+      "settings.notifications":"Notifications", "settings.data":"Your data",
+      "settings.language":"Language",
+      "settings.export":"Export my data", "settings.delete":"Delete my account",
+    },
+    pcm: {
+      "settings.title":"Settings", "settings.appearance":"How e go look",
+      "settings.theme":"Theme", "settings.textSize":"Text size",
+      "settings.contrast":"Make am clear well", "settings.privacy":"Privacy",
+      "settings.notifications":"Notifications", "settings.data":"Your data",
+      "settings.language":"Language",
+      "settings.export":"Comot my data", "settings.delete":"Delete my account",
+    },
+    ha: {}, yo: {}, ig: {},
+  };
+  const LANGUAGES = [
+    {code:"en", name:"English", ready:true},
+    {code:"pcm", name:"Nigerian Pidgin", ready:false},
+    {code:"ha", name:"Hausa", ready:false},
+    {code:"yo", name:"Yoruba", ready:false},
+    {code:"ig", name:"Igbo", ready:false},
+  ];
+
+  function t(key){
+    const lang = LOCAL_SETTINGS.lang || "en";
+    return (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.en[key] || key;
+  }
+  function applyI18n(){
+    document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.getAttribute("data-i18n")); });
+  }
+  function setLanguage(code){
+    LOCAL_SETTINGS.lang = code; persistLocal(); applyI18n();
+    if(AUTH_TOKEN) saveSetting("lang", code);
+  }
+
   /* ---------------------------- settings & accessibility ---------------- */
   const LOCAL_SETTINGS = JSON.parse(localStorage.getItem("kyr_settings")||"{}");
 
@@ -1941,6 +1990,10 @@
   }
 
   function openSettings(){
+    const langSel=document.getElementById("setLanguage");
+    langSel.innerHTML=LANGUAGES.map(l=>`<option value="${l.code}">${l.name}${l.ready?"":" (in progress)"}</option>`).join("");
+    langSel.value=LOCAL_SETTINGS.lang||"en";
+    applyI18n();
     document.getElementById("setTheme").value=document.documentElement.getAttribute("data-theme")||"light";
     document.getElementById("setTextSize").value=LOCAL_SETTINGS.textScale||"1";
     document.getElementById("setContrast").checked=!!LOCAL_SETTINGS.contrast;
@@ -1980,6 +2033,7 @@
     tt.onclick=()=>{root.setAttribute("data-theme",cur()==="dark"?"light":"dark");paint();};
     paint();
     applyLocalSettings();
+    applyI18n();
   })();
 
   document.getElementById("homeTriggers").innerHTML =

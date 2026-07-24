@@ -1320,6 +1320,42 @@ class AccountService:
                     purged += 1
         return purged
 
+    def purge_retention(self, retention_days: dict[str, int]) -> int:
+        """Enforce the data-retention schedule with real deletes.
+
+        Driven by the schedule in `backend.retention`, so the policy and the code
+        that enforces it cannot drift. Content and the audit log are intentionally
+        not touched here. Returns the total rows deleted.
+        """
+        now = self._now()
+        deleted = 0
+
+        def cutoff(data_class: str) -> datetime:
+            return now - timedelta(days=retention_days[data_class])
+
+        with self.sessions.begin() as session:
+            # Aggregate AI telemetry (no prompt text) beyond its window.
+            deleted += session.execute(
+                delete(AIUsageRecord).where(AIUsageRecord.created_at < cutoff("ai_usage_telemetry"))
+            ).rowcount
+            # Expired cache entries (also bounded by each row's own TTL).
+            deleted += session.execute(
+                delete(AIAnswerCacheRecord).where(AIAnswerCacheRecord.expires_at < now)
+            ).rowcount
+            # Abuse counters and used/expired verification tokens.
+            deleted += session.execute(
+                delete(AbuseEventRecord).where(AbuseEventRecord.occurred_at < cutoff("abuse_events"))
+            ).rowcount
+            deleted += session.execute(
+                delete(VerificationRecord).where(
+                    VerificationRecord.expires_at < cutoff("verification_tokens")
+                )
+            ).rowcount
+            deleted += session.execute(
+                delete(WebhookEventRecord).where(WebhookEventRecord.received_at < cutoff("webhook_events"))
+            ).rowcount
+        return deleted
+
     def _attempt_delivery(
         self,
         session: Session,

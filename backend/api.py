@@ -84,7 +84,9 @@ from backend.observability import (
     RequestContextMiddleware,
     configure_logging,
     init_error_tracking,
+    log_event,
 )
+from backend.retention import run_retention_purge
 from backend.review import ReviewError, ReviewService
 from backend.schemas import (
     AskRequest,
@@ -119,11 +121,17 @@ def create_app(
     managed_auth = SupabaseTokenVerifier()
 
     async def alert_retry_worker() -> None:
+        cycles = 0
         while True:
             await asyncio.sleep(15)
             await asyncio.to_thread(accounts.retry_due_alerts)
             await asyncio.to_thread(accounts.purge_expired_locations)
             await asyncio.to_thread(accounts.process_due_check_ins)
+            cycles += 1
+            # Enforce the data-retention schedule about once an hour (240 * 15s).
+            if cycles % 240 == 0:
+                purged = await asyncio.to_thread(run_retention_purge, accounts)
+                log_event("retention purge", **purged)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
