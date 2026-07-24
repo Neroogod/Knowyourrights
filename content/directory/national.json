@@ -5,7 +5,12 @@
     "entry_type": "legal_aid",
     "state": "Federal",
     "url": "https://www.legalaidcouncil.gov.ng/",
-    "cached_offline": true
+    "cached_offline": true,
+    "specialty": [
+      "criminal",
+      "general",
+      "human-rights"
+    ]
   },
   {
     "id": "nhrc",
@@ -13,7 +18,10 @@
     "entry_type": "ngo",
     "state": "Federal",
     "url": "https://www.nigeriarights.gov.ng/",
-    "cached_offline": true
+    "cached_offline": true,
+    "specialty": [
+      "human-rights"
+    ]
   },
   {
     "id": "nba",
@@ -21,7 +29,11 @@
     "entry_type": "legal_aid",
     "state": "Federal",
     "url": "https://nigerianbar.org.ng/",
-    "cached_offline": true
+    "cached_offline": true,
+    "specialty": [
+      "general",
+      "referrals"
+    ]
   },
   {
     "id": "police-emergency",

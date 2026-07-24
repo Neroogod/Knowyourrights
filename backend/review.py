@@ -48,7 +48,7 @@ REPORT_TRIAGED = "triaged"
 REPORT_RESOLVED = "resolved"
 REPORT_DISMISSED = "dismissed"
 
-CONTENT_TYPES = {"topic", "scenario", "obligation", "checklist", "case", "interpretation"}
+CONTENT_TYPES = {"topic", "scenario", "obligation", "checklist", "case", "interpretation", "directory"}
 
 #: Reviewer/administrator may verify; contributors may only submit.
 REVIEWER_ROLES = {"reviewer", "administrator"}
@@ -157,7 +157,11 @@ def _tokens(text: str) -> set[str]:
     return {word for word in flattened.split() if len(word) > 3}
 
 
-def screen_submission(payload: dict, existing_texts: list[str] | None = None) -> ModerationResult:
+def screen_submission(
+    payload: dict,
+    existing_texts: list[str] | None = None,
+    content_type: str = "topic",
+) -> ModerationResult:
     """Screen a submission for missing citations, copied report text, and duplicates.
 
     This is a first pass, not a substitute for the reviewer: it exists so obvious
@@ -170,7 +174,9 @@ def screen_submission(payload: dict, existing_texts: list[str] | None = None) ->
         if key not in {"citations"} and isinstance(value, str)
     )
 
-    if not payload.get("citations"):
+    # A directory entry is a contact, not a legal claim, so it needs no citation;
+    # every other content type asserts law and must carry one.
+    if content_type != "directory" and not payload.get("citations"):
         flags.append("missing-citation")
 
     lowered = body.lower()
@@ -257,7 +263,7 @@ class ReviewService:
                     ContributionRecord.content_type == content_type
                 )
             ).all()
-            result = screen_submission(payload, list(existing))
+            result = screen_submission(payload, list(existing), content_type)
 
             # Clean submissions become community content immediately: visible and
             # badged, but never retrievable until a reviewer verifies them.

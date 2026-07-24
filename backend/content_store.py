@@ -163,8 +163,40 @@ class ContentStore:
     def get_scenario(self, scenario_id: str) -> Scenario | None:
         return self._scenarios.get(scenario_id)
 
-    def list_directory(self) -> list[DirectoryEntry]:
-        return list(self._directory)
+    def list_directory(
+        self,
+        entry_type: str | None = None,
+        state: str | None = None,
+        lga: str | None = None,
+        specialty: str | None = None,
+        near: str | None = None,
+    ) -> list[DirectoryEntry]:
+        """Filter the directory, and sort so nearby help surfaces first.
+
+        `near` is the user's state. It does not exclude anything - a lawyer two
+        states away is still better than none - it just floats matching-state
+        entries (and Federal, which is nationwide) to the top.
+        """
+        entries = list(self._directory)
+        if entry_type:
+            entries = [e for e in entries if e.entry_type == entry_type]
+        if state:
+            entries = [e for e in entries if e.state == state]
+        if lga:
+            entries = [e for e in entries if e.lga == lga]
+        if specialty:
+            entries = [e for e in entries if specialty in e.specialty]
+
+        if near:
+            def rank(entry: DirectoryEntry) -> int:
+                if entry.state == near:
+                    return 0
+                if entry.state == "Federal":  # nationwide bodies are always relevant
+                    return 1
+                return 2
+
+            entries.sort(key=rank)
+        return entries
 
     def list_obligations(self) -> list[Obligation]:
         return list(self._obligations.values())

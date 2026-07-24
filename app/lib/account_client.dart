@@ -460,6 +460,14 @@ class AccountClient {
         .toList();
   }
 
+
+  /// Suggest a legal-aid contact or a correction. Enters editor review; it is
+  /// never shown live until confirmed.
+  Future<String> contributeDirectoryEntry(Map<String, dynamic> entry) async {
+    final json = await _request('POST', '/v1/directory/contributions', body: entry);
+    return json['status'] as String? ?? 'draft';
+  }
+
   Future<void> syncUserData() async {
     final saved = await (_database.select(
       _database.savedContentRows,

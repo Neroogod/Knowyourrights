@@ -646,8 +646,41 @@
     <!-- HELP -->
     <section class="view" id="help">
       <h1 class="lead-h">Get help</h1>
-      <p class="detail-body">Emergency lines and legal-aid organisations.</p>
+      <p class="detail-body">Emergency lines, legal-aid organisations, and regulators.</p>
+      <div class="filter-row">
+        <label class="field-label">Type
+          <select id="dirType" onchange="renderDirectory()"><option value="">All</option></select>
+        </label>
+        <label class="field-label">Specialty
+          <select id="dirSpecialty" onchange="renderDirectory()"><option value="">Any</option></select>
+        </label>
+        <label class="field-label">Near (your state)
+          <input id="dirNear" placeholder="e.g. Lagos" oninput="renderDirectory()" style="width:130px">
+        </label>
+      </div>
       <div id="dir"></div>
+      <h2 class="section">Know a legal-aid contact?</h2>
+      <div class="block do" id="dirContribute">
+        <p class="muted-note" style="margin:0 0 8px">Suggest a legal-aid organisation or a correction.
+          An editor reviews it before it appears; nothing goes live unchecked.</p>
+        <div class="filter-row">
+          <input class="field" id="dcName" placeholder="Organisation name" style="flex:2;min-width:180px">
+          <select id="dcType">
+            <option value="legal_aid">Legal aid</option>
+            <option value="lawyer">Lawyer</option>
+            <option value="ngo">NGO</option>
+          </select>
+          <input class="field" id="dcState" placeholder="State" style="width:110px">
+        </div>
+        <div class="filter-row" style="margin-top:8px">
+          <input class="field" id="dcPhone" placeholder="Phone (optional)" style="width:150px">
+          <input class="field" id="dcUrl" placeholder="Website (optional)" style="flex:1;min-width:160px">
+        </div>
+        <div class="row" style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <button class="btn-primary" onclick="submitDirectoryEntry()">Submit for review</button>
+          <span class="report-status" id="dcStatus"></span>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -1767,13 +1800,65 @@
   }
 
   /* ---------- Directory ---------- */
+  let DIRECTORY=[];
+
   function dirCard(e){
     const emergency = e.entry_type==="emergency";
     const call = e.phone ? `<a class="btn-call ${emergency?'big':''}" href="tel:${esc(e.phone)}">☎ Call ${esc(e.phone)}</a>` : "";
+    const mail = e.email ? `<a class="btn-web" href="mailto:${esc(e.email)}">Email</a>` : "";
     const web = e.url ? `<a class="btn-web" href="${esc(e.url)}" target="_blank" rel="noopener">Website ↗</a>` : "";
+    const specialty = (e.specialty||[]).length
+      ? `<div class="chips" style="margin:4px 0">${e.specialty.map(s=>`<span class="cat">${esc(prettyCat(s))}</span>`).join("")}</div>` : "";
+    const unverified = e.status && e.status!=="verified"
+      ? `<span class="muted-note"> · community, unverified</span>` : "";
     return `<div class="dir ${emergency?'emergency':''}"><h4>${esc(e.name)}</h4>
-      <div class="meta">${esc(e.entry_type.replace(/_/g," "))}${e.state?" · "+esc(e.state):""}</div>
-      <div class="btns">${call}${web}</div></div>`;
+      <div class="meta">${esc(e.entry_type.replace(/_/g," "))}${e.state?" · "+esc(e.state):""}${e.lga?" · "+esc(e.lga):""}${unverified}</div>
+      ${e.address?`<p class="muted-note" style="margin:2px 0">${esc(e.address)}</p>`:""}
+      ${specialty}
+      <div class="btns">${call}${mail}${web}</div></div>`;
+  }
+
+  function renderDirectory(){
+    const type=document.getElementById("dirType")?.value||"";
+    const specialty=document.getElementById("dirSpecialty")?.value||"";
+    const near=(document.getElementById("dirNear")?.value||"").trim();
+    let list=DIRECTORY.slice();
+    if(type) list=list.filter(e=>e.entry_type===type);
+    if(specialty) list=list.filter(e=>(e.specialty||[]).includes(specialty));
+    if(near){
+      const rank=e=>e.state===near?0:(e.state==="Federal"?1:2);
+      list.sort((a,b)=>rank(a)-rank(b));
+    }
+    document.getElementById("dir").innerHTML=list.length?list.map(dirCard).join(""):'<p class="muted-note">No matching entries.</p>';
+  }
+
+  function populateDirectoryFilters(){
+    const types=[...new Set(DIRECTORY.map(e=>e.entry_type))];
+    const specs=[...new Set(DIRECTORY.flatMap(e=>e.specialty||[]))].sort();
+    const typeSel=document.getElementById("dirType"), specSel=document.getElementById("dirSpecialty");
+    if(typeSel) typeSel.innerHTML='<option value="">All</option>'+types.map(t=>`<option value="${esc(t)}">${esc(prettyCat(t))}</option>`).join("");
+    if(specSel) specSel.innerHTML='<option value="">Any</option>'+specs.map(s=>`<option value="${esc(s)}">${esc(prettyCat(s))}</option>`).join("");
+  }
+
+  async function submitDirectoryEntry(){
+    const statusEl=document.getElementById("dcStatus");
+    const name=document.getElementById("dcName").value.trim();
+    if(name.length<2){ statusEl.textContent="Enter the organisation name."; return; }
+    if(!AUTH_TOKEN){ statusEl.textContent="Sign in to suggest a contact."; return; }
+    statusEl.textContent="Submitting…";
+    try{
+      const result=await apiJson("/directory/contributions",{method:"POST",
+        headers:{...authHeaders(),"Content-Type":"application/json"},
+        body:JSON.stringify({
+          name, entry_type:document.getElementById("dcType").value,
+          state:document.getElementById("dcState").value.trim()||null,
+          phone:document.getElementById("dcPhone").value.trim()||null,
+          url:document.getElementById("dcUrl").value.trim()||null,
+        })});
+      document.getElementById("dcName").value="";
+      statusEl.textContent=result.status==="community"
+        ? "Thank you — submitted for editor review." : "Held for checks before review.";
+    }catch(error){ statusEl.textContent=error.message; }
   }
 
   /* ---------- Boot ---------- */
@@ -1849,7 +1934,9 @@
       renderTopics(TOPICS.slice(0,4), "homeTopics");
       renderTopics(TOPICS, "topics");
       document.getElementById("scenarioList").innerHTML = SCENARIOS.map(scenarioCard).join("");
-      document.getElementById("dir").innerHTML = dr.map(dirCard).join("");
+      DIRECTORY = dr;
+      populateDirectoryFilters();
+      renderDirectory();
       renderCompany();
       renderCompanyDesk();
       renderCaseHero();

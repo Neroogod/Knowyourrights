@@ -166,3 +166,22 @@ and the compliance export/audit dashboard. Consistent with section 4c of the
 build plan, the compliance content ships free and anonymous first; accounts and
 billing follow once the content has proven its worth. Building seats before the
 content is verified would sell access to material no lawyer has checked.
+
+## 12. Directory depth
+
+The directory now filters by type, state, LGA, and specialty, and sorts
+location-aware: a `near` state floats local help — then nationwide (Federal)
+bodies — to the top, but never drops an entry, because a lawyer two states away
+still beats none.
+
+Entries carry LGA, email, address, and specialty. Regulators (section 11) are a
+directory type. Community members can suggest a legal-aid contact or a correction
+via the contribution flow; a submitted entry is `community` (visible-but-badged
+elsewhere, not shown live in the shipped directory) until an editor confirms it,
+exactly like every other contribution. A directory entry is a contact, not a
+legal claim, so it is exempt from the citation requirement — but not from the
+proprietary-text and duplicate checks, and not from review.
+
+Still needed before launch: real per-state legal-aid contacts. The shipped
+directory is a national seed; the value of location filtering grows with the
+number of state and LGA entries a lawyer has verified.

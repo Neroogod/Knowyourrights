@@ -15,7 +15,10 @@
     "state": "Federal",
     "phone": null,
     "url": "https://www.naptip.gov.ng/",
-    "cached_offline": true
+    "cached_offline": true,
+    "specialty": [
+      "trafficking"
+    ]
   },
   {
     "id": "public-complaints-commission",
@@ -24,7 +27,10 @@
     "state": "Federal",
     "phone": null,
     "url": "https://pcc.gov.ng/",
-    "cached_offline": true
+    "cached_offline": true,
+    "specialty": [
+      "complaints"
+    ]
   },
   {
     "id": "fida-nigeria",
@@ -33,7 +39,12 @@
     "state": "Federal",
     "phone": null,
     "url": "https://fidanigeria.org/",
-    "cached_offline": true
+    "cached_offline": true,
+    "specialty": [
+      "women",
+      "children",
+      "family"
+    ]
   },
   {
     "id": "efcc",
@@ -42,6 +53,10 @@
     "state": "Federal",
     "phone": null,
     "url": "https://www.efcc.gov.ng/",
-    "cached_offline": true
+    "cached_offline": true,
+    "specialty": [
+      "fraud",
+      "corruption"
+    ]
   }
 ]

@@ -368,4 +368,26 @@ void main() {
     expect(o.consequence, contains('strike-off'));
   });
 
+
+  test('DirectoryEntry parses depth fields and defaults status to verified', () {
+    final e = DirectoryEntry.fromJson({
+      'id': 'lagos-aid',
+      'name': 'Lagos Legal Clinic',
+      'entry_type': 'legal_aid',
+      'state': 'Lagos',
+      'lga': 'Ikeja',
+      'email': 'help@example.org',
+      'address': '1 Example Road',
+      'specialty': ['tenancy', 'criminal'],
+    });
+    expect(e.lga, 'Ikeja');
+    expect(e.email, 'help@example.org');
+    expect(e.specialty, ['tenancy', 'criminal']);
+    expect(e.status, 'verified');
+
+    final community = DirectoryEntry.fromJson(
+        {'id': 'x', 'name': 'X', 'entry_type': 'legal_aid', 'status': 'community'});
+    expect(community.status, 'community');
+  });
+
 }

@@ -240,3 +240,18 @@ class CaseDigestSubmit(BaseModel):
     ratio: str = Field(min_length=10, max_length=4000)
     report_citation: str | None = Field(default=None, max_length=300)
     citations: list[dict] = Field(default_factory=list)
+
+
+class DirectoryContribution(BaseModel):
+    """A community-submitted directory entry or a correction to an existing one."""
+
+    name: str = Field(min_length=2, max_length=200)
+    entry_type: str = Field(pattern=r"^(legal_aid|ngo|lawyer|emergency)$")
+    state: str | None = Field(default=None, max_length=80)
+    lga: str | None = Field(default=None, max_length=80)
+    phone: str | None = Field(default=None, max_length=40)
+    email: str | None = Field(default=None, max_length=200)
+    address: str | None = Field(default=None, max_length=400)
+    specialty: list[str] = Field(default_factory=list, max_length=10)
+    url: str | None = Field(default=None, max_length=300)
+    corrects_id: str | None = Field(default=None, max_length=120)  # set when fixing an entry

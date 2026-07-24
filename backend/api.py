@@ -47,6 +47,7 @@ from backend.account_schemas import (
     DeleteAccountRequest,
     DeliveryCallback,
     DeviceSessionResponse,
+    DirectoryContribution,
     ErrorReportResolve,
     ErrorReportSubmit,
     ForgotPasswordRequest,
@@ -798,8 +799,38 @@ def create_app(
         return scenario
 
     @app.get("/v1/directory", response_model=list[DirectoryEntry])
-    def list_directory() -> list[DirectoryEntry]:
-        return resolved_store.list_directory()
+    def list_directory(
+        type: str | None = Query(default=None, max_length=24),
+        state: str | None = Query(default=None, max_length=80),
+        lga: str | None = Query(default=None, max_length=80),
+        specialty: str | None = Query(default=None, max_length=48),
+        near: str | None = Query(default=None, max_length=80,
+                                 description="your state; floats nearby help to the top"),
+    ) -> list[DirectoryEntry]:
+        return resolved_store.list_directory(
+            entry_type=type, state=state, lga=lga, specialty=specialty, near=near
+        )
+
+    @app.get("/v1/directory/filters")
+    def directory_filters() -> dict:
+        """The filter values present in the directory, for the UI to offer."""
+        entries = resolved_store.list_directory()
+        return {
+            "types": sorted({e.entry_type for e in entries}),
+            "states": sorted({e.state for e in entries if e.state}),
+            "specialties": sorted({s for e in entries for s in e.specialty}),
+        }
+
+    @app.post("/v1/directory/contributions", status_code=201)
+    def contribute_directory_entry(
+        body: DirectoryContribution,
+        user_id: Annotated[str, Depends(current_user)],
+    ) -> dict:
+        """Submit a legal-aid contact or a correction. Enters review; never live directly."""
+        try:
+            return reviews.submit(user_id, "directory", body.name, body.model_dump())
+        except ReviewError as error:
+            raise review_error(error) from error
 
     @app.get("/v1/company/obligations", response_model=list[Obligation])
     def list_obligations() -> list[Obligation]:

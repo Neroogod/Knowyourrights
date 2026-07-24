@@ -5139,8 +5139,76 @@ class DirectoryScreen extends StatefulWidget {
 }
 
 class _DirectoryScreenState extends State<DirectoryScreen> {
+  final AccountClient _accounts = AccountClient();
   String _query = '';
   String? _type;
+  String? _specialty;
+  final TextEditingController _near = TextEditingController();
+
+  @override
+  void dispose() {
+    _near.dispose();
+    super.dispose();
+  }
+
+  Future<void> _suggestContact() async {
+    final name = TextEditingController();
+    final state = TextEditingController();
+    final phone = TextEditingController();
+    String type = 'legal_aid';
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Suggest a legal-aid contact'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(controller: name, decoration: const InputDecoration(labelText: 'Organisation name')),
+            const SizedBox(height: 8),
+            StatefulBuilder(
+              builder: (_, setInner) => DropdownButtonFormField<String>(
+                initialValue: type,
+                decoration: const InputDecoration(labelText: 'Type'),
+                items: const [
+                  DropdownMenuItem(value: 'legal_aid', child: Text('Legal aid')),
+                  DropdownMenuItem(value: 'lawyer', child: Text('Lawyer')),
+                  DropdownMenuItem(value: 'ngo', child: Text('NGO')),
+                ],
+                onChanged: (value) => setInner(() => type = value ?? 'legal_aid'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(controller: state, decoration: const InputDecoration(labelText: 'State')),
+            const SizedBox(height: 8),
+            TextField(controller: phone, decoration: const InputDecoration(labelText: 'Phone (optional)')),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Submit')),
+        ],
+      ),
+    );
+    if (submitted != true || name.text.trim().length < 2) return;
+    try {
+      final status = await _accounts.contributeDirectoryEntry({
+        'name': name.text.trim(),
+        'entry_type': type,
+        if (state.text.trim().isNotEmpty) 'state': state.text.trim(),
+        if (phone.text.trim().isNotEmpty) 'phone': phone.text.trim(),
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(status == 'community'
+              ? 'Thank you — submitted for editor review.'
+              : 'Held for checks before review.'),
+        ));
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
+  }
 
   Future<void> _launch(
     BuildContext context,
@@ -5172,11 +5240,24 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
     final entries = widget.repo.directory.where((entry) {
       if (entry.entryType == 'emergency') return false;
       if (_type != null && entry.entryType != _type) return false;
+      if (_specialty != null && !entry.specialty.contains(_specialty)) return false;
       final query = _query.trim().toLowerCase();
       return query.isEmpty ||
           entry.name.toLowerCase().contains(query) ||
           (entry.state?.toLowerCase().contains(query) ?? false);
     }).toList();
+    // Location-aware: float the user's state, then nationwide bodies, to the top.
+    final near = _near.text.trim();
+    if (near.isNotEmpty) {
+      int rank(DirectoryEntry e) =>
+          e.state == near ? 0 : (e.state == 'Federal' ? 1 : 2);
+      entries.sort((a, b) => rank(a).compareTo(rank(b)));
+    }
+    final specialties = widget.repo.directory
+        .expand((entry) => entry.specialty)
+        .toSet()
+        .toList()
+      ..sort();
 
     return Scaffold(
       appBar: AppBar(
@@ -5300,13 +5381,55 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
                     selected: _type == 'ngo',
                     onSelected: (_) => setState(() => _type = 'ngo'),
                   ),
+                  const SizedBox(width: 7),
+                  ChoiceChip(
+                    label: const Text('Regulators'),
+                    selected: _type == 'regulator',
+                    onSelected: (_) => setState(() => _type = 'regulator'),
+                  ),
                 ],
+              ),
+            ),
+            if (specialties.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  ChoiceChip(
+                    label: const Text('Any specialty'),
+                    selected: _specialty == null,
+                    onSelected: (_) => setState(() => _specialty = null),
+                  ),
+                  for (final s in specialties) ...[
+                    const SizedBox(width: 7),
+                    ChoiceChip(
+                      label: Text(CategoryTag.prettify(s)),
+                      selected: _specialty == s,
+                      onSelected: (_) => setState(() => _specialty = s),
+                    ),
+                  ],
+                ]),
+              ),
+            ],
+            const SizedBox(height: 10),
+            TextField(
+              controller: _near,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: 'Near you (your state)',
+                hintText: 'e.g. Lagos — floats nearby help to the top',
+                prefixIcon: Icon(Icons.place_outlined),
               ),
             ),
             const SizedBox(height: 17),
             Row(
               children: [
                 const Expanded(child: SectionLabel('Available support')),
+                TextButton.icon(
+                  onPressed: _suggestContact,
+                  icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+                  label: const Text('Suggest'),
+                ),
                 Text(
                   '${entries.length} ${entries.length == 1 ? 'result' : 'results'}',
                   style: TextStyle(fontSize: 12, color: p.faint),
@@ -5375,53 +5498,72 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
                                   ),
                                   const SizedBox(height: 5),
                                   Text(
-                                    '${entry.entryType == 'legal_aid' ? 'Legal aid' : 'Rights organisation'}'
-                                    '${entry.state != null ? ' · ${entry.state}' : ' · Nationwide'}',
+                                    '${CategoryTag.prettify(entry.entryType)}'
+                                    '${entry.state != null ? ' · ${entry.state}' : ' · Nationwide'}'
+                                    '${entry.lga != null ? ' · ${entry.lga}' : ''}'
+                                    '${entry.status != 'verified' ? ' · community, unverified' : ''}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: p.faint,
                                     ),
                                   ),
+                                  if (entry.address != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(entry.address!,
+                                        style: TextStyle(fontSize: 12, color: p.muted)),
+                                  ],
+                                  if (entry.specialty.isNotEmpty) ...[
+                                    const SizedBox(height: 7),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 5,
+                                      children: entry.specialty
+                                          .map((s) => CategoryTag(s))
+                                          .toList(),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        if (entry.phone != null || entry.url != null) ...[
+                        if (entry.phone != null ||
+                            entry.url != null ||
+                            entry.email != null) ...[
                           const SizedBox(height: 14),
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               if (entry.phone != null)
-                                Expanded(
-                                  child: FilledButton.icon(
-                                    onPressed: () => _launch(
-                                      context,
-                                      dialNumber(entry.phone),
-                                      'Could not open the phone app.',
-                                    ),
-                                    icon: const Icon(
-                                      Icons.call_outlined,
-                                      size: 17,
-                                    ),
-                                    label: const Text('Call'),
+                                FilledButton.icon(
+                                  onPressed: () => _launch(
+                                    context,
+                                    dialNumber(entry.phone),
+                                    'Could not open the phone app.',
                                   ),
+                                  icon: const Icon(Icons.call_outlined, size: 17),
+                                  label: const Text('Call'),
                                 ),
-                              if (entry.phone != null && entry.url != null)
-                                const SizedBox(width: 8),
-                              if (entry.url != null)
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => _launch(
-                                      context,
-                                      openLink(entry.url!),
-                                      'Could not open the link.',
-                                    ),
-                                    icon: const Icon(
-                                      Icons.language_rounded,
-                                      size: 17,
-                                    ),
-                                    label: const Text('Website'),
+                              if (entry.email != null)
+                                OutlinedButton.icon(
+                                  onPressed: () => _launch(
+                                    context,
+                                    openLink('mailto:${entry.email}'),
+                                    'Could not open email.',
                                   ),
+                                  icon: const Icon(Icons.mail_outline_rounded, size: 17),
+                                  label: const Text('Email'),
+                                ),
+                              if (entry.url != null)
+                                OutlinedButton.icon(
+                                  onPressed: () => _launch(
+                                    context,
+                                    openLink(entry.url!),
+                                    'Could not open the link.',
+                                  ),
+                                  icon: const Icon(Icons.language_rounded, size: 17),
+                                  label: const Text('Website'),
                                 ),
                             ],
                           ),

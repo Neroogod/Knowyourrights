@@ -133,16 +133,26 @@ class DirectoryEntry {
   final String name;
   final String entryType;
   final String? state;
+  final String? lga;
   final String? phone;
+  final String? email;
+  final String? address;
+  final List<String> specialty;
   final String? url;
+  final String status;
 
   const DirectoryEntry({
     required this.id,
     required this.name,
     required this.entryType,
     this.state,
+    this.lga,
     this.phone,
+    this.email,
+    this.address,
+    this.specialty = const [],
     this.url,
+    this.status = 'verified',
   });
 
   factory DirectoryEntry.fromJson(Map<String, dynamic> json) => DirectoryEntry(
@@ -150,8 +160,13 @@ class DirectoryEntry {
     name: json['name'] as String,
     entryType: json['entry_type'] as String,
     state: json['state'] as String?,
+    lga: json['lga'] as String?,
     phone: json['phone'] as String?,
+    email: json['email'] as String?,
+    address: json['address'] as String?,
+    specialty: ((json['specialty'] as List?) ?? const []).cast<String>(),
     url: json['url'] as String?,
+    status: json['status'] as String? ?? 'verified',
   );
 }
 

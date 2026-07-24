@@ -101,10 +101,18 @@ class Scenario(BaseModel):
 class DirectoryEntry(BaseModel):
     id: str = Field(min_length=1)
     name: str = Field(min_length=1)
-    entry_type: str = Field(description="legal_aid | emergency | ngo | regulator")
+    entry_type: str = Field(description="legal_aid | emergency | ngo | regulator | lawyer")
     state: str | None = None
+    lga: str | None = None  # local government area, for finer location filtering
     phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    specialty: list[str] = Field(default_factory=list)  # e.g. ["criminal", "tenancy"]
     url: str | None = None
+    # Seed/regulator entries are verified; community submissions are shown but
+    # clearly badged until an editor confirms them (see GOVERNANCE.md).
+    status: Status = Status.verified
+    submitted_by: str | None = None
     cached_offline: bool = True
 
 
