@@ -109,8 +109,12 @@ def test_flagged_contribution_is_held_as_draft(reviews, account_service):
 def test_submission_rate_limit(reviews, account_service):
     author = make_user(account_service, "spammer@example.com", "contributor")
     for i in range(10):
-        reviews.submit(author, "topic", f"Item {i}", {"summary": f"Distinct body {i}",
-                                                      "citations": [{"source_name": "s", "locator": "l"}]})
+        reviews.submit(
+            author,
+            "topic",
+            f"Item {i}",
+            {"summary": f"Distinct body {i}", "citations": [{"source_name": "s", "locator": "l"}]},
+        )
     with pytest.raises(ReviewError, match="rate limit"):
         reviews.submit(author, "topic", "One too many", VALID_PAYLOAD)
 
@@ -256,8 +260,7 @@ def test_audit_log_is_administrator_only(reviews, account_service):
 def test_audit_log_has_no_write_or_delete_api():
     # The trail is only trustworthy if code cannot rewrite it.
     assert not any(
-        hasattr(ReviewService, name)
-        for name in ("update_audit", "delete_audit", "purge_audit", "edit_audit")
+        hasattr(ReviewService, name) for name in ("update_audit", "delete_audit", "purge_audit", "edit_audit")
     )
 
 
@@ -284,14 +287,26 @@ def test_stale_topic_is_dropped_from_retrieval():
     from backend.rag.answerer import build_documents
 
     fresh = Topic(
-        id="fresh", title="Fresh", category="c", jurisdiction="NG-Federal",
-        summary="s", body_plain="b", status=Status.verified, reviewed_by="L",
+        id="fresh",
+        title="Fresh",
+        category="c",
+        jurisdiction="NG-Federal",
+        summary="s",
+        body_plain="b",
+        status=Status.verified,
+        reviewed_by="L",
         citations=[{"source_name": "1999 Constitution", "locator": "s.35"}],
         review_due_at=(date.today() + timedelta(days=30)).isoformat(),
     )
     stale = Topic(
-        id="stale", title="Stale", category="c", jurisdiction="NG-Federal",
-        summary="s", body_plain="b", status=Status.verified, reviewed_by="L",
+        id="stale",
+        title="Stale",
+        category="c",
+        jurisdiction="NG-Federal",
+        summary="s",
+        body_plain="b",
+        status=Status.verified,
+        reviewed_by="L",
         citations=[{"source_name": "1999 Constitution", "locator": "s.35"}],
         review_due_at=(date.today() - timedelta(days=1)).isoformat(),
     )
@@ -312,8 +327,7 @@ def test_stale_content_is_listed_for_reviewers(reviews, account_service, store):
 
 def _register(client: TestClient, email: str) -> str:
     created = client.post("/v1/auth/register", json={"email": email, "password": "Str0ngPassw0rd!23"})
-    client.post("/v1/auth/verify-email",
-                json={"token": created.json()["development_verification_token"]})
+    client.post("/v1/auth/verify-email", json={"token": created.json()["development_verification_token"]})
     token = client.post("/v1/auth/login", json={"email": email, "password": "Str0ngPassw0rd!23"})
     return token.json()["access_token"]
 
@@ -321,8 +335,11 @@ def _register(client: TestClient, email: str) -> str:
 def test_error_report_endpoint_accepts_anonymous_reports(client: TestClient):
     response = client.post(
         "/v1/error-reports",
-        json={"target_type": "topic", "target_id": "rights-when-arrested",
-              "message": "The 24-hour rule looks wrong."},
+        json={
+            "target_type": "topic",
+            "target_id": "rights-when-arrested",
+            "message": "The 24-hour rule looks wrong.",
+        },
     )
     assert response.status_code == 201
     assert response.json()["status"] == "open"

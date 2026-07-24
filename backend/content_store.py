@@ -64,9 +64,7 @@ class ContentStore:
 
         documents = build_documents(pack.topics)
         production_ai = os.getenv("KYR_AI_PRODUCTION_ENABLED") == "1"
-        embedding_provider = (
-            embedding_provider_from_environment() if database_repository else None
-        )
+        embedding_provider = embedding_provider_from_environment() if database_repository else None
         if production_ai and (database_repository is None or embedding_provider is None):
             raise RuntimeError(
                 "production AI requires PostgreSQL content and a configured embedding provider"
@@ -77,9 +75,7 @@ class ContentStore:
             else Retriever(documents)
         )
         if production_ai and isinstance(self._retriever, PgVectorRetriever):
-            total, embedded = database_repository.embedding_coverage(
-                self._retriever.model_id
-            )
+            total, embedded = database_repository.embedding_coverage(self._retriever.model_id)
             if total == 0 or embedded != total:
                 raise RuntimeError(
                     "production AI is blocked until every verified active chunk is embedded "
@@ -207,6 +203,7 @@ class ContentStore:
             entries = [e for e in entries if specialty in e.specialty]
 
         if near:
+
             def rank(entry: DirectoryEntry) -> int:
                 if entry.state == near:
                     return 0
@@ -234,15 +231,14 @@ class ContentStore:
         apply to this particular business.
         """
         obligations = [
-            item for item in self._obligations.values()
-            if obligation_applies(item.applicability, profile)
+            item for item in self._obligations.values() if obligation_applies(item.applicability, profile)
         ]
         applicable_ids = {item.id for item in obligations}
         checklists = [
-            checklist for checklist in self._company_checklists.values()
+            checklist
+            for checklist in self._company_checklists.values()
             if not checklist.items
-            or any(step.obligation_id in applicable_ids for step in checklist.items
-                   if step.obligation_id)
+            or any(step.obligation_id in applicable_ids for step in checklist.items if step.obligation_id)
             or all(step.obligation_id is None for step in checklist.items)
         ]
         return {"obligations": obligations, "checklists": checklists}

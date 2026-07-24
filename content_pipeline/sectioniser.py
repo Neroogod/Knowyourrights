@@ -74,9 +74,7 @@ def split_sections(text: str, max_section: int | None = None, min_chars: int = 4
         body = text[body_start:end].strip()
         existing = best_by_number.get(number)
         if existing is None or len(body) > len(existing.text):
-            best_by_number[number] = Section(
-                number=number, text=body, start=match_start, end=end
-            )
+            best_by_number[number] = Section(number=number, text=body, start=match_start, end=end)
 
     return [s for _, s in sorted(best_by_number.items()) if len(s.text) >= min_chars]
 

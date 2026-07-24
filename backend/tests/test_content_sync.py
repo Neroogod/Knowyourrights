@@ -12,13 +12,9 @@ def signer() -> ContentSigner:
 
 
 def verify(envelope: dict, public_key: bytes) -> None:
-    signature = base64.urlsafe_b64decode(
-        envelope["signature"] + "=" * (-len(envelope["signature"]) % 4)
-    )
+    signature = base64.urlsafe_b64decode(envelope["signature"] + "=" * (-len(envelope["signature"]) % 4))
     payload = {key: value for key, value in envelope.items() if key != "signature"}
-    Ed25519PrivateKey.from_private_bytes(public_key).public_key().verify(
-        signature, canonical_json(payload)
-    )
+    Ed25519PrivateKey.from_private_bytes(public_key).public_key().verify(signature, canonical_json(payload))
 
 
 def test_signed_rights_pack_is_layered_and_verifiable(store) -> None:
@@ -29,9 +25,7 @@ def test_signed_rights_pack_is_layered_and_verifiable(store) -> None:
     assert envelope["upserts"]["topics"]
     assert "cases" not in envelope["upserts"]
     assert etag.startswith('"rights-NG-Federal-')
-    checksum = hashlib.sha256(
-        canonical_json(envelope["upserts"])
-    ).hexdigest()
+    checksum = hashlib.sha256(canonical_json(envelope["upserts"])).hexdigest()
     assert envelope["checksum"] == checksum
 
 
@@ -40,8 +34,6 @@ def test_content_pack_endpoint_supports_etag_and_since(client) -> None:
     assert first.status_code == 200
     assert first.json()["upserts"]["cases"]
     etag = first.headers["etag"]
-    assert client.get(
-        "/v1/content-packs/students", headers={"If-None-Match": etag}
-    ).status_code == 304
+    assert client.get("/v1/content-packs/students", headers={"If-None-Match": etag}).status_code == 304
     version = first.json()["content_version"]
     assert client.get(f"/v1/content-packs/students?since={version}").status_code == 304

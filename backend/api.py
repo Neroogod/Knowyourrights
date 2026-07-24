@@ -80,6 +80,11 @@ from backend.content_store import ContentStore
 from backend.content_sync import ContentSigner, signed_pack
 from backend.delivery import gateway_from_environment
 from backend.managed_auth import AuthIdentity, SupabaseTokenVerifier
+from backend.observability import (
+    RequestContextMiddleware,
+    configure_logging,
+    init_error_tracking,
+)
 from backend.review import ReviewError, ReviewService
 from backend.schemas import (
     AskRequest,
@@ -130,11 +135,15 @@ def create_app(
             with suppress(asyncio.CancelledError):
                 await app.state.alert_retry_task
 
+    configure_logging()
+    init_error_tracking()
+
     app = FastAPI(
         title="KnowYourRights API",
         version="0.1.0",
         lifespan=lifespan,
     )
+    app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -147,8 +156,12 @@ def create_app(
     # `detail` field so existing clients that read it keep working.
     def _envelope(status_code: int, message: object, details: object = None) -> dict:
         code = {
-            400: "bad_request", 401: "unauthorized", 403: "forbidden",
-            404: "not_found", 409: "conflict", 422: "validation_error",
+            400: "bad_request",
+            401: "unauthorized",
+            403: "forbidden",
+            404: "not_found",
+            409: "conflict",
+            422: "validation_error",
             429: "rate_limited",
         }.get(status_code, "error")
         return {
@@ -831,9 +844,7 @@ def create_app(
         jurisdiction: str | None = Query(default=None, max_length=80),
         status: str | None = Query(default=None, max_length=24),
     ) -> list[Topic]:
-        return resolved_store.list_topics(
-            category=category, jurisdiction=jurisdiction, status=status
-        )
+        return resolved_store.list_topics(category=category, jurisdiction=jurisdiction, status=status)
 
     @app.get("/v1/topics/{topic_id}", response_model=Topic)
     def get_topic(topic_id: str) -> Topic:
@@ -859,8 +870,9 @@ def create_app(
         state: str | None = Query(default=None, max_length=80),
         lga: str | None = Query(default=None, max_length=80),
         specialty: str | None = Query(default=None, max_length=48),
-        near: str | None = Query(default=None, max_length=80,
-                                 description="your state; floats nearby help to the top"),
+        near: str | None = Query(
+            default=None, max_length=80, description="your state; floats nearby help to the top"
+        ),
     ) -> list[DirectoryEntry]:
         return resolved_store.list_directory(
             entry_type=type, state=state, lga=lga, specialty=specialty, near=near
@@ -948,8 +960,7 @@ def create_app(
 
     STUDENT_PREF_ID = "student"
 
-    def _sync_write(user_id: str, kind: str, item_id: str, payload: dict,
-                    deleted: bool = False) -> None:
+    def _sync_write(user_id: str, kind: str, item_id: str, payload: dict, deleted: bool = False) -> None:
         accounts.sync_user_items(
             user_id,
             [
@@ -965,9 +976,7 @@ def create_app(
 
     def _sync_read(user_id: str, kind: str) -> list[dict]:
         return [
-            item
-            for item in accounts.user_items(user_id)
-            if item["kind"] == kind and not item.get("deleted")
+            item for item in accounts.user_items(user_id) if item["kind"] == kind and not item.get("deleted")
         ]
 
     @app.get("/v1/students/filters")
@@ -1011,21 +1020,16 @@ def create_app(
         unknown = [c for c in body.case_ids if resolved_store.get_case(c) is None]
         if unknown:
             raise HTTPException(status_code=400, detail=f"unknown cases: {', '.join(unknown[:5])}")
-        _sync_write(user_id, "reading_list", list_id,
-                    {"name": body.name, "case_ids": body.case_ids})
+        _sync_write(user_id, "reading_list", list_id, {"name": body.name, "case_ids": body.case_ids})
         return Response(status_code=204)
 
     @app.delete("/v1/students/reading-lists/{list_id}", status_code=204)
-    def delete_reading_list(
-        list_id: str, user_id: Annotated[str, Depends(current_user)]
-    ) -> Response:
+    def delete_reading_list(list_id: str, user_id: Annotated[str, Depends(current_user)]) -> Response:
         _sync_write(user_id, "reading_list", list_id, {}, deleted=True)
         return Response(status_code=204)
 
     @app.get("/v1/students/preferences", response_model=StudentPreferences)
-    def get_student_preferences(
-        user_id: Annotated[str, Depends(current_user)]
-    ) -> StudentPreferences:
+    def get_student_preferences(user_id: Annotated[str, Depends(current_user)]) -> StudentPreferences:
         for item in _sync_read(user_id, "preference"):
             if item["item_id"] == STUDENT_PREF_ID:
                 return StudentPreferences(**item["payload"])
@@ -1055,8 +1059,7 @@ def create_app(
                 user_id,
                 "interpretation",
                 f"{case.name} - {body.kind}",
-                {"case_id": case_id, "kind": body.kind, "body": body.body,
-                 "citations": body.citations},
+                {"case_id": case_id, "kind": body.kind, "body": body.body, "citations": body.citations},
             )
         except ReviewError as error:
             raise review_error(error) from error
@@ -1314,6 +1317,65 @@ def create_app(
             return reviews.audit_trail(user_id, limit, target_id)
         except ReviewError as error:
             raise review_error(error) from error
+
+    # ------------------------------------------------------------ observability
+    #
+    # Operational and trust dashboards, computed on demand from data already
+    # held. Reviewer/administrator only; none of it exposes a user's question.
+
+    def _require_reviewer(user_id: str) -> None:
+        if accounts.role(user_id) not in {"reviewer", "administrator"}:
+            raise HTTPException(status_code=403, detail="reviewer role required")
+
+    @app.get("/v1/admin/metrics/content-health")
+    def content_health(user_id: Annotated[str, Depends(current_user)]) -> dict:
+        """Verified / community / draft counts per content type, and the stale backlog."""
+        _require_reviewer(user_id)
+        pack = resolved_store._pack
+        groups = {
+            "topics": pack.topics,
+            "scenarios": pack.scenarios,
+            "obligations": pack.obligations,
+            "cases": pack.cases,
+        }
+        health: dict[str, dict] = {}
+        for name, items in groups.items():
+            by_status: dict[str, int] = {}
+            for item in items:
+                key = item.status.value
+                by_status[key] = by_status.get(key, 0) + 1
+            health[name] = {"total": len(items), "by_status": by_status}
+        stale = reviews.stale_content(user_id, pack)
+        return {
+            "content_version": resolved_store.version,
+            "content": health,
+            "stale_count": len(stale),
+            "stale": stale,
+        }
+
+    @app.get("/v1/admin/metrics/ai")
+    def ai_metrics(
+        user_id: Annotated[str, Depends(current_user)],
+        days: int = Query(default=7, ge=1, le=90),
+    ) -> dict:
+        """LLM volume, cost, latency, cache and refusal rates. No prompts retained."""
+        _require_reviewer(user_id)
+        return accounts.ai_metrics_summary(days)
+
+    @app.get("/v1/admin/metrics/trust-kpis")
+    def trust_kpis(user_id: Annotated[str, Depends(current_user)]) -> dict:
+        """The numbers the north star lives or dies by."""
+        _require_reviewer(user_id)
+        pack = resolved_store._pack
+        ai = accounts.ai_metrics_summary(30)
+        verified = sum(1 for t in pack.topics if t.status.value == "verified")
+        return {
+            "answers_refusal_rate_30d": ai.get("refusal_rate"),
+            "verified_topics": verified,
+            "total_topics": len(pack.topics),
+            "stale_backlog": len(reviews.stale_content(user_id, pack)),
+            "error_reports": accounts.error_report_metrics(),
+        }
 
     @app.get("/v1/content-pack", response_model=ContentPack)
     def content_pack() -> ContentPack:

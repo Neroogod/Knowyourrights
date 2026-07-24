@@ -13,10 +13,10 @@ from backend.schemas import CaseRelation
 
 def auth(client: TestClient, email: str) -> dict:
     created = client.post("/v1/auth/register", json={"email": email, "password": "Str0ngPassw0rd!23"})
-    client.post("/v1/auth/verify-email",
-                json={"token": created.json()["development_verification_token"]})
-    token = client.post("/v1/auth/login",
-                        json={"email": email, "password": "Str0ngPassw0rd!23"}).json()["access_token"]
+    client.post("/v1/auth/verify-email", json={"token": created.json()["development_verification_token"]})
+    token = client.post("/v1/auth/login", json={"email": email, "password": "Str0ngPassw0rd!23"}).json()[
+        "access_token"
+    ]
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -46,9 +46,7 @@ def test_filters_combine(client: TestClient):
         params={"year": 1999, "court": "Supreme Court of Nigeria", "area_of_law": "freedom-of-movement"},
     ).json()
     assert len(hit) == 1
-    miss = client.get(
-        "/v1/students/cases", params={"year": 1999, "court": "Court of Appeal"}
-    ).json()
+    miss = client.get("/v1/students/cases", params={"year": 1999, "court": "Court of Appeal"}).json()
     assert miss == []
 
 
@@ -91,8 +89,7 @@ def test_create_and_fetch_a_reading_list(client: TestClient):
     response = client.put(
         "/v1/students/reading-lists/con-law",
         headers=headers,
-        json={"id": "con-law", "name": "Constitutional law week 3",
-              "case_ids": ["agbakoba-passport"]},
+        json={"id": "con-law", "name": "Constitutional law week 3", "case_ids": ["agbakoba-passport"]},
     )
     assert response.status_code == 204
     lists = client.get("/v1/students/reading-lists", headers=headers).json()
@@ -113,8 +110,9 @@ def test_reading_list_rejects_unknown_cases(client: TestClient):
 
 def test_delete_a_reading_list(client: TestClient):
     headers = auth(client, "student5@example.com")
-    client.put("/v1/students/reading-lists/tmp", headers=headers,
-               json={"id": "tmp", "name": "Temp", "case_ids": []})
+    client.put(
+        "/v1/students/reading-lists/tmp", headers=headers, json={"id": "tmp", "name": "Temp", "case_ids": []}
+    )
     assert client.delete("/v1/students/reading-lists/tmp", headers=headers).status_code == 204
     assert client.get("/v1/students/reading-lists", headers=headers).json() == []
 
@@ -157,9 +155,7 @@ def _make_contributor(client: TestClient, account_service, email: str) -> dict:
     return headers
 
 
-def test_contributed_interpretation_enters_review_not_the_library(
-    client: TestClient, account_service
-):
+def test_contributed_interpretation_enters_review_not_the_library(client: TestClient, account_service):
     headers = _make_contributor(client, account_service, "contrib1@example.com")
     response = client.post(
         "/v1/students/cases/agbakoba-passport/interpretations",
@@ -167,7 +163,7 @@ def test_contributed_interpretation_enters_review_not_the_library(
         json={
             "kind": "significance",
             "body": "The decision links freedom of movement to travel documents in practice, "
-                    "which matters for later passport-seizure cases.",
+            "which matters for later passport-seizure cases.",
             "citations": [{"source_name": "1999 Constitution", "locator": "s.41"}],
         },
     )
@@ -178,8 +174,7 @@ def test_contributed_interpretation_enters_review_not_the_library(
 
     # And it has not appeared in the public library.
     case = client.get("/v1/students/cases/agbakoba-passport").json()
-    assert all("freedom of movement to travel documents" not in i["body"]
-               for i in case["interpretations"])
+    assert all("freedom of movement to travel documents" not in i["body"] for i in case["interpretations"])
 
 
 def test_interpretation_on_unknown_case_is_rejected(client: TestClient, account_service):
@@ -243,9 +238,11 @@ def test_contributor_profile_reports_their_record(client: TestClient, account_se
     client.post(
         "/v1/students/cases/agbakoba-passport/interpretations",
         headers=headers,
-        json={"kind": "commentary",
-              "body": "A distinct piece of commentary written for this particular case study.",
-              "citations": [{"source_name": "1999 Constitution", "locator": "s.41"}]},
+        json={
+            "kind": "commentary",
+            "body": "A distinct piece of commentary written for this particular case study.",
+            "citations": [{"source_name": "1999 Constitution", "locator": "s.41"}],
+        },
     )
     profile = client.get("/v1/students/me/contributions", headers=headers).json()
     assert profile["submitted"] == 1

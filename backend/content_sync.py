@@ -35,9 +35,7 @@ class ContentSigner:
                 if os.getenv("KYR_DEVELOPMENT_MODE") == "1":
                     secret = "development-only-content-signing-key"
                 else:
-                    raise RuntimeError(
-                        "KYR_CONTENT_SIGNING_PRIVATE_KEY or KYR_APP_SECRET is required"
-                    )
+                    raise RuntimeError("KYR_CONTENT_SIGNING_PRIVATE_KEY or KYR_APP_SECRET is required")
             raw = hashlib.sha256(f"content-signing:{secret}".encode()).digest()
         private_key = Ed25519PrivateKey.from_private_bytes(raw)
         public = private_key.public_key().public_bytes_raw()
@@ -45,14 +43,10 @@ class ContentSigner:
 
     @property
     def public_key(self) -> str:
-        return base64.urlsafe_b64encode(
-            self.private_key.public_key().public_bytes_raw()
-        ).decode().rstrip("=")
+        return base64.urlsafe_b64encode(self.private_key.public_key().public_bytes_raw()).decode().rstrip("=")
 
     def sign(self, payload: dict) -> str:
-        return base64.urlsafe_b64encode(
-            self.private_key.sign(canonical_json(payload))
-        ).decode().rstrip("=")
+        return base64.urlsafe_b64encode(self.private_key.sign(canonical_json(payload))).decode().rstrip("=")
 
 
 def layer_data(pack: ContentPack, layer: str, jurisdiction: str) -> dict:
@@ -66,9 +60,7 @@ def layer_data(pack: ContentPack, layer: str, jurisdiction: str) -> dict:
     if layer == "rights":
         return {
             "topics": [item.model_dump(mode="json") for item in pack.topics if allowed(item)],
-            "scenarios": [
-                item.model_dump(mode="json") for item in pack.scenarios if allowed(item)
-            ],
+            "scenarios": [item.model_dump(mode="json") for item in pack.scenarios if allowed(item)],
             "directory": [
                 item.model_dump(mode="json")
                 for item in pack.directory
@@ -79,13 +71,9 @@ def layer_data(pack: ContentPack, layer: str, jurisdiction: str) -> dict:
     if layer == "students":
         return {"cases": [item.model_dump(mode="json") for item in pack.cases if allowed(item)]}
     return {
-        "obligations": [
-            item.model_dump(mode="json") for item in pack.obligations if allowed(item)
-        ],
+        "obligations": [item.model_dump(mode="json") for item in pack.obligations if allowed(item)],
         "company_checklists": [
-            item.model_dump(mode="json")
-            for item in pack.company_checklists
-            if allowed(item)
+            item.model_dump(mode="json") for item in pack.company_checklists if allowed(item)
         ],
     }
 

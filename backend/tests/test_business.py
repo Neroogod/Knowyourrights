@@ -107,8 +107,13 @@ def test_regulators_endpoint_lists_the_bodies_with_official_links(client: TestCl
     from backend.schemas import DirectoryEntry
 
     store._directory.append(
-        DirectoryEntry(id="cac", name="Corporate Affairs Commission (CAC)",
-                       entry_type="regulator", state="Federal", url="https://www.cac.gov.ng/")
+        DirectoryEntry(
+            id="cac",
+            name="Corporate Affairs Commission (CAC)",
+            entry_type="regulator",
+            state="Federal",
+            url="https://www.cac.gov.ng/",
+        )
     )
     regulators = client.get("/v1/company/regulators").json()
     assert any(r["id"] == "cac" for r in regulators)

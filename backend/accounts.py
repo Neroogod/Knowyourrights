@@ -596,6 +596,50 @@ class AccountService:
             )
         return event_id
 
+    def ai_metrics_summary(self, days: int = 7) -> dict:
+        """Aggregate LLM cost, latency, cache, and refusal rates over a window.
+
+        The prompts themselves are never stored, so this reports on volume and
+        cost without exposing what anyone asked.
+        """
+        since = self._now() - timedelta(days=days)
+        with self.sessions() as session:
+            rows = session.scalars(select(AIUsageRecord).where(AIUsageRecord.created_at >= since)).all()
+        total = len(rows)
+        if total == 0:
+            return {"window_days": days, "questions": 0}
+        latencies = sorted(r.latency_ms for r in rows)
+        p95 = latencies[min(len(latencies) - 1, int(len(latencies) * 0.95))]
+        by_corpus: dict[str, int] = {}
+        for r in rows:
+            by_corpus[r.corpus] = by_corpus.get(r.corpus, 0) + 1
+        return {
+            "window_days": days,
+            "questions": total,
+            "refused": sum(1 for r in rows if r.refused),
+            "refusal_rate": round(sum(1 for r in rows if r.refused) / total, 3),
+            "cache_hit_rate": round(sum(1 for r in rows if r.cache_hit) / total, 3),
+            "estimated_cost_usd": round(sum(r.estimated_cost_usd for r in rows), 4),
+            "latency_ms_avg": round(sum(latencies) / total, 1),
+            "latency_ms_p95": p95,
+            "by_corpus": by_corpus,
+        }
+
+    def error_report_metrics(self) -> dict:
+        """Open vs resolved error reports and how long resolution takes."""
+        from backend.review import ErrorReportRecord
+
+        with self.sessions() as session:
+            rows = session.scalars(select(ErrorReportRecord)).all()
+        open_count = sum(1 for r in rows if r.status in ("open", "triaged"))
+        resolved = [r for r in rows if r.resolved_at is not None]
+        hours = [(r.resolved_at - r.created_at).total_seconds() / 3600 for r in resolved]
+        return {
+            "open": open_count,
+            "resolved": len(resolved),
+            "avg_resolution_hours": round(sum(hours) / len(hours), 1) if hours else None,
+        }
+
     def pending_ai_reviews(self, limit: int = 50) -> list[dict]:
         with self.sessions() as session:
             rows = session.scalars(

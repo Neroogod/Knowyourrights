@@ -477,18 +477,14 @@ class DatabaseContentRepository:
     def embedding_coverage(self, model_id: str) -> tuple[int, int]:
         """Return verified active chunks and those embedded with this model."""
         with self.sessions() as session:
-            active = session.scalar(
-                select(ContentVersionRecord).where(ContentVersionRecord.active.is_(True))
-            )
+            active = session.scalar(select(ContentVersionRecord).where(ContentVersionRecord.active.is_(True)))
             if active is None:
                 return 0, 0
             filters = (
                 ChunkRecord.version_id == active.id,
                 ChunkRecord.status == "verified",
             )
-            total = int(
-                session.scalar(select(func.count()).where(*filters)) or 0
-            )
+            total = int(session.scalar(select(func.count()).where(*filters)) or 0)
             embedded = int(
                 session.scalar(
                     select(func.count()).where(

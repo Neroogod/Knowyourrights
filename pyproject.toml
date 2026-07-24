@@ -8,6 +8,15 @@ requires-python = ">=3.11"
 pythonpath = ["."]
 testpaths = ["backend/tests"]
 
+[tool.coverage.run]
+source = ["backend"]
+omit = ["backend/tests/*", "*/__main__.py"]
+
+[tool.coverage.report]
+# The trust-critical modules must stay well-covered; this is a floor, not a target.
+fail_under = 70
+show_missing = true
+
 [tool.ruff]
 line-length = 110
 target-version = "py311"

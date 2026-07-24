@@ -27,9 +27,7 @@ class DeliveryGateway(Protocol):
 
     def send_custody_alert(self, phone: str, message: str) -> str: ...
 
-    def send_custody_alert_channel(
-        self, channel: str, destination: str, message: str
-    ) -> str: ...
+    def send_custody_alert_channel(self, channel: str, destination: str, message: str) -> str: ...
 
 
 class DevelopmentGateway:
@@ -67,9 +65,7 @@ class DevelopmentGateway:
         self.alerts.append((phone, message))
         return f"dev-{len(self.alerts)}"
 
-    def send_custody_alert_channel(
-        self, channel: str, destination: str, message: str
-    ) -> str:
+    def send_custody_alert_channel(self, channel: str, destination: str, message: str) -> str:
         self.alerts.append((f"{channel}:{destination}", message))
         return f"dev-{channel}-{len(self.alerts)}"
 
@@ -161,9 +157,7 @@ class ProductionGateway:
             status_callback=f"{self.public_base_url}/v1/custody-alerts/twilio-callback",
         )
 
-    def send_custody_alert_channel(
-        self, channel: str, destination: str, message: str
-    ) -> str:
+    def send_custody_alert_channel(self, channel: str, destination: str, message: str) -> str:
         if channel == "email":
             return self._send_email(
                 destination,

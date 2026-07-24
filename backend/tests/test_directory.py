@@ -12,12 +12,24 @@ from backend.schemas import DirectoryEntry, Status
 
 def _seed(store):
     store._directory = [
-        DirectoryEntry(id="lac", name="Legal Aid Council", entry_type="legal_aid",
-                       state="Federal", specialty=["criminal", "general"]),
-        DirectoryEntry(id="lagos-aid", name="Lagos Legal Clinic", entry_type="legal_aid",
-                       state="Lagos", lga="Ikeja", specialty=["tenancy"]),
-        DirectoryEntry(id="kano-ngo", name="Kano Rights NGO", entry_type="ngo",
-                       state="Kano", specialty=["human-rights"]),
+        DirectoryEntry(
+            id="lac",
+            name="Legal Aid Council",
+            entry_type="legal_aid",
+            state="Federal",
+            specialty=["criminal", "general"],
+        ),
+        DirectoryEntry(
+            id="lagos-aid",
+            name="Lagos Legal Clinic",
+            entry_type="legal_aid",
+            state="Lagos",
+            lga="Ikeja",
+            specialty=["tenancy"],
+        ),
+        DirectoryEntry(
+            id="kano-ngo", name="Kano Rights NGO", entry_type="ngo", state="Kano", specialty=["human-rights"]
+        ),
         DirectoryEntry(id="police", name="Police line", entry_type="emergency", state="Federal"),
     ]
 
@@ -90,10 +102,10 @@ def test_filters_endpoint_lists_available_values(client: TestClient, store):
 
 def _contributor(client: TestClient, account_service, email: str) -> dict:
     created = client.post("/v1/auth/register", json={"email": email, "password": "Str0ngPassw0rd!23"})
-    client.post("/v1/auth/verify-email",
-                json={"token": created.json()["development_verification_token"]})
-    token = client.post("/v1/auth/login",
-                        json={"email": email, "password": "Str0ngPassw0rd!23"}).json()["access_token"]
+    client.post("/v1/auth/verify-email", json={"token": created.json()["development_verification_token"]})
+    token = client.post("/v1/auth/login", json={"email": email, "password": "Str0ngPassw0rd!23"}).json()[
+        "access_token"
+    ]
     user_id = account_service.authenticate(token)
     with account_service.sessions.begin() as session:
         from backend.accounts import UserRoleRecord
@@ -103,21 +115,25 @@ def _contributor(client: TestClient, account_service, email: str) -> dict:
 
 
 def test_directory_contribution_requires_an_account(client: TestClient):
-    response = client.post("/v1/directory/contributions",
-                           json={"name": "Some Clinic", "entry_type": "legal_aid"})
+    response = client.post(
+        "/v1/directory/contributions", json={"name": "Some Clinic", "entry_type": "legal_aid"}
+    )
     assert response.status_code == 401
 
 
-def test_contributed_entry_enters_review_not_the_live_directory(
-    client: TestClient, account_service, store
-):
+def test_contributed_entry_enters_review_not_the_live_directory(client: TestClient, account_service, store):
     _seed(store)
     headers = _contributor(client, account_service, "dir1@example.com")
     response = client.post(
         "/v1/directory/contributions",
         headers=headers,
-        json={"name": "Enugu Legal Aid Clinic", "entry_type": "legal_aid",
-              "state": "Enugu", "phone": "+2348000000000", "specialty": ["tenancy"]},
+        json={
+            "name": "Enugu Legal Aid Clinic",
+            "entry_type": "legal_aid",
+            "state": "Enugu",
+            "phone": "+2348000000000",
+            "specialty": ["tenancy"],
+        },
     )
     assert response.status_code == 201
     assert response.json()["status"] == "community", "a submitted contact is never live on submission"
@@ -134,8 +150,12 @@ def test_a_correction_carries_the_target_entry_id(client: TestClient, account_se
     response = client.post(
         "/v1/directory/contributions",
         headers=headers,
-        json={"name": "Lagos Legal Clinic", "entry_type": "legal_aid",
-              "phone": "+2348111111111", "corrects_id": "lagos-aid"},
+        json={
+            "name": "Lagos Legal Clinic",
+            "entry_type": "legal_aid",
+            "phone": "+2348111111111",
+            "corrects_id": "lagos-aid",
+        },
     )
     assert response.status_code == 201
     assert response.json()["payload"]["corrects_id"] == "lagos-aid"

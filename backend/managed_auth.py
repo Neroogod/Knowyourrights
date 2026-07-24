@@ -31,9 +31,7 @@ class SupabaseTokenVerifier:
         self.enabled = bool(self.project_url)
         self.issuer = f"{self.project_url}/auth/v1" if self.enabled else ""
         self._jwks = (
-            jwt.PyJWKClient(f"{self.issuer}/.well-known/jwks.json", cache_keys=True)
-            if self.enabled
-            else None
+            jwt.PyJWKClient(f"{self.issuer}/.well-known/jwks.json", cache_keys=True) if self.enabled else None
         )
 
     def verify(self, token: str) -> AuthIdentity:

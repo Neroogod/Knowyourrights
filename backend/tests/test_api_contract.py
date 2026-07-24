@@ -145,10 +145,10 @@ def test_unauthorized_uses_the_envelope(client: TestClient):
 
 def _auth(client: TestClient, email: str) -> dict:
     created = client.post("/v1/auth/register", json={"email": email, "password": "Str0ngPassw0rd!23"})
-    client.post("/v1/auth/verify-email",
-                json={"token": created.json()["development_verification_token"]})
-    token = client.post("/v1/auth/login",
-                        json={"email": email, "password": "Str0ngPassw0rd!23"}).json()["access_token"]
+    client.post("/v1/auth/verify-email", json={"token": created.json()["development_verification_token"]})
+    token = client.post("/v1/auth/login", json={"email": email, "password": "Str0ngPassw0rd!23"}).json()[
+        "access_token"
+    ]
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -158,14 +158,31 @@ def test_reading_history_and_saved_topics_sync(client: TestClient):
     client.post(
         "/v1/sync",
         headers=headers,
-        json={"items": [
-            {"kind": "history", "item_id": "rights-when-arrested",
-             "payload": {"type": "topic"}, "deleted": False, "updated_at": now},
-            {"kind": "saved", "item_id": "privacy-and-phone-searches",
-             "payload": {"type": "topic"}, "deleted": False, "updated_at": now},
-            {"kind": "preference", "item_id": "notifications",
-             "payload": {"legal_changes": True}, "deleted": False, "updated_at": now},
-        ]},
+        json={
+            "items": [
+                {
+                    "kind": "history",
+                    "item_id": "rights-when-arrested",
+                    "payload": {"type": "topic"},
+                    "deleted": False,
+                    "updated_at": now,
+                },
+                {
+                    "kind": "saved",
+                    "item_id": "privacy-and-phone-searches",
+                    "payload": {"type": "topic"},
+                    "deleted": False,
+                    "updated_at": now,
+                },
+                {
+                    "kind": "preference",
+                    "item_id": "notifications",
+                    "payload": {"legal_changes": True},
+                    "deleted": False,
+                    "updated_at": now,
+                },
+            ]
+        },
     )
     pulled = client.get("/v1/sync", headers=headers).json()["items"]
     kinds = {item["kind"] for item in pulled}

@@ -169,9 +169,7 @@ def screen_submission(
     """
     flags: list[str] = []
     body = " ".join(
-        str(value)
-        for key, value in payload.items()
-        if key not in {"citations"} and isinstance(value, str)
+        str(value) for key, value in payload.items() if key not in {"citations"} and isinstance(value, str)
     )
 
     # A directory entry is a contact, not a legal claim, so it needs no citation;
@@ -222,8 +220,16 @@ class ReviewService:
             raise ReviewError(f"requires one of: {', '.join(sorted(allowed))}")
         return role
 
-    def _audit(self, session, actor: str | None, action: str, target_type: str,
-               target_id: str, before: dict | None, after: dict | None) -> None:
+    def _audit(
+        self,
+        session,
+        actor: str | None,
+        action: str,
+        target_type: str,
+        target_id: str,
+        before: dict | None,
+        after: dict | None,
+    ) -> None:
         session.add(
             AuditLogRecord(
                 id=str(uuid.uuid4()),
@@ -259,9 +265,7 @@ class ReviewService:
                 raise ReviewError("submission rate limit reached; try again later")
 
             existing = session.scalars(
-                select(ContributionRecord.payload_json).where(
-                    ContributionRecord.content_type == content_type
-                )
+                select(ContributionRecord.payload_json).where(ContributionRecord.content_type == content_type)
             ).all()
             result = screen_submission(payload, list(existing), content_type)
 
@@ -280,8 +284,15 @@ class ReviewService:
                 updated_at=now,
             )
             session.add(record)
-            self._audit(session, author_id, "contribution.submitted", content_type, record.id,
-                        None, {"status": status, "flags": list(result.flags)})
+            self._audit(
+                session,
+                author_id,
+                "contribution.submitted",
+                content_type,
+                record.id,
+                None,
+                {"status": status, "flags": list(result.flags)},
+            )
             return _contribution_dict(record)
 
     def queue(self, reviewer_id: str, status: str = STATUS_COMMUNITY, limit: int = 50) -> list[dict]:
@@ -296,8 +307,7 @@ class ReviewService:
             ).all()
             return [_contribution_dict(r) for r in rows]
 
-    def decide(self, reviewer_id: str, contribution_id: str, decision: str,
-               notes: str | None = None) -> dict:
+    def decide(self, reviewer_id: str, contribution_id: str, decision: str, notes: str | None = None) -> dict:
         """Approve, reject, or request changes. Only a reviewer can verify content."""
         self._require(reviewer_id, REVIEWER_ROLES)
         if decision not in {DECISION_APPROVE, DECISION_REJECT, DECISION_CHANGES}:
@@ -337,8 +347,15 @@ class ReviewService:
                     created_at=self._now(),
                 )
             )
-            self._audit(session, reviewer_id, f"contribution.{decision}", record.content_type,
-                        contribution_id, before, {"status": record.status})
+            self._audit(
+                session,
+                reviewer_id,
+                f"contribution.{decision}",
+                record.content_type,
+                contribution_id,
+                before,
+                {"status": record.status},
+            )
             return _contribution_dict(record)
 
     def reviews_for(self, contribution_id: str) -> list[dict]:
@@ -386,8 +403,9 @@ class ReviewService:
 
     # -- error reports ---------------------------------------------------
 
-    def report_error(self, target_type: str, target_id: str, message: str,
-                     reporter_user_id: str | None = None) -> dict:
+    def report_error(
+        self, target_type: str, target_id: str, message: str, reporter_user_id: str | None = None
+    ) -> dict:
         """Anyone, signed in or not, can report an error. Reporting is never gated."""
         if not message.strip():
             raise ReviewError("describe what is wrong")
@@ -416,8 +434,15 @@ class ReviewService:
                 ).all()
             )
             flagged = open_count >= FLAG_THRESHOLD
-            self._audit(session, reporter_user_id, "error.reported", target_type, target_id,
-                        None, {"open_reports": open_count, "flagged": flagged})
+            self._audit(
+                session,
+                reporter_user_id,
+                "error.reported",
+                target_type,
+                target_id,
+                None,
+                {"open_reports": open_count, "flagged": flagged},
+            )
             return {
                 "id": record.id,
                 "status": record.status,
@@ -442,9 +467,7 @@ class ReviewService:
         self._require(reviewer_id, REVIEWER_ROLES)
         with self.sessions() as session:
             rows = session.scalars(
-                select(ErrorReportRecord).where(
-                    ErrorReportRecord.status.in_([REPORT_OPEN, REPORT_TRIAGED])
-                )
+                select(ErrorReportRecord).where(ErrorReportRecord.status.in_([REPORT_OPEN, REPORT_TRIAGED]))
             ).all()
         counts: dict[tuple[str, str], int] = {}
         for row in rows:
@@ -455,8 +478,9 @@ class ReviewService:
             if n >= FLAG_THRESHOLD
         ]
 
-    def resolve_error(self, reviewer_id: str, report_id: str, status: str,
-                      resolution: str | None = None) -> dict:
+    def resolve_error(
+        self, reviewer_id: str, report_id: str, status: str, resolution: str | None = None
+    ) -> dict:
         """Close out a report with an explicit outcome."""
         self._require(reviewer_id, REVIEWER_ROLES)
         if status not in {REPORT_TRIAGED, REPORT_RESOLVED, REPORT_DISMISSED}:
@@ -469,14 +493,20 @@ class ReviewService:
             record.status = status
             record.resolution = resolution
             record.resolved_at = self._now() if status != REPORT_TRIAGED else None
-            self._audit(session, reviewer_id, f"error.{status}", record.target_type,
-                        record.target_id, before, {"status": status})
+            self._audit(
+                session,
+                reviewer_id,
+                f"error.{status}",
+                record.target_type,
+                record.target_id,
+                before,
+                {"status": status},
+            )
             return _report_dict(record)
 
     # -- audit -----------------------------------------------------------
 
-    def audit_trail(self, actor_id: str, limit: int = 200,
-                    target_id: str | None = None) -> list[dict]:
+    def audit_trail(self, actor_id: str, limit: int = 200, target_id: str | None = None) -> list[dict]:
         """Read the append-only trail. Administrators only; there is no write path."""
         self._require(actor_id, {"administrator"})
         with self.sessions() as session:
