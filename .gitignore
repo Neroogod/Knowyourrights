@@ -17,3 +17,6 @@ app/.dart_tool/
 *.aab
 *.ipa
 *.app
+.coverage
+htmlcov/
+.pytest_cache/
