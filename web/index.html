@@ -1247,7 +1247,7 @@
 
 
   /* ------------------------------- student study desk ------------------- */
-  let SAVED_CASES=new Set(), READING_LISTS=[], CASE_FILTERS={courts:[],years:[],areas_of_law:[]};
+  let SAVED_CASES=new Set(), READING_LISTS=[], STUDENT_MODE=false, CASE_FILTERS={courts:[],years:[],areas_of_law:[]};
 
   async function loadStudentDesk(){
     try{ CASE_FILTERS=await apiJson("/students/filters"); }catch(_e){}
@@ -1261,6 +1261,7 @@
       const saved=await apiJson("/students/saved",{headers:authHeaders()});
       SAVED_CASES=new Set(saved.map(item=>item.item_id));
       READING_LISTS=await apiJson("/students/reading-lists",{headers:authHeaders()});
+      STUDENT_MODE=(await apiJson("/students/preferences",{headers:authHeaders()})).law_student_mode;
     }catch(_e){}
     renderStudyDesk(); renderCases();
   }
@@ -1303,7 +1304,25 @@
           <input class="field" id="newListName" placeholder="New reading list name" style="flex:1;min-width:180px">
           <button class="btn-primary" onclick="createReadingList()">Create from saved</button>
         </div>
-      </div>`;
+      </div>
+      <label class="saved-toggle" style="margin-top:12px">
+        <input type="checkbox" id="studentModeToggle" ${STUDENT_MODE?"checked":""} onchange="toggleStudentMode(this.checked)">
+        <span><strong>Law-student mode</strong><br><span class="muted-note">Keep the case library front and centre.</span></span>
+      </label>`;
+  }
+
+  async function toggleStudentMode(enabled){
+    if(!AUTH_TOKEN) return;
+    try{
+      await apiJson("/students/preferences",{method:"PUT",
+        headers:{...authHeaders(),"Content-Type":"application/json"},
+        body:JSON.stringify({law_student_mode:enabled})});
+      STUDENT_MODE=enabled;
+    }catch(error){
+      const toggle=document.getElementById("studentModeToggle");
+      if(toggle) toggle.checked=!enabled;
+      alert(error.message);
+    }
   }
 
   async function createReadingList(){
@@ -1390,7 +1409,7 @@
   function filterCaseArea(area){ CASE_AREA=area; renderCaseAreas(); renderCases(); }
 
   /* Hero copy and starter questions, sized from the digests actually loaded. */
-  function renderStudyDesk(){
+  function renderCaseHero(){
     const count=document.getElementById("studyCount");
     if(count) count.textContent=`${CASES.length} educational digests with facts, issues, holdings, `
       +`ratios and study notes, each cross-linked to the rights it establishes.`;
@@ -1745,7 +1764,7 @@
       document.getElementById("obligations").innerHTML = OBLIGATIONS.map(obligationCard).join("");
       document.getElementById("companyChecklists").innerHTML = COMPANY_CHECKLISTS.map(checklistCard).join("");
       renderCompanyDesk();
-      renderStudyDesk();
+      renderCaseHero();
       renderCaseAreas();
       renderCases();
       loadStudentDesk();
